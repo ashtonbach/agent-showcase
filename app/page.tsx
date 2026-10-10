@@ -1,3 +1,3 @@
 export default function Page() {
-  return <h1>Hello, Vercel World!</h1>;
+  return <h1>Hello, Agentic AI World!</h1>;
 }

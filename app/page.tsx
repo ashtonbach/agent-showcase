@@ -1,3 +1,8 @@
 export default function Page() {
-  return <h1 className="page-title">Hello, Go World!</h1>;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", gap: "1rem" }}>
+      <h1 className="page-title" style={{ whiteSpace: "nowrap" }}>Hello, Sentry World!</h1>
+      <img className="world-image" src="/worlds/sentry.png" alt="Sentry world illustration by Naomi Sato" width={480} height={270} style={{ width: 480, maxWidth: "90vw", height: "auto", margin: 0, borderRadius: 12 }} />
+    </div>
+  );
 }

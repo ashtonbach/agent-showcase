@@ -1,3 +1,3 @@
 export default function Page() {
-  return <h1>Hello, Agentic AI World!</h1>;
+  return <h1>Hello, Next.js World!</h1>;
 }

@@ -1,0 +1,3 @@
+{
+  "install": "npm install --no-audit --no-fund && (command -v xfce4-terminal >/dev/null || (sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq xfce4-terminal))"
+}

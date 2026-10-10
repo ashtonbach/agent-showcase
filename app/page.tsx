@@ -1,3 +1,3 @@
 export default function Page() {
-  return <h1>Hello, Mintlify World!</h1>;
+  return <h1 className="page-title">Hello, Mintlify World!</h1>;
 }

@@ -17,9 +17,8 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "About AshtonBach | Founded by David Wells, Engineering Executive",
-  description:
-    "AshtonBach is founded by David Wells, an engineering executive with 25+ years building consumer platforms in digital health, ecommerce, and travel, including CVS Health, Zappos, Koddi, and ID90 Travel.",
+  title: "AshtonBach | Agent Showcase",
+  description: "A live demo of AI agents shipping a change end to end.",
   robots: { index: true, follow: true },
   icons: { icon: "/ab-mark.svg" },
 };

@@ -48,7 +48,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     page.on("pageerror", (e) => errs.push(String(e)));
     const origin = new URL(url).origin;
     // Vercel injects its preview toolbar (vercel.live) on preview deployments only: block it, it is not part of the site.
-    await page.route(/^https:\/\/vercel\.live\//, (rt) => rt.abort());
+    await page.route(/^https:\/\/vercel\.live\//, (rt) => rt.fulfill({ status: 200, contentType: "application/javascript", body: "" }));
     page.on("request", (r) => { const u = r.url(); if (/^https:\/\/vercel\.live\//.test(u)) return; if (!u.startsWith(origin) && !u.startsWith("data:") && !u.startsWith("blob:")) offsite.push(u); });
     const r = await page.goto(url + (url.includes("?") ? "&" : "?") + "v=" + Date.now(), { waitUntil: "networkidle" });
     ok(r && r.status() === 200, `HTTP status ${r && r.status()}`);

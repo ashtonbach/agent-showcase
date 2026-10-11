@@ -18,6 +18,14 @@ const css = `
 .lab-quote .lab-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(176, 203, 188, 0.35); cursor: pointer; }
 .lab-quote .lab-dots button[aria-current="true"] { background: var(--sage); }
 .lab-quote .lab-dots button:focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; }
+.lab-quote .lab-controls { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.lab-quote .lab-controls .lab-dots { margin-top: 0; }
+.lab-quote .lab-toggle { font: inherit; font-size: 13px; padding: 4px 10px; border: 1px solid rgba(176, 203, 188, 0.35); border-radius: 999px; background: transparent; color: inherit; cursor: pointer; }
+.lab-quote .lab-toggle:focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; }
+@media (max-width: 480px) {
+  .lab-quote { padding: 20px 16px; }
+  .lab-quote blockquote { font-size: clamp(19px, 5.5vw, 24px); min-height: 5.2em; }
+}
 `;
 
 // Artwork slot: Naomi Sato commits the image at a fixed path; a quiet fallback shows if it is missing or fails to load.
@@ -30,11 +38,23 @@ function Art({ src, w, h, alt, children }: { src: string; w: number; h: number; 
 
 export default function TestimonialCard() {
   const [i, setI] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [hover, setHover] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [userDriven, setUserDriven] = useState(false); // last change came from a click, so announce it
   const [tick, setTick] = useState(0); // bumping this restarts the timer (dot click)
   useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReducedMotion(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  const paused = hover || focused || userPaused || reducedMotion;
+  useEffect(() => {
     if (paused) return;
-    const id = window.setInterval(() => setI((x) => (x + 1) % QUOTES.length), ROTATE_MS);
+    const id = window.setInterval(() => { setUserDriven(false); setI((x) => (x + 1) % QUOTES.length); }, ROTATE_MS);
     return () => window.clearInterval(id);
   }, [paused, tick]);
   const t = QUOTES[i];
@@ -43,18 +63,31 @@ export default function TestimonialCard() {
       data-lab="testimonial-card"
       className="lab-quote"
       aria-label="Testimonials"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onTouchStart={() => setHover(true)}
+      onFocus={() => setFocused(true)}
+      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false); }}
     >
       <style>{css}</style>
       <p className="label">What people say</p>
-      <figure aria-live="polite">
+      <figure aria-live={userDriven ? "polite" : "off"}>
         <blockquote data-index={i}>&ldquo;{t.q}&rdquo;</blockquote>
         <figcaption>
           <Art key={i} src={`/lab/testimonial-card/avatar-${i}.svg`} w={48} h={48} alt="">{t.name.split(" ").map((p) => p[0]).join("")}</Art>
           <span><strong>{t.name}</strong> <span className="label">{t.role}</span></span>
         </figcaption>
       </figure>
+      <div className="lab-controls">
+      <button
+        type="button"
+        className="lab-toggle"
+        aria-label={userPaused ? "Play testimonials" : "Pause testimonials"}
+        aria-pressed={userPaused}
+        onClick={() => setUserPaused((p) => !p)}
+      >
+        {userPaused ? "Play" : "Pause"}
+      </button>
       <div className="lab-dots">
         {QUOTES.map((x, k) => (
           <button
@@ -62,9 +95,10 @@ export default function TestimonialCard() {
             type="button"
             aria-label={`Show quote ${k + 1}`}
             aria-current={k === i}
-            onClick={() => { setI(k); setTick((n) => n + 1); }}
+            onClick={() => { setUserDriven(true); setI(k); setTick((n) => n + 1); }}
           />
         ))}
+      </div>
       </div>
     </section>
   );

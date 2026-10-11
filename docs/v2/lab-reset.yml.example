@@ -1,0 +1,40 @@
+name: Showcase v2 lab reset
+# Returns the showcase to base (removes app/lab features) nightly at 3 AM CT and on demand
+# (the admin page on agents-live dispatches this workflow). The classic heading and image are never touched.
+on:
+  schedule:
+    - cron: "0 8 * * *" # 03:00 CDT
+    - cron: "0 9 * * *" # 03:00 CST
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Why (shown in the log)"
+        required: false
+        default: "admin reset"
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: lab-reset
+  cancel-in-progress: false
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only at 3 AM Chicago time (cron runs twice for DST)
+        id: when
+        run: |
+          if [ "${{ github.event_name }}" = schedule ] && [ "$(TZ=America/Chicago date +%H)" != 03 ]; then echo "skip=1" >> "$GITHUB_OUTPUT"; echo "Not 3 AM CT, skipping"; fi
+      - uses: actions/checkout@v4
+        if: steps.when.outputs.skip != '1'
+        with:
+          fetch-depth: 0
+      - name: Reset to base
+        if: steps.when.outputs.skip != '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name ashtonbach-bot
+          git config user.email 334832153+ashtonbach-bot@users.noreply.github.com
+          echo "Reason: ${{ github.event.inputs.reason || 'nightly 3 AM CT' }}"
+          RESET_REPO=${{ github.repository }} scripts/v2/reset.sh --pr

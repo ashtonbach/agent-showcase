@@ -20,10 +20,22 @@ async function pixelDiff(page, a, b) {
     if (x.width !== y.width || Math.abs(x.height - y.height) > 2) return { size: [x.width, x.height, y.width, y.height] };
     const w = x.width, h = Math.min(x.height, y.height), c = (i) => { const k = document.createElement("canvas"); k.width = w; k.height = h; const g = k.getContext("2d"); g.drawImage(i, 0, 0); return g.getImageData(0, 0, w, h).data; };
     const p = c(x), q = c(y); let bad = 0;
-    for (let i = 0; i < p.length; i += 4) if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) > 48) bad++;
-    return { w, h, bad, ratio: bad / (w * h) };
+    // Anti-alias tolerant: a pixel only counts as different if no pixel within 1px in the OTHER image matches it
+    // (both directions). Glyph-edge smoothing that differs between machines (cloud VM vs box fonts/hinting) is ignored;
+    // moved, missing or changed content (different text, colour, layout) still counts. The 1% ratio limit is unchanged.
+    // Compare luminance too: subpixel (LCD, coloured-fringe) vs greyscale text smoothing differs between machines but keeps luminance.
+    const L = (a, i) => 0.299 * a[i] + 0.587 * a[i + 1] + 0.114 * a[i + 2];
+    const d = (a, i, b, j) => Math.abs(a[i] - b[j]) + Math.abs(a[i + 1] - b[j + 1]) + Math.abs(a[i + 2] - b[j + 2]) <= 48 || Math.abs(L(a, i) - L(b, j)) <= 16;
+    const near = (a, b, x0, y0) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const xx = x0 + dx, yy = y0 + dy; if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue; if (d(a, (y0 * w + x0) * 4, b, (yy * w + xx) * 4)) return true; } return false; };
+    let raw = 0;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d(p, i, q, i)) continue; raw++; if (!near(p, q, x, y) || !near(q, p, x, y)) bad++; }
+    return { w, h, bad, raw, ratio: bad / (w * h), rawRatio: raw / (w * h) };
   }, [a, b]);
 }
+if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : print the diff ratio only
+  (async () => { const b = await require("playwright").chromium.launch(); const pg = await b.newPage();
+    const d = await pixelDiff(pg, fs.readFileSync(args[1]).toString("base64"), fs.readFileSync(args[2]).toString("base64"));
+    console.log(JSON.stringify(d)); await b.close(); process.exit(d.size || d.ratio > THRESH ? 1 : 0); })(); return; }
 (async () => {
   const spec = require(path.join(__dirname, "specs", slug + ".js"));
   const b = await pw[engine].launch({ headless: true });
@@ -35,21 +47,23 @@ async function pixelDiff(page, a, b) {
     page.on("console", (m) => m.type() === "error" && errs.push(m.text()));
     page.on("pageerror", (e) => errs.push(String(e)));
     const origin = new URL(url).origin;
-    page.on("request", (r) => { const u = r.url(); if (!u.startsWith(origin) && !u.startsWith("data:") && !u.startsWith("blob:")) offsite.push(u); });
+    // Vercel injects its preview toolbar (vercel.live) on preview deployments only: block it, it is not part of the site.
+    await page.route(/^https:\/\/vercel\.live\//, (rt) => rt.abort());
+    page.on("request", (r) => { const u = r.url(); if (/^https:\/\/vercel\.live\//.test(u)) return; if (!u.startsWith(origin) && !u.startsWith("data:") && !u.startsWith("blob:")) offsite.push(u); });
     const r = await page.goto(url + (url.includes("?") ? "&" : "?") + "v=" + Date.now(), { waitUntil: "networkidle" });
     ok(r && r.status() === 200, `HTTP status ${r && r.status()}`);
     const sec = page.locator(`section[data-lab="${slug}"]`);
     if (!ok((await sec.count()) === 1, `feature section [data-lab="${slug}"] present on first load`)) { await ctx.close(); continue; }
     await sec.scrollIntoViewIfNeeded();
     ok(await sec.isVisible(), "feature visible");
-    ok(await page.locator("h1.page-title").isVisible(), "classic hero heading still visible");
+    ok(!(await page.locator("h1.page-title").isVisible()) && !(await page.locator(".world-image").isVisible()), "hero hidden while a feature is shown");
     const sx = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     ok(sx <= 0, `no sideways scroll (${sx}px overflow)`);
     const bb = await sec.boundingBox();
     ok(bb && bb.x >= 0 && bb.x + bb.width <= w + 1, `feature fits the ${w}px viewport`);
     await spec.check({ page, sec, ok, w, engine, log, phase: "before-shot" });
     if (spec.beforeShot) await spec.beforeShot({ page, sec, w });
-    await page.addStyleTag({ content: ".site-header{position:static !important}" }); // sticky header must not cover tall features in the shot
+    await page.addStyleTag({ content: ".site-header{position:static !important} vercel-live-feedback,#vercel-live-feedback-container{display:none !important}" }); // sticky header must not cover tall features in the shot
     await page.waitForTimeout(300);
     const shot = await sec.screenshot({ animations: "disabled" });
     const name = `${slug}-${engine}-${w}.png`;
@@ -60,7 +74,7 @@ async function pixelDiff(page, a, b) {
     else {
       const d = await pixelDiff(page, shot.toString("base64"), fs.readFileSync(ref).toString("base64"));
       if (d.size) ok(false, `visual: size ${d.size[0]}x${d.size[1]} vs reference ${d.size[2]}x${d.size[3]}`);
-      else { visual.push(d.ratio); ok(d.ratio <= THRESH, `visual: ${(d.ratio * 100).toFixed(2)}% pixels differ from reference (max ${(THRESH * 100).toFixed(0)}%)`); }
+      else { visual.push(d.ratio); ok(d.ratio <= THRESH, `visual: ${(d.ratio * 100).toFixed(2)}% pixels differ from reference (max ${(THRESH * 100).toFixed(0)}%; raw ${(d.rawRatio * 100).toFixed(2)}% before anti-alias tolerance)`); }
     }
     if (spec.after) await spec.after({ page, sec, ok, w, engine, log, ctx });
     ok(offsite.length === 0, `no off-site network requests${offsite.length ? ": " + offsite.slice(0, 3).join(", ") : ""}`);

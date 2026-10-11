@@ -209,3 +209,26 @@ a { color: inherit; }
   .nav-list a,
   .nav-list a::after { transition: none; }
 }
+
+/* Mobile: hero heading + image must fit narrow screens. Lives in CSS (not page.tsx)
+   because every demo run rewrites the heading text and image path. */
+html, body { overflow-x: clip; }
+
+@media (max-width: 640px) {
+  h1.page-title {
+    white-space: normal !important;
+    font-size: clamp(32px, 9vw, 56px);
+    text-align: center;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .world-image {
+    width: auto !important;
+    max-width: calc(100% - 40px) !important;
+    height: auto !important;
+    margin: 0 20px 32px !important;
+  }
+  .site-footer { padding-left: 20px; padding-right: 20px; text-align: center; }
+}

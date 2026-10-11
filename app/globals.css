@@ -239,3 +239,16 @@ main:has([data-lab]) .page-title,
 main:has([data-lab]) .world-image,
 body:has([data-lab]) .page-title,
 body:has([data-lab]) .world-image { display: none !important; }
+
+/* Site-wide AI disclaimer: small, light, low emphasis. */
+.site-footer { flex-direction: column; gap: 6px; }
+.site-disclaimer {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: rgba(176, 203, 188, 0.55);
+  text-align: center;
+  line-height: 1.4;
+  max-width: 100%;
+}

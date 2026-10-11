@@ -17,11 +17,11 @@ A small Next.js page ("Hello, <World> World!" plus a world image) that a team of
 
 ## Human oversight
 
-David Wells designed this system and oversees it. He sets the rules the agents follow (review gate, one run at a time, daily cap), watches runs and can stop or roll back any change. Agents cannot change those rules themselves.
+A human designed this system and oversees it. They set the rules the agents follow (review gate, one run at a time, daily cap), watch runs and can stop or roll back any change. Agents cannot change those rules themselves.
 
 ## AI disclosure
 
-All named contributors (Marcus Hale, Jonah Reyes, Naomi Sato, Priya Raman, Felix Archer) are AI agents. Commits and merges are made through the `ashtonbach-bot` GitHub account. David Wells is the only human; he designed the system and oversees it.
+All named contributors (Marcus Hale, Jonah Reyes, Naomi Sato, Priya Raman, Felix Archer) are AI agents. Commits and merges are made through the `ashtonbach-bot` GitHub account. A human designed the system and oversees it.
 
 ## Local development
 

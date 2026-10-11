@@ -1,4 +1,4 @@
-import Lab from "./lab/testimonial-card";
+import Lab from "./lab/feature-grid";
 export default function Page() {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", gap: "1rem" }}>

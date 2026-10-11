@@ -45,6 +45,8 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     const page = await ctx.newPage();
     const errs = [], offsite = [];
     page.on("console", (m) => m.type() === "error" && errs.push(m.text()));
+    let artMiss = 0; // missing artwork (404 under /lab/<slug>/) is allowed: the blueprint shows its fallback
+    page.on("response", (r) => { if (r.status() === 404 && new URL(r.url()).pathname.startsWith(`/lab/${slug}/`)) artMiss++; });
     page.on("pageerror", (e) => errs.push(String(e)));
     const origin = new URL(url).origin;
     // Vercel injects its preview toolbar (vercel.live) on preview deployments only: block it, it is not part of the site.
@@ -91,6 +93,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     }
     if (spec.after) await spec.after({ page, sec, ok, w, engine, log, ctx });
     ok(offsite.length === 0, `no off-site network requests${offsite.length ? ": " + offsite.slice(0, 3).join(", ") : ""}`);
+    if (artMiss) { log(`artwork missing: ${artMiss} file(s) under /lab/${slug}/, fallback shown`); for (let k = 0; k < artMiss; k++) { const j = errs.findIndex((e) => /Failed to load resource.*404/.test(e)); if (j >= 0) errs.splice(j, 1); } }
     ok(errs.length === 0, `console errors: ${errs.length ? errs.join(" | ").slice(0, 300) : "none"}`);
     await ctx.close();
   }

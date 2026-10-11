@@ -15,9 +15,10 @@ if (!menu.includes(slug)) fail("allowlist", `unknown feature "${slug}" (not in a
 const range = `${base}...${head}`;
 const files = git("diff", "--name-only", range).split("\n").filter(Boolean);
 out.files = files;
-const dir = `app/lab/${slug}/`;
+const dir = `app/lab/${slug}/`, artDir = `public/lab/${slug}/`; // artDir: Naomi Sato's artwork (SVG only, checked below)
 for (const f of files) {
   if (f === "app/page.tsx" || f.startsWith(dir)) continue;
+  if (f.startsWith(artDir) && /^[a-z0-9-]+\.svg$/.test(f.slice(artDir.length))) continue;
   fail("allowlist", `file outside allowlist: ${f}`);
 }
 if (!files.some((f) => f.startsWith(dir))) fail("allowlist", `no files in ${dir}`);
@@ -42,9 +43,17 @@ for (const l of added) {
 }
 for (const f of files.filter((f) => f.startsWith(dir)))
   if (!/\.(tsx|ts|css|module\.css|svg)$/.test(f)) fail("allowlist", `file type not allowed: ${f}`);
-// size cap
+// artwork: plain SVG only, small, nothing active or external
+for (const f of files.filter((f) => f.startsWith(artDir))) {
+  let svg = ""; try { svg = git("show", `${head}:${f}`); } catch (e) { continue; } // deleted
+  if (svg.length > 20000) fail("allowlist", `artwork too large: ${f} (${svg.length} bytes, max 20000)`);
+  if (!/^\s*(<\?xml[^>]*>\s*)?<svg[\s>]/.test(svg)) fail("allowlist", `artwork is not an SVG: ${f}`);
+  if (/<script|<foreignObject|\son[a-z]+\s*=|javascript:|(?:href|src)\s*=\s*["']\s*(?:https?:)?\/\/|@import|url\(\s*["']?\s*(?:https?:)?\/\//i.test(svg)) fail("banned", `artwork has scripts, handlers or external references: ${f}`);
+}
+// size cap (code only; artwork is capped by bytes above)
 for (const l of git("diff", "--numstat", range).split("\n").filter(Boolean)) {
-  const [a, r] = l.split("\t");
+  const [a, r, f] = l.split("\t");
+  if (f && f.startsWith(artDir)) continue;
   out.lines += (+a || 0) + (+r || 0);
 }
 if (out.lines > MAX) fail("size", `diff is ${out.lines} lines (max ${MAX})`);

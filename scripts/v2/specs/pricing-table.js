@@ -1,5 +1,6 @@
 // Pricing table: 3 tiers, middle highlighted, stacks on mobile, no sideways scroll.
 module.exports = {
+  art: 1, // design-led (Naomi Sato): artwork slots, masked from the pixel diff
   async check({ sec, ok, w }) {
     const t = sec.locator(":scope > ul > li");
     ok((await t.count()) === 3, `3 tiers (${await t.count()})`);

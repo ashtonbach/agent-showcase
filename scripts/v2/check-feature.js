@@ -45,6 +45,8 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     const page = await ctx.newPage();
     const errs = [], offsite = [];
     page.on("console", (m) => m.type() === "error" && errs.push(m.text()));
+    let artMiss = 0; // missing artwork (404 under /lab/<slug>/) is allowed: the blueprint shows its fallback
+    page.on("response", (r) => { if (r.status() === 404 && new URL(r.url()).pathname.startsWith(`/lab/${slug}/`)) artMiss++; });
     page.on("pageerror", (e) => errs.push(String(e)));
     const origin = new URL(url).origin;
     // Vercel injects its preview toolbar (vercel.live) on preview deployments only: block it, it is not part of the site.
@@ -62,10 +64,23 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     const bb = await sec.boundingBox();
     ok(bb && bb.x >= 0 && bb.x + bb.width <= w + 1, `feature fits the ${w}px viewport`);
     await spec.check({ page, sec, ok, w, engine, log, phase: "before-shot" });
+    if (spec.art) { // design-led: Naomi's artwork must load (or show its fallback) and fit; its pixels are masked from the diff
+      const arts = sec.locator("[data-art]"), n = await arts.count(), sb = await sec.boundingBox();
+      let img = 0, fb = 0, broken = 0, outside = 0;
+      for (let k = 0; k < n; k++) {
+        const a = arts.nth(k); if (!(await a.isVisible())) continue;
+        const kind = await a.getAttribute("data-art");
+        if (kind === "image") { img++; if (!(await a.evaluate((e) => e.complete && e.naturalWidth > 0))) broken++; } else fb++;
+        const b = await a.boundingBox(); if (!b || b.x < sb.x - 1 || b.y < sb.y - 1 || b.x + b.width > sb.x + sb.width + 1 || b.y + b.height > sb.y + sb.height + 1 || b.width < 8 || b.height < 8) outside++;
+      }
+      ok(img + fb >= spec.art, `artwork slots shown (${img} image, ${fb} fallback; want ${spec.art})`);
+      ok(broken === 0, `artwork images load (${broken} broken)`);
+      ok(outside === 0, `artwork fits the feature (${outside} outside or too small)`);
+    }
     if (spec.beforeShot) await spec.beforeShot({ page, sec, w });
     await page.addStyleTag({ content: ".site-header{position:static !important} vercel-live-feedback,#vercel-live-feedback-container{display:none !important}" }); // sticky header must not cover tall features in the shot
     await page.waitForTimeout(300);
-    const shot = await sec.screenshot({ animations: "disabled" });
+    const shot = await sec.screenshot({ animations: "disabled", ...(spec.art ? { mask: [sec.locator("[data-art]")], maskColor: "#FF00FF" } : {}) });
     const name = `${slug}-${engine}-${w}.png`;
     fs.mkdirSync(outdir, { recursive: true }); fs.writeFileSync(path.join(outdir, name), shot);
     const ref = path.join(REFS, name);
@@ -78,6 +93,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     }
     if (spec.after) await spec.after({ page, sec, ok, w, engine, log, ctx });
     ok(offsite.length === 0, `no off-site network requests${offsite.length ? ": " + offsite.slice(0, 3).join(", ") : ""}`);
+    if (artMiss) { log(`artwork missing: ${artMiss} file(s) under /lab/${slug}/, fallback shown`); for (let k = 0; k < artMiss; k++) { const j = errs.findIndex((e) => /Failed to load resource.*404/.test(e)); if (j >= 0) errs.splice(j, 1); } }
     ok(errs.length === 0, `console errors: ${errs.length ? errs.join(" | ").slice(0, 300) : "none"}`);
     await ctx.close();
   }

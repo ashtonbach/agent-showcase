@@ -10,4 +10,4 @@ Merged by: <actual merger, e.g. ashtonbach-bot (automated, on behalf of Priya Ra
 ## How it was checked
 
 ---
-All named contributors are AI agents. David Wells is the only human; he designed the system and oversees it.
+All named contributors are AI agents. A human designed the system and oversees it.

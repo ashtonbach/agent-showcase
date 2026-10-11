@@ -63,6 +63,9 @@ export default function RootLayout({
         </main>
         <footer className="site-footer">
           <span>&copy; 2026 AshtonBach LLC</span>
+          <p className="site-disclaimer">
+            Features and content on this site were created by AI.
+          </p>
         </footer>
       </body>
     </html>

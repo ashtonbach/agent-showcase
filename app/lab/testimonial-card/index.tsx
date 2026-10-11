@@ -15,7 +15,6 @@ const css = `
 .lab-quote .lab-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(176, 203, 188, 0.35); cursor: pointer; }
 .lab-quote .lab-dots button[aria-current="true"] { background: var(--sage); }
 .lab-quote .lab-dots button:focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; }
-.lab-quote .lab-ai-note { font-size: 13px; margin: 0 0 4px; color: inherit; }
 .lab-quote .lab-controls { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
 .lab-quote .lab-controls .lab-dots { margin-top: 0; }
 .lab-quote .lab-toggle { font: inherit; font-size: 13px; padding: 4px 10px; border: 1px solid rgba(176, 203, 188, 0.35); border-radius: 999px; background: transparent; color: inherit; cursor: pointer; }
@@ -61,7 +60,6 @@ export default function TestimonialCard() {
     >
       <style>{css}</style>
       <p className="label">What people say</p>
-      <p className="lab-ai-note">AI-generated example quotes, not real customer testimonials.</p>
       <figure aria-live={userDriven ? "polite" : "off"}>
         <blockquote data-index={i}>&ldquo;{t.q}&rdquo;</blockquote>
         <figcaption>

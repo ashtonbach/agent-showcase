@@ -1,4 +1,4 @@
-import Lab from "./lab/timeline";
+import Lab from "./lab/feature-grid";
 import { BASE_HEADING } from "./base-heading";
 export default function Page() {
   return (

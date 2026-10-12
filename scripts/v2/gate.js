@@ -24,14 +24,18 @@ for (const f of files) {
 if (!files.some((f) => f.startsWith(dir))) fail("allowlist", `no files in ${dir}`);
 if (files.some((f) => /(^|\/)(package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|npm-shrinkwrap\.json)$/.test(f)))
   fail("allowlist", "package.json or lockfile changed (no new dependencies)");
-// page.tsx: exactly one import line + the slot line, nothing else
+// page.tsx: after the change it must import exactly "./lab/<slug>" once and render <Lab /> once; apart from the
+// Lab import/render lines nothing else may change. An import or <Lab /> already on main (from an earlier feature) counts:
+// the feature may swap the import slug instead of adding a second import.
 if (files.includes("app/page.tsx")) {
-  const d = git("diff", "-U0", range, "--", "app/page.tsx").split("\n").filter((l) => /^[+-]/.test(l) && !/^(\+\+\+|---) /.test(l));
-  const okAdd = new Set([`+import Lab from "./lab/${slug}";`, `+      <Lab /> {/* lab:slot */}`]);
-  const okDel = new Set([`-      {/* lab:slot */}`]);
-  const adds = d.filter((l) => l[0] === "+"), dels = d.filter((l) => l[0] === "-");
-  if (!(adds.length === 2 && dels.length === 1 && adds.every((l) => okAdd.has(l)) && dels.every((l) => okDel.has(l))))
-    fail("allowlist", `app/page.tsx may only gain 'import Lab from "./lab/${slug}";' and '<Lab /> {/* lab:slot */}' on the slot line; got: ${d.join(" | ").slice(0, 300)}`);
+  const show = (ref) => { try { return git("show", `${ref}:app/page.tsx`); } catch (e) { return ""; } };
+  const strip = (t) => t.split("\n").filter((l) => !/^import Lab from "\.\/lab\/[a-z0-9-]+";$/.test(l) && !/^\s*<Lab \/>\s*$/.test(l))
+    .map((l) => l.replace(/^(\s*)<Lab \/>\s*(\{\/\* lab:slot \*\/\})$/, "$1$2")).join("\n");
+  const b = show(base), h = show(head);
+  const imps = h.split("\n").filter((l) => /^import Lab from /.test(l)), renders = (h.match(/<Lab \/>/g) || []).length;
+  if (strip(b) !== strip(h)) fail("allowlist", `app/page.tsx may only change the Lab import line and the <Lab /> render; other lines changed`);
+  if (!(imps.length === 1 && imps[0] === `import Lab from "./lab/${slug}";`)) fail("allowlist", `app/page.tsx must have exactly one 'import Lab from "./lab/${slug}";' (found: ${imps.join(" | ") || "none"})`);
+  if (renders !== 1) fail("allowlist", `app/page.tsx must render <Lab /> exactly once (found ${renders})`);
 } else fail("allowlist", "app/page.tsx must import and render the feature");
 // banned calls and imports in added lines of the feature folder
 const BANNED = [/\bfetch\s*\(/, /\baxios\b/, /XMLHttpRequest/, /\bWebSocket\b/, /\bEventSource\b/, /sendBeacon/, /process\.env/, /dangerouslySetInnerHTML/, /\beval\s*\(/, /new\s+Function\s*\(/, /\bimport\s*\(/, /\brequire\s*\(/];

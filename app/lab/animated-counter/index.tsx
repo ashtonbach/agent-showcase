@@ -2,10 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 
 // Real, verifiable numbers only (see scripts/v2/README.md, "Feature content"):
-// 4 = AI agents that work on each run (Naomi, Jonah, Priya, Felix); 20 = Shipped rows in the agents-live
+// 4 = AI agents on the showcase team (Naomi, Jonah, Priya, Felix; Naomi joins design-led runs); 20 = Shipped rows in the agents-live
 // Demo history as of Oct 11, 2026; 24 = check-feature.js checks for this feature (12 at each of 1280 and 390 px).
 const STATS = [
-  { label: "AI agents on each run", value: 4 },
+  { label: "AI agents on the team", value: 4 },
   { label: "Runs shipped by Oct 11", value: 20 },
   { label: "Checks per run", value: 24 },
 ];

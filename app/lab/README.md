@@ -13,4 +13,6 @@ Only showcase v2 (feature-menu) runs write here, and only when the `demoMode` fl
   It runs before every v2 run, from the admin page, and nightly at 3 AM CT (`.github/workflows/lab-reset.yml`).
   The classic heading and image are never touched by the reset.
 
+- Feature content uses only real, verifiable numbers with honest labels (source in a code comment), or is labeled "Example data" on the page. See `scripts/v2/README.md`.
+
 Files in this folder that are not a feature folder (`README.md`, `menu.json`) are base files and are never removed.

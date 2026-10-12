@@ -1,4 +1,4 @@
-import Lab from "./lab/faq-accordion";
+import Lab from "./lab/timeline";
 import { BASE_HEADING } from "./base-heading";
 export default function Page() {
   return (

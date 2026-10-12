@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
+// Example data: illustrative plans, not real prices.
 const TIERS = [
   { name: "Starter", price: "$0", note: "per month", items: ["1 demo run a day", "Public preview", "Email support"] },
   { name: "Team", price: "$49", note: "per month", items: ["20 demo runs a day", "Review and QA agents", "Priority support"], best: true },
@@ -34,7 +35,7 @@ export default function PricingTable() {
     <section data-lab="pricing-table" className="lab-pricing" aria-labelledby="lab-pricing-title">
       <style>{css}</style>
       <Art src="/lab/pricing-table/header.svg" w={720} h={160} alt="">{null}</Art>
-      <p className="label">Pricing</p>
+      <p className="label">Pricing · Example data</p>
       <h2 id="lab-pricing-title">Pick a plan</h2>
       <ul className="lab-pricing-grid">
         {TIERS.map((t) => (

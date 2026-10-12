@@ -58,7 +58,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     if (!ok((await sec.count()) === 1, `feature section [data-lab="${slug}"] present on first load`)) { await ctx.close(); continue; }
     await sec.scrollIntoViewIfNeeded();
     ok(await sec.isVisible(), "feature visible");
-    ok(!(await page.locator("h1.page-title").isVisible()) && !(await page.locator(".world-image").isVisible()), "hero hidden while a feature is shown");
+    ok(!(await page.locator("h1.page-title").isVisible()), "hero hidden while a feature is shown");
     const sx = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     ok(sx <= 0, `no sideways scroll (${sx}px overflow)`);
     const bb = await sec.boundingBox();

@@ -16,8 +16,13 @@ const range = `${base}...${head}`;
 const files = git("diff", "--name-only", range).split("\n").filter(Boolean);
 out.files = files;
 const dir = `app/lab/${slug}/`, artDir = `public/lab/${slug}/`; // artDir: Naomi Sato's artwork (SVG only, checked below)
+// Runs branch from origin/base (main with the lab slot empty), so a PR to main also deletes the previous feature.
+// Pure deletions of another menu feature's folder or artwork are allowed and don't count toward the size cap.
+const deleted = new Set(git("diff", "--name-only", "--diff-filter=D", range).split("\n").filter(Boolean));
+const oldFeature = (f) => deleted.has(f) && /^(app|public)\/lab\/[a-z0-9-]+\//.test(f) && !f.startsWith(dir) && !f.startsWith(artDir) && menu.includes(f.split("/")[2]);
+out.removed = files.filter(oldFeature);
 for (const f of files) {
-  if (f === "app/page.tsx" || f.startsWith(dir)) continue;
+  if (f === "app/page.tsx" || f.startsWith(dir) || oldFeature(f)) continue;
   if (f.startsWith(artDir) && /^[a-z0-9-]+\.svg$/.test(f.slice(artDir.length))) continue;
   fail("allowlist", `file outside allowlist: ${f}`);
 }
@@ -58,7 +63,7 @@ for (const f of files.filter((f) => f.startsWith(artDir))) {
 // size cap (code only; artwork is capped by bytes above)
 for (const l of git("diff", "--numstat", range).split("\n").filter(Boolean)) {
   const [a, r, f] = l.split("\t");
-  if (f && f.startsWith(artDir)) continue;
+  if (f && (f.startsWith(artDir) || oldFeature(f))) continue;
   out.lines += (+a || 0) + (+r || 0);
 }
 if (out.lines > MAX) fail("size", `diff is ${out.lines} lines (max ${MAX})`);

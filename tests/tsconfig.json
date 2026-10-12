@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "ES2020", "module": "commonjs", "moduleResolution": "node",
+    "resolveJsonModule": true, "esModuleInterop": true, "strict": true, "skipLibCheck": true,
+    "outDir": "../.test-build", "rootDir": ".."
+  },
+  "include": ["./*.ts", "../app/demo-name.ts", "../app/base-heading.ts"]
+}

@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "tsc -p tests/tsconfig.json && node --test .test-build/tests/"
   },
   "dependencies": {
     "next": "16.4.0",

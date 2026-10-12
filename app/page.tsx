@@ -1,9 +1,7 @@
 import Lab from "./lab/tabs";
-import { BASE_HEADING } from "./base-heading";
-import menu from "./lab/menu.json";
-import current from "./lab/current.json";
+import { readDemoName } from "./demo-name";
 // Visible demo name: looked up from the approved menu by the slug the kit writes. Never an id; falls back to the base heading.
-const demoName = menu.features.find((f) => f.slug === current.slug)?.name ?? BASE_HEADING;
+const demoName = readDemoName();
 export default function Page() {
   return (
     <div className="page-stack">

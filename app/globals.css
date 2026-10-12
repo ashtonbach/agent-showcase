@@ -224,21 +224,13 @@ html, body { overflow-x: clip; }
     padding-left: 20px;
     padding-right: 20px;
   }
-  .world-image {
-    width: auto !important;
-    max-width: calc(100% - 40px) !important;
-    height: auto !important;
-    margin: 0 20px 32px !important;
-  }
   .site-footer { padding-left: 20px; padding-right: 20px; text-align: center; }
 }
 
 /* Showcase v2: when the lab slot renders a feature, the feature leads the page — hide the classic hero.
-   Classic runs (no [data-lab]) keep the heading and world image; reset to base removes the feature, so they return. */
+   Classic runs (no [data-lab]) keep the heading; reset to base removes the feature, so they return. */
 main:has([data-lab]) .page-title,
-main:has([data-lab]) .world-image,
-body:has([data-lab]) .page-title,
-body:has([data-lab]) .world-image { display: none !important; }
+body:has([data-lab]) .page-title { display: none !important; }
 
 /* Site-wide AI disclaimer: small, light, low emphasis. */
 .site-footer { flex-direction: column; gap: 6px; }

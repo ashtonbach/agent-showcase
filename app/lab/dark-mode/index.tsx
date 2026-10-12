@@ -1,4 +1,5 @@
 "use client";
+// Vercel runs `npx next build` (Turbopack). The webpack-only check does not match that build.
 import { useEffect, useState } from "react";
 
 const KEY = "ab-theme";

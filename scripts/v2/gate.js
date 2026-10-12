@@ -50,6 +50,7 @@ for (const f of files.filter((f) => f.startsWith(dir)))
 // artwork: plain SVG only, small, nothing active or external
 for (const f of files.filter((f) => f.startsWith(artDir))) {
   let svg = ""; try { svg = git("show", `${head}:${f}`); } catch (e) { continue; } // deleted
+  if (/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(svg)) fail("allowlist", `artwork has control characters (browsers refuse to render it): ${f}`);
   if (svg.length > 20000) fail("allowlist", `artwork too large: ${f} (${svg.length} bytes, max 20000)`);
   if (!/^\s*(<\?xml[^>]*>\s*)?<svg[\s>]/.test(svg)) fail("allowlist", `artwork is not an SVG: ${f}`);
   if (/<script|<foreignObject|\son[a-z]+\s*=|javascript:|(?:href|src)\s*=\s*["']\s*(?:https?:)?\/\/|@import|url\(\s*["']?\s*(?:https?:)?\/\//i.test(svg)) fail("banned", `artwork has scripts, handlers or external references: ${f}`);

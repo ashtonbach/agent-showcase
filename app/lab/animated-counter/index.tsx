@@ -1,10 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
+// Real, verifiable numbers only (see scripts/v2/README.md, "Feature content"):
+// 4 = AI agents that work on each run (Naomi, Jonah, Priya, Felix); 20 = Shipped rows in the agents-live
+// Demo history as of Oct 11, 2026; 24 = check-feature.js checks for this feature (12 at each of 1280 and 390 px).
 const STATS = [
-  { label: "Agents on the team", value: 12 },
-  { label: "Demo runs shipped", value: 48 },
-  { label: "Checks per run", value: 11 },
+  { label: "AI agents on each run", value: 4 },
+  { label: "Runs shipped by Oct 11", value: 20 },
+  { label: "Checks per run", value: 24 },
 ];
 const css = `
 .lab-counter { width: min(960px, 100%); margin: 8px auto 56px; }

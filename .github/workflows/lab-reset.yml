@@ -37,4 +37,8 @@ jobs:
           git config user.name ashtonbach-bot
           git config user.email 334832153+ashtonbach-bot@users.noreply.github.com
           echo "Reason: ${{ github.event.inputs.reason || 'nightly 3 AM CT' }}"
-          RESET_REPO=${{ github.repository }} scripts/v2/reset.sh --pr
+          if [ "${{ github.event_name }}" = workflow_dispatch ]; then
+            RESET_MAIN=yes RESET_REPO=${{ github.repository }} scripts/v2/reset.sh --pr
+          else
+            scripts/v2/reset.sh --base --push
+          fi

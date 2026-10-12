@@ -1,11 +1,10 @@
-import Lab from "./lab/feature-grid";
 import { BASE_HEADING } from "./base-heading";
 export default function Page() {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", gap: "1rem" }}>
       <h1 className="page-title" style={{ whiteSpace: "nowrap" }}>{BASE_HEADING}</h1>
       <img className="world-image" src="/worlds/cursor.png" alt="Cursor world" width={480} height={270} style={{ width: 480, maxWidth: "90vw", height: "auto", margin: 0, borderRadius: 12 }} />
-      <Lab /> {/* lab:slot */}
+      {/* lab:slot */}
     </div>
   );
 }

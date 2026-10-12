@@ -1,5 +1,4 @@
 import Lab from "./lab/dark-mode";
-
 export default function Page() {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", gap: "1rem" }}>

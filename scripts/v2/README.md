@@ -2,7 +2,7 @@
 
 | Script | Who runs it | What it does |
 |---|---|---|
-| `gate.js <slug> [base] [head]` | Priya (preview) and the automerge on the box | Allowlist (`app/lab/<slug>/**` + the two `app/page.tsx` lines), no package.json/lockfile change, banned calls/imports, diff of 150 lines or fewer. Last line `GATE {json}`. |
+| `gate.js <slug> [base] [head]` | Priya (preview) and the automerge on the box | Allowlist (`app/lab/<slug>/**`, the two `app/page.tsx` lines, and `app/lab/current.json` = `{"slug":"<slug>"}` for the demo-name H1), no package.json/lockfile change, banned calls/imports, diff of 150 lines or fewer. Last line `GATE {json}`. |
 | `check-feature.js <url> <slug> <who> <outdir> [--engine chromium\|webkit]` | Priya (preview), Felix (production) | Per-feature spec from `specs/<slug>.js` at 1280 and 390, zero console errors, no sideways scroll, no off-site requests, and a pixel diff of the feature against `refs/<slug>-<engine>-<width>.png` (max 1% of pixels). Last line `VISUAL {json}`. |
 | `reset.sh [--apply\|--base [--push]\|--pr]` | `--base --push`: prep before every run and the nightly workflow. `--pr`: explicit admin reset only (`RESET_MAIN=yes`) | Removes every feature folder in `app/lab/` and the two `app/page.tsx` lines. Dry run by default. `--base` writes the result to the `base` branch, never to main. |
 

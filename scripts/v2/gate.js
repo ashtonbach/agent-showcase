@@ -23,6 +23,11 @@ const oldFeature = (f) => deleted.has(f) && /^(app|public)\/lab\/[a-z0-9-]+\//.t
 out.removed = files.filter(oldFeature);
 for (const f of files) {
   if (f === "app/page.tsx" || f.startsWith(dir) || oldFeature(f)) continue;
+  if (f === "app/lab/current.json") { // the visible demo-name H1 reads this; it may only name this run's slug
+    let cur = null; try { cur = JSON.parse(git("show", `${head}:app/lab/current.json`)); } catch (e) {}
+    if (!cur || Object.keys(cur).join() !== "slug" || cur.slug !== slug) fail("allowlist", `app/lab/current.json must be exactly {"slug":"${slug}"}`);
+    continue;
+  }
   if (f.startsWith(artDir) && /^[a-z0-9-]+\.svg$/.test(f.slice(artDir.length))) continue;
   fail("allowlist", `file outside allowlist: ${f}`);
 }

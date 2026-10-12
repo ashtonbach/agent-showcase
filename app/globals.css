@@ -252,3 +252,51 @@ body:has([data-lab]) .world-image { display: none !important; }
   line-height: 1.4;
   max-width: 100%;
 }
+
+/* One system with agents-live: same content column, H1, label and heading rhythm as the viewer
+   (main.page max 1120px, padding 0 48px / 0 20px; page-title 56px top; intro 40px; section 72px + hairline; label→H2 10px). */
+:root { --fs-h2: clamp(32px, 3.4vw, 44px); --line: rgba(176, 203, 188, 0.18); }
+main.page { display: block; flex: 1 0 auto; width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 48px 96px; }
+.page-stack { display: block; }
+.demo-title {
+  padding: 56px 0 52px;            /* viewer: 56px top, 12px + 40px intro below */
+  font-family: var(--serif);
+  font-size: var(--fs-display);    /* 64px at 1280, same as "Agents live" */
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  color: var(--mist);
+  overflow-wrap: anywhere;
+}
+main.page [data-lab] { width: 100% !important; max-width: none !important; margin: 0 !important; padding-top: 72px; border-top: 1px solid var(--line); }
+main.page [data-lab] > .label { margin: 0; font-size: var(--fs-label) !important; letter-spacing: var(--track-label) !important; }
+main.page [data-lab] > h2 { font-family: var(--serif); font-weight: 400; font-size: var(--fs-h2) !important; line-height: 1.15 !important; margin: 10px 0 24px !important; }
+@media (max-width: 640px) {
+  main.page { padding: 0 20px 96px; }
+  .demo-title { padding: 32px 0 36px; font-size: 44px; }   /* viewer: 32px top, 12px + 24px */
+  main.page [data-lab] { padding-top: 48px; }
+}
+
+/* Shared look with agents-live (@ashtonbach asked): the Forest green glow on a fixed layer, so iPhone
+   (which ignores background-attachment:fixed) shows the same glow as desktop. Same block lives in agents-live v2/extra.css. */
+html { background: var(--forest); }
+body { background: transparent; }
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(1200px 600px at 85% -10%, rgba(176, 203, 188, 0.14), transparent 60%),
+    radial-gradient(900px 500px at -10% 40%, rgba(181, 137, 91, 0.08), transparent 60%),
+    linear-gradient(180deg, #14201A 0%, #101a15 100%); }
+
+/* Shared header with agents-live: no bar, no rule (transparent until scrolled, like the viewer). One row on phones, 56px,
+   mark-only logo under 420px. */
+.site-header { border-bottom: 1px solid transparent; background: transparent; transition: background-color .25s, border-color .25s; }
+@media (max-width: 640px) {
+  .site-header { height: 56px; }
+  .site-header-inner { flex-wrap: nowrap; justify-content: space-between; gap: 12px; padding: 0 20px; }
+  .nav-list { flex-wrap: nowrap; gap: 16px; }
+  .nav-list a { white-space: nowrap; font-size: 11px; letter-spacing: .14em; }
+  .site-header.is-scrolled { background: rgba(20, 32, 26, 0.97); }
+}
+@media (max-width: 420px) {
+  .brand-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}

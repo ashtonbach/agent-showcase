@@ -23,9 +23,13 @@ const oldFeature = (f) => deleted.has(f) && /^(app|public)\/lab\/[a-z0-9-]+\//.t
 out.removed = files.filter(oldFeature);
 for (const f of files) {
   if (f === "app/page.tsx" || f.startsWith(dir) || oldFeature(f)) continue;
+  if (f === "app/lab/current.json") continue; // checked below
   if (f.startsWith(artDir) && /^[a-z0-9-]+\.svg$/.test(f.slice(artDir.length))) continue;
   fail("allowlist", `file outside allowlist: ${f}`);
 }
+// The visible demo-name H1 reads app/lab/current.json: after the change it must be exactly {"slug":"<slug>"}.
+{ let cur = null; try { cur = JSON.parse(git("show", `${head}:app/lab/current.json`)); } catch (e) {}
+  if (!cur || Object.keys(cur).join() !== "slug" || cur.slug !== slug) fail("allowlist", `app/lab/current.json must be exactly {"slug":"${slug}"} (it sets the page H1)`); }
 if (!files.some((f) => f.startsWith(dir))) fail("allowlist", `no files in ${dir}`);
 if (files.some((f) => /(^|\/)(package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|npm-shrinkwrap\.json)$/.test(f)))
   fail("allowlist", "package.json or lockfile changed (no new dependencies)");

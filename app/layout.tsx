@@ -67,6 +67,12 @@ export default function RootLayout({
           </p>
           <span>&copy; 2026 AshtonBach LLC</span>
         </footer>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){var h=document.querySelector('.site-header');if(!h)return;function u(){h.classList.toggle('is-scrolled',window.scrollY>8)}u();addEventListener('scroll',u,{passive:true})})();",
+          }}
+        />
       </body>
     </html>
   );

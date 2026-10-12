@@ -76,6 +76,23 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
       ok(img + fb >= spec.art, `artwork slots shown (${img} image, ${fb} fallback; want ${spec.art})`);
       ok(broken === 0, `artwork images load (${broken} broken)`);
       ok(outside === 0, `artwork fits the feature (${outside} outside or too small)`);
+      // Render check: a blank art slot must never pass. An art file that is served (no 404) but shows the fallback means
+      // the browser could not decode it (e.g. malformed SVG); every visible slot's pixels must also show real artwork.
+      ok(!(fb > 0 && artMiss === 0), `artwork renders, not the fallback (${fb} fallback shown while the art file is served)`);
+      await page.addStyleTag({ content: ".site-header{position:static !important}" }); // fixed header must not overlap the measured slot
+      for (let k = 0; k < n; k++) {
+        const a = arts.nth(k); if (!(await a.isVisible())) continue;
+        await a.scrollIntoViewIfNeeded(); await page.waitForTimeout(150);
+        const png = await a.screenshot({ animations: "disabled" });
+        const st = await page.evaluate(async (s) => {
+          const i = await new Promise((r, j) => { const m = new Image(); m.onload = () => r(m); m.onerror = j; m.src = "data:image/png;base64," + s; });
+          const c = document.createElement("canvas"); c.width = i.width; c.height = i.height; const g = c.getContext("2d"); g.drawImage(i, 0, 0);
+          const d = g.getImageData(0, 0, i.width, i.height).data, cols = new Set(); let n = 0, sum = 0, sq = 0;
+          for (let q = 0; q < d.length; q += 4) { const L = 0.299 * d[q] + 0.587 * d[q + 1] + 0.114 * d[q + 2]; sum += L; sq += L * L; n++; cols.add((d[q] >> 3) << 10 | (d[q + 1] >> 3) << 5 | (d[q + 2] >> 3)); }
+          const m = sum / n; return { sd: Math.sqrt(Math.max(0, sq / n - m * m)), colors: cols.size };
+        }, png.toString("base64"));
+        ok(st.sd >= 12 && st.colors >= 48, `artwork slot ${k + 1} shows real art, not a near-blank box (luminance stddev ${st.sd.toFixed(1)}, min 12; ${st.colors} colours, min 48)`);
+      }
     }
     if (spec.beforeShot) await spec.beforeShot({ page, sec, w });
     await page.addStyleTag({ content: ".site-header{position:static !important} vercel-live-feedback,#vercel-live-feedback-container{display:none !important}" }); // sticky header must not cover tall features in the shot

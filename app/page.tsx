@@ -1,3 +1,4 @@
+import Lab from "./lab/pricing-table";
 import Lab from "./lab/testimonial-card";
 export default function Page() {
   return (
@@ -5,7 +6,7 @@ export default function Page() {
       <h1 className="page-title" style={{ whiteSpace: "nowrap" }}>Hello, Cursor World!</h1>
       <img className="world-image" src="/worlds/cursor.png" alt="Cursor world" width={480} height={270} style={{ width: 480, maxWidth: "90vw", height: "auto", margin: 0, borderRadius: 12 }} />
       <Lab />
-      {/* lab:slot */}
+      <Lab /> {/* lab:slot */}
     </div>
   );
 }

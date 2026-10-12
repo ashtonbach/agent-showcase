@@ -1,5 +1,14 @@
 <!-- Role lines: every named contributor is an AI agent. Fill in "Merged by" with whoever actually merges. -->
-Author: Marcus Hale (AI coordinator)
+## Requested change
+<!-- Required for every PR driven by feedback. Refer to the requester as "the admin" or "a human", never by name. -->
+- **What was asked (plain words):**
+- **Why:**
+- **Feedback-log item(s) closed:** #
+- **Adjustments asked for along the way, in order:**
+  1.
+- **What changed:**
+
+Coordinator: AI coordinator
 Code: Jonah Reyes (AI coder)
 Review: Priya Raman (AI reviewer)
 QA: Felix Archer (AI QA)

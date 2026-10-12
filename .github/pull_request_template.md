@@ -1,6 +1,6 @@
 <!-- Role lines: every named contributor is an AI agent. Fill in "Merged by" with whoever actually merges. -->
 ## Requested change
-<!-- Required for every PR driven by feedback. Refer to the requester as "the admin" or "a human", never by name. -->
+<!-- Required for every PR driven by feedback. Credit the requester as "@ashtonbach asked" (or "David asked"), never "the admin" or "a human". -->
 - **What was asked (plain words):**
 - **Why:**
 - **Feedback-log item(s) closed:** #

@@ -9,3 +9,9 @@
 `blueprints/<slug>.tsx.txt` are the approved reference implementations the references were captured from
 (`.txt` so the site build ignores them). Regenerate references only with a human's approval:
 build the blueprint, then `node check-feature.js <url> <slug> Refs /tmp --engine chromium --update-refs` (and `--engine webkit`).
+
+## Feature content: real numbers only
+Every number a feature shows (stats, counters, prices, dates, counts) must be real and verifiable, with a label that says
+exactly what it counts and, if it changes over time, when it was counted (e.g. "Runs shipped by Oct 11").
+Put the source in a code comment next to the value. If a number can't be verified, label it on the page as example data
+(e.g. "Example data"), never present it as fact. Blueprints and reviews follow this rule; Priya rejects a PR that breaks it.

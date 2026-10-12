@@ -1,4 +1,3 @@
-import Lab from "./lab/tabs";
 import { BASE_HEADING } from "./base-heading";
 import menu from "./lab/menu.json";
 import current from "./lab/current.json";
@@ -9,7 +8,7 @@ export default function Page() {
     <div className="page-stack">
       <h1 className="demo-title">{demoName}</h1>
       <img className="world-image" src="/worlds/cursor.png" alt="Cursor world" width={480} height={270} style={{ width: 480, maxWidth: "90vw", height: "auto", margin: 0, borderRadius: 12 }} />
-      <Lab /> {/* lab:slot */}
+      {/* lab:slot */}
     </div>
   );
 }

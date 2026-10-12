@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 const ROTATE_MS = 3000;
 
+// Example data: these quotes and people are invented for the demo (labeled on the page and in each role).
 const QUOTES = [
   { q: "The team shipped a reviewed change before my coffee cooled.", name: "Avery Lin", role: "Product lead (example)" },
   { q: "Every step is visible, from the first commit to the production check.", name: "Sam Okafor", role: "Engineering manager (example)" },
@@ -47,7 +48,7 @@ export default function TestimonialCard() {
       onMouseLeave={() => setPaused(false)}
     >
       <style>{css}</style>
-      <p className="label">What people say</p>
+      <p className="label">What people say · Example data</p>
       <figure aria-live="polite">
         <blockquote data-index={i}>&ldquo;{t.q}&rdquo;</blockquote>
         <figcaption>

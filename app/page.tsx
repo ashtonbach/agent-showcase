@@ -1,4 +1,4 @@
-import Lab from "./lab/faq-accordion";
+import Lab from "./lab/timeline";
 import { readDemoName } from "./demo-name";
 const demoName = readDemoName();
 export default function Page() {

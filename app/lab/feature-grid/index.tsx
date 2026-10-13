@@ -6,7 +6,7 @@ const CARDS = [
   { t: "Fresh branch", s: "Each run starts on a new branch so the lab slot is empty." },
   { t: "Allowlist", s: "Only the feature file, two page lines, and current.json may change." },
   { t: "Size cap", s: "The gate rejects a diff that exceeds the documented line budget." },
-  { t: "No network", s: "Client code may not fetch, open sockets, or read process.env." },
+  { t: "No network", s: "Client code may not fetch, open sockets, or read environment variables." },
   { t: "Visual gate", s: "Layout is checked at phone and desktop widths so the page does not scroll sideways." },
   { t: "Nightly reset", s: "The demo resets so the next run starts from a clean lab slot." },
 ];

@@ -1,4 +1,4 @@
-import Lab from "./lab/testimonial-card";
+import Lab from "./lab/dark-mode";
 import { readDemoName } from "./demo-name";
 const demoName = readDemoName();
 export default function Page() {

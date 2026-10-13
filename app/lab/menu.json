@@ -7,7 +7,7 @@
     { "slug": "pricing-table", "name": "Pricing table", "accept": ["Header illustration by Naomi Sato from public/lab/pricing-table/header.svg (fallback: soft gradient)", "3 tiers with the middle one highlighted", "Tiers stack on mobile", "No sideways scroll at 390px"] },
     { "slug": "animated-counter", "name": "Animated counter", "accept": ["3 stats count up when scrolled into view", "They stop at the exact values", "Reduced motion shows the final values with no animation"] },
     { "slug": "tabs", "name": "Tabs", "accept": ["3 tabs", "Arrow keys (and Home/End) move between tabs", "Correct tablist/tab/tabpanel roles, aria-selected and aria-controls"] },
-    { "slug": "testimonial-card", "name": "Testimonial card", "accept": ["A quote, a name and a role", "3 example quotes rotate every 3s", "Dots are buttons that jump to a quote", "Avatar artwork by Naomi Sato from public/lab/testimonial-card/ (fallback: initials)", "Rotation pauses while the mouse is over the card"] },
+    { "slug": "testimonial-card", "name": "Quote card", "accept": ["A quote, a name and a role", "3 example quotes rotate every 3s", "Dots are buttons that jump to a quote", "Avatar artwork by Naomi Sato from public/lab/testimonial-card/ (fallback: initials)", "Rotation pauses while the mouse is over the card"] },
     { "slug": "feature-grid", "name": "Feature grid", "accept": ["6 cards with illustrated icons by Naomi Sato from public/lab/feature-grid/ (fallback: inline SVG)", "3 columns on desktop, 2 on tablet, 1 on mobile"] },
     { "slug": "timeline", "name": "Timeline", "accept": ["5 steps showing how the team works", "Horizontal on desktop, vertical on mobile"] }
   ]

@@ -1,4 +1,4 @@
-import Lab from "./lab/animated-counter";
+import Lab from "./lab/faq-accordion";
 import { readDemoName } from "./demo-name";
 const demoName = readDemoName();
 export default function Page() {

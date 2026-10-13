@@ -112,7 +112,10 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     await page.waitForTimeout(300);
     const shot = await sec.screenshot({ animations: "disabled", ...(spec.art ? { mask: [sec.locator("[data-art]")], maskColor: "#FF00FF" } : {}) });
     const name = `${slug}-${engine}-${w}.png`;
-    fs.mkdirSync(outdir, { recursive: true }); fs.writeFileSync(path.join(outdir, name), shot);
+    fs.mkdirSync(outdir, { recursive: true });
+    // The saved screenshot is the real page (art visible). Only the pixel-diff copy masks the art; saving the masked copy made
+    // reports show a magenta square where Naomi's avatar really renders (Testimonial card, 10/13).
+    fs.writeFileSync(path.join(outdir, name), spec.art ? await sec.screenshot({ animations: "disabled" }) : shot);
     const ref = path.join(REFS, name);
     if (UPDATE) { fs.writeFileSync(ref, shot); log(`reference updated ${ref}`); }
     else if (!fs.existsSync(ref)) ok(false, `visual: reference ${name} missing`);

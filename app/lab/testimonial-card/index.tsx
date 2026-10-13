@@ -14,6 +14,8 @@ const css = `.lab-t{width:min(720px,100%);margin:8px auto 56px;color:var(--mist,
 .lab-card{margin:0;border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px}
 .lab-card blockquote{margin:0 0 16px;font-family:var(--serif);font-size:clamp(18px,4vw,22px);line-height:1.45;overflow-wrap:anywhere}
 .lab-who{display:flex;align-items:center;gap:12px;min-width:0}
+.lab-name{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:10px;row-gap:2px;min-width:0}
+@media (max-width:480px){.lab-name{flex-direction:column;align-items:flex-start}}
 .lab-ava{width:48px;height:48px;border-radius:50%;object-fit:cover}
 .lab-fb{display:block;width:48px;height:48px;border-radius:50%;background:rgba(176,203,188,.22)}
 .lab-dots{display:flex;gap:10px;margin:16px 0 0}
@@ -58,7 +60,7 @@ export default function Lab() {
         <blockquote data-index={i}>{q.text}</blockquote>
         <figcaption className="lab-who">
           <Avatar n={i} alt={q.alt} />
-          <span>
+          <span className="lab-name">
             <strong>{q.name}</strong>
             <span className="label">{q.role}</span>
           </span>

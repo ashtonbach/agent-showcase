@@ -17,6 +17,13 @@ html[data-theme="light"] body{background:#E8EEE9;color:#14201A}
 html[data-theme="light"] .label,html[data-theme="light"] nav a{color:#2F5A46}
 html[data-theme="light"] .lab-wrap h2,html[data-theme="light"] .lab-note,html[data-theme="light"] .lab-btn{color:#14201A}
 html[data-theme="light"] .lab-btn[aria-pressed="true"]{background:#2F5A46;color:#E8EEE9}
+html[data-theme="light"] .demo-title,html[data-theme="light"] .brand-word{color:#14201A}
+html[data-theme="light"] .site-footer,html[data-theme="light"] .site-footer *{color:#3E5248}
+html[data-theme="light"] .brand-mark{filter:brightness(.35)}
+html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}
+html[data-theme="light"] body::before{background:#E8EEE9}
+.lab-wrap{max-width:100%;min-width:0;overflow-wrap:anywhere}
+html,body{max-width:100%;overflow-x:clip}
 @media (prefers-reduced-motion:reduce){.lab-btn{transition:none}}
 `;
 

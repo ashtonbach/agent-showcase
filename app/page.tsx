@@ -1,11 +1,10 @@
-import Lab from "./lab/feature-grid";
 import { readDemoName } from "./demo-name";
 const demoName = readDemoName();
 export default function Page() {
   return (
     <div className="page-stack">
       <h1 className="demo-title">{demoName}</h1>
-      <Lab /> {/* lab:slot */}
+      {/* lab:slot */}
     </div>
   );
 }

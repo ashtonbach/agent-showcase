@@ -1,4 +1,4 @@
-import Lab from "./lab/feature-grid";
+import Lab from "./lab/dark-mode";
 import { readDemoName } from "./demo-name";
 const demoName = readDemoName();
 export default function Page() {

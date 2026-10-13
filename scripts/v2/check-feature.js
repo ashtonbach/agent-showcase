@@ -5,6 +5,25 @@
 const path = require("path"), fs = require("fs");
 const args = process.argv.slice(2), flag = (n, d) => { const i = args.indexOf(n); return i < 0 ? d : args[i + 1]; };
 const [url, slug, who = "Check", outdir = "/tmp"] = args.filter((a, i) => !a.startsWith("--") && !(args[i - 1] || "").startsWith("--"));
+// ART-CHECK-BEGIN
+// Real-art rule (2026-10-13): flat line icons (e.g. 3-colour Forest Mist) must pass; blank, near-blank or single flat colour
+// slots must fail. Background = the most common colour; "drawn" pixels differ clearly from it. Main colours = colours
+// covering at least 1% of the slot's inner area (coarse 4-bit buckets, so anti-aliasing does not count as extra colours).
+const ART_STATS = async (s) => {
+  const i = await new Promise((r, j) => { const m = new Image(); m.onload = () => r(m); m.onerror = j; m.src = "data:image/png;base64," + s; });
+  const c = document.createElement("canvas"); c.width = i.width; c.height = i.height; const g = c.getContext("2d"); g.drawImage(i, 0, 0);
+  // Measure the inner 70% of the slot so a tile's rounded corners or border against the page cannot pass for drawn content.
+  const ix = Math.floor(i.width * 0.15), iy = Math.floor(i.height * 0.15);
+  const d = g.getImageData(ix, iy, Math.max(1, i.width - 2 * ix), Math.max(1, i.height - 2 * iy)).data, hist = new Map(); let n = 0, sum = 0, sq = 0;
+  for (let q = 0; q < d.length; q += 4) { const L = 0.299 * d[q] + 0.587 * d[q + 1] + 0.114 * d[q + 2]; sum += L; sq += L * L; n++; const key = (d[q] >> 4) << 8 | (d[q + 1] >> 4) << 4 | (d[q + 2] >> 4); hist.set(key, (hist.get(key) || 0) + 1); }
+  let bg = 0, best = -1; for (const [k, v] of hist) if (v > best) { best = v; bg = k; }
+  const br = ((bg >> 8) & 15) * 16 + 8, bgG = ((bg >> 4) & 15) * 16 + 8, bb = (bg & 15) * 16 + 8; let drawn = 0;
+  for (let q = 0; q < d.length; q += 4) if (Math.max(Math.abs(d[q] - br), Math.abs(d[q + 1] - bgG), Math.abs(d[q + 2] - bb)) > 32) drawn++;
+  let colors = 0; for (const v of hist.values()) if (v >= n * 0.01) colors++;
+  const m = sum / n; return { sd: Math.sqrt(Math.max(0, sq / n - m * m)), colors, content: drawn / n };
+};
+const artVerdict = (st) => st.content >= 0.03 && st.colors >= 2 && st.sd >= 4;
+// ART-CHECK-END
 const engine = flag("--engine", "chromium"), widths = flag("--widths", "1280,390").split(",").map(Number);
 const UPDATE = args.includes("--update-refs"), THRESH = +flag("--threshold", "0.01");
 const REFS = path.join(__dirname, "refs");
@@ -84,14 +103,8 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
         const a = arts.nth(k); if (!(await a.isVisible())) continue;
         await a.scrollIntoViewIfNeeded(); await page.waitForTimeout(150);
         const png = await a.screenshot({ animations: "disabled" });
-        const st = await page.evaluate(async (s) => {
-          const i = await new Promise((r, j) => { const m = new Image(); m.onload = () => r(m); m.onerror = j; m.src = "data:image/png;base64," + s; });
-          const c = document.createElement("canvas"); c.width = i.width; c.height = i.height; const g = c.getContext("2d"); g.drawImage(i, 0, 0);
-          const d = g.getImageData(0, 0, i.width, i.height).data, cols = new Set(); let n = 0, sum = 0, sq = 0;
-          for (let q = 0; q < d.length; q += 4) { const L = 0.299 * d[q] + 0.587 * d[q + 1] + 0.114 * d[q + 2]; sum += L; sq += L * L; n++; cols.add((d[q] >> 3) << 10 | (d[q + 1] >> 3) << 5 | (d[q + 2] >> 3)); }
-          const m = sum / n; return { sd: Math.sqrt(Math.max(0, sq / n - m * m)), colors: cols.size };
-        }, png.toString("base64"));
-        ok(st.sd >= 12 && st.colors >= 48, `artwork slot ${k + 1} shows real art, not a near-blank box (luminance stddev ${st.sd.toFixed(1)}, min 12; ${st.colors} colours, min 48)`);
+        const st = await page.evaluate(ART_STATS, png.toString("base64"));
+        ok(artVerdict(st), `artwork slot ${k + 1} shows real drawn art, not a blank box or flat colour (${(st.content * 100).toFixed(1)}% drawn pixels, min 3%; ${st.colors} main colours, min 2; luminance stddev ${st.sd.toFixed(1)}, min 4)`);
       }
     }
     if (spec.beforeShot) await spec.beforeShot({ page, sec, w });

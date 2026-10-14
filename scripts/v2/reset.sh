@@ -16,8 +16,8 @@ if [ "$MODE" = --pr ] && [ "${RESET_MAIN:-}" != yes ]; then echo "RESET_REFUSED:
 if [ "$MODE" = --base ]; then
   git fetch -q origin main; git checkout -q -B base origin/main
   "$ROOT/scripts/v2/reset.sh" --apply >/dev/null
-  git add -A app/lab app/page.tsx; git add -A -- public/lab 2>/dev/null || true
-  BAD=$(git diff --cached --name-status | awk '$1!="D" && $2!="app/page.tsx"' | grep -v '^$' || true)
+  git add -A app/lab app/page.tsx messages; git add -A -- public/lab 2>/dev/null || true
+  BAD=$(git diff --cached --name-status | awk '($1!="D" && $2!="app/page.tsx") || $2=="messages/en-US.json"' | grep -v '^$' || true)
   [ -n "$BAD" ] && { echo "BASE_FAIL unexpected changes: $BAD"; exit 1; }
   if ! git diff --cached --quiet; then
     git -c user.name=ashtonbach-coder -c user.email=334832153+ashtonbach-coder@users.noreply.github.com commit -qm "Base: lab slot empty, from main $(git rev-parse --short origin/main) (Author: Jonah Reyes)"
@@ -28,11 +28,13 @@ if [ "$MODE" = --base ]; then
 fi
 if [ "$MODE" = --pr ]; then git fetch -q origin main; git checkout -q -B "reset/lab-$(date +%s)" origin/main; fi
 FEAT=$(find app/lab -mindepth 1 -maxdepth 1 -type d | sort); ART=$(find public/lab -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort || true)
+LOC=$(find messages -maxdepth 1 -name '*.json' ! -name en-US.json 2>/dev/null | sort || true)  # run-added locales (es-ES.json); en-US.json is base
+[ -f messages/en-US.json ] || { echo "RESET_FAIL messages/en-US.json (base text) missing"; exit 1; }
 PAGE_DIRTY=0; grep -qE '^import Lab from "\./lab/|<Lab />' app/page.tsx && PAGE_DIRTY=1
-if [ -z "$FEAT" ] && [ -z "$ART" ] && [ $PAGE_DIRTY = 0 ]; then echo "ALREADY_BASE"; exit 0; fi
-echo "RESET_NEEDED features: ${FEAT:-none} page.tsx: $([ $PAGE_DIRTY = 1 ] && echo modified || echo base)"
+if [ -z "$FEAT" ] && [ -z "$ART" ] && [ -z "$LOC" ] && [ $PAGE_DIRTY = 0 ]; then echo "ALREADY_BASE"; exit 0; fi
+echo "RESET_NEEDED features: ${FEAT:-none} locales: ${LOC:-none} page.tsx: $([ $PAGE_DIRTY = 1 ] && echo modified || echo base)"
 [ "$MODE" = dry ] && exit 3
-[ -n "$FEAT" ] && rm -rf $FEAT; [ -n "$ART" ] && rm -rf $ART
+[ -n "$FEAT" ] && rm -rf $FEAT; [ -n "$ART" ] && rm -rf $ART; [ -n "$LOC" ] && rm -f $LOC
 python3 - <<'P'
 import re
 p='app/page.tsx'; s=open(p).read()
@@ -43,10 +45,11 @@ P
 grep -q 'lab:slot' app/page.tsx || { echo "RESET_FAIL slot marker missing in app/page.tsx"; exit 1; }
 [ "$MODE" = --apply ] && { echo "RESET_APPLIED"; exit 0; }
 # --pr: verify the reset diff only removes lab files / reverts page.tsx, then ship it
-git add -A app/lab app/page.tsx; git add -A -- public/lab 2>/dev/null || true
+git add -A app/lab app/page.tsx messages; git add -A -- public/lab 2>/dev/null || true
 BAD=$(git diff --cached --name-status | awk '$1!="D" && $2!="app/page.tsx"' | grep -v '^$' || true)
 [ -n "$BAD" ] && { echo "RESET_FAIL unexpected changes: $BAD"; exit 1; }
-git diff --cached --name-only | grep -vE '^(app/page\.tsx|app/lab/[a-z0-9-]+/.*|public/lab/[a-z0-9-]+/.*)$' && { echo "RESET_FAIL outside allowlist"; exit 1; }
+git diff --cached --name-only | grep -vE '^(app/page\.tsx|app/lab/[a-z0-9-]+/.*|public/lab/[a-z0-9-]+/.*|messages/[A-Za-z-]+\.json)$' && { echo "RESET_FAIL outside allowlist"; exit 1; }
+git diff --cached --name-only | grep -qx 'messages/en-US.json' && { echo "RESET_FAIL messages/en-US.json is base text"; exit 1; }
 git -c user.name=ashtonbach-coder -c user.email=334832153+ashtonbach-coder@users.noreply.github.com commit -qm "Reset: showcase back to base (Author: Jonah Reyes)"
 BR=$(git rev-parse --abbrev-ref HEAD); git push -q origin "HEAD:$BR"
 URL=$(gh pr create -R "$R" -H "$BR" -B main -t "Reset: showcase back to base" -b "Author: Jonah Reyes (AI coder)

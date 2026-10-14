@@ -1,62 +1,72 @@
-// Spanish translation: one toggle switches the page's own visible text English <-> Español and back.
-// Page chrome strings are fixed by the kit (exact pairs). The section's own content (h2, 1-2 p[data-copy], [data-cta]) is
-// written by Jonah during the run, so it is NOT compared to fixed text: ES must be non-empty, read as Spanish and differ from
-// EN for every element, and toggling back must restore the exact original EN text.
-const PAIRS = {
-  h1: ["Spanish translation", "Traducción al español"],
-  about: ["About", "Acerca de"],
-  contact: ["Contact", "Contacto"],
-  disclaimer: ["Features and content for this demo were created by AI.", "Las funciones y el contenido de esta demo fueron creados por IA."],
-  skip: ["Skip to content", "Saltar al contenido"],
-  button: ["Español", "English"],
-};
+// Spanish translation (scalable i18n). Base text lives in messages/en-US.json and every visible string is rendered with
+// data-i18n="<key>". Jonah adds messages/es-ES.json (Spain Spanish, his own translation, same keys) and a segmented
+// English | Español switch. QA never compares against fixed Spanish copy: it reads both message files from this checkout.
+const fs = require("fs"), path = require("path");
+const MSG = path.join(__dirname, "..", "..", "..", "messages");
 const S = 'section[data-lab="spanish-translation"]';
-const SPANISH = /[áéíóúñ¿¡]|\b(el|la|los|las|del|que|y|en|un|una|es|para|con|por|su|al)\b/i;
-const readS = (page) => page.evaluate((s) => {
-  const t = (e) => (e ? e.textContent.trim() : null);
-  const sec = document.querySelector(s), nav = [...document.querySelectorAll("nav[aria-label] a")];
-  const tog = sec && sec.querySelector("button[aria-pressed]");
+const SPANISH = /[áéíóúñ¿¡]|\b(el|la|los|las|del|que|y|en|un|una|es|para|con|por|su|al|de)\b/i;
+const load = (f) => { try { return JSON.parse(fs.readFileSync(path.join(MSG, f), "utf8")); } catch (e) { return null; } };
+const read = (page) => page.evaluate((s) => {
+  const sec = document.querySelector(s), t = (e) => (e ? e.textContent.trim() : null);
+  const seg = (loc) => { const b = sec && sec.querySelector(`button[data-locale="${loc}"]`); if (!b) return null;
+    const cs = getComputedStyle(b); return { text: t(b), pressed: b.getAttribute("aria-pressed"), bg: cs.backgroundColor, border: cs.borderTopWidth }; };
   return {
-    lang: document.documentElement.lang, h1: t(document.querySelector("h1.demo-title")),
-    about: t(nav[0]), contact: t(nav[1]), disclaimer: t(document.querySelector(".site-disclaimer")), skip: t(document.querySelector(".skip-link")),
-    button: t(tog), pressed: tog && tog.getAttribute("aria-pressed"),
-    content: sec ? [...sec.querySelectorAll("h2"), ...sec.querySelectorAll("p[data-copy]"), ...sec.querySelectorAll("[data-cta]")].map(t) : [],
-    nH2: sec ? sec.querySelectorAll("h2").length : 0, nP: sec ? sec.querySelectorAll("p[data-copy]").length : 0,
-    nCta: sec ? sec.querySelectorAll("[data-cta]").length : 0,
+    lang: document.documentElement.lang,
+    items: [...document.querySelectorAll("[data-i18n]")].map((e) => ({ key: e.getAttribute("data-i18n"), tag: e.tagName.toLowerCase(),
+      inSec: !!(sec && sec.contains(e)), cta: e.hasAttribute("data-cta"), text: t(e) })),
+    nPressed: sec ? sec.querySelectorAll("button[aria-pressed]").length : 0, en: seg("en-US"), es: seg("es-ES"),
   };
 }, S);
-const fixed = (ok, st, i, tag) => {
-  for (const k of Object.keys(PAIRS)) ok(st[k] === PAIRS[k][i], `${tag}: ${k} reads "${PAIRS[k][i]}" (got "${st[k]}")`);
-  ok(st.lang === (i ? "es" : "en"), `${tag}: html lang="${i ? "es" : "en"}" (got "${st.lang}")`);
-  ok(st.pressed === (i ? "true" : "false"), `${tag}: aria-pressed=${i ? "true" : "false"} (got ${st.pressed})`);
+const clear = (bg) => !bg || bg === "transparent" || /rgba\(.*,\s*0\)$/.test(bg);
+const segs = (ok, st, active, tag) => {
+  const on = active === "en-US" ? st.en : st.es, off = active === "en-US" ? st.es : st.en;
+  ok(st.lang === active, `${tag}: html lang="${active}" (got "${st.lang}")`);
+  ok(on && on.pressed === "true" && off && off.pressed === "false", `${tag}: active segment ${active} aria-pressed=true, other false (got en-US ${st.en && st.en.pressed}, es-ES ${st.es && st.es.pressed})`);
+  ok(on && !clear(on.bg), `${tag}: active segment is filled (background ${on && on.bg})`);
+  ok(off && clear(off.bg) && parseFloat(off.border) >= 1, `${tag}: inactive segment is outlined, not filled (background ${off && off.bg}, border ${off && off.border})`);
 };
-const name = (st, j) => (j < st.nH2 ? "heading" : j < st.nH2 + st.nP ? `paragraph ${j - st.nH2 + 1}` : "call to action");
+const label = (it) => (it.inSec ? (it.cta ? "call to action" : it.tag === "h2" ? "heading" : it.tag === "p" ? "paragraph" : it.tag) : "page") + ` [${it.key}]`;
 module.exports = {
-  async check({ page, sec, ok }) {
-    ok((await sec.locator("button[aria-pressed]").count()) === 1, "one language toggle button with aria-pressed");
-    const st = await readS(page);
-    ok(st.nH2 === 1, `one h2 heading in the section (got ${st.nH2})`);
-    ok(st.nP >= 1 && st.nP <= 2, `one or two p[data-copy] paragraphs (got ${st.nP})`);
-    ok(st.nCta === 1, `one [data-cta] call to action (got ${st.nCta})`);
-    st.content.forEach((x, j) => ok(!!x && x.length >= (j >= st.nH2 && j < st.nH2 + st.nP ? 40 : 2), `English on load: ${name(st, j)} has real text (${(x || "").length} chars)`));
-    fixed(ok, st, 0, "English on load");
+  async check({ page, ok }) {
+    const en = load("en-US.json"), es = load("es-ES.json");
+    ok(!!en, "messages/en-US.json present (base text)");
+    ok(!!es, "messages/es-ES.json present");
+    if (en && es) {
+      const miss = Object.keys(en).filter((k) => !(k in es)), extra = Object.keys(es).filter((k) => !(k in en));
+      ok(!miss.length && !extra.length, `es-ES.json has exactly the en-US.json keys (missing: ${miss.join(", ") || "none"}; extra: ${extra.join(", ") || "none"})`);
+      const empty = Object.keys(es).filter((k) => typeof es[k] !== "string" || !es[k].trim());
+      ok(!empty.length, `es-ES.json values are non-empty strings (${empty.join(", ") || "all ok"})`);
+    }
+    const st = await read(page);
+    ok(st.nPressed === 2 && st.en && st.es, `segmented switch: two buttons, data-locale="en-US" and "es-ES", each with aria-pressed (found ${st.nPressed})`);
+    ok(st.en && st.en.text === "English" && st.es && st.es.text === "Español", `switch labels "English" | "Español" (got "${st.en && st.en.text}" | "${st.es && st.es.text}")`);
+    const sec = st.items.filter((i) => i.inSec);
+    ok(sec.filter((i) => i.tag === "h2").length === 1, "section has one h2 with data-i18n");
+    const np = sec.filter((i) => i.tag === "p" && /\.p\d$/.test(i.key)).length;
+    ok(np >= 1 && np <= 2, `section has one or two paragraphs with data-i18n (got ${np})`);
+    ok(sec.filter((i) => i.cta).length === 1, "section has one [data-cta] with data-i18n");
+    for (const k of ["skip", "nav.about", "nav.contact", "footer.disclaimer", "demo.spanish-translation"])
+      ok(st.items.some((i) => i.key === k), `page renders "${k}" with data-i18n`);
+    for (const it of st.items) ok(en && it.text === en[it.key], `English on load: ${label(it)} matches en-US.json`);
+    segs(ok, st, "en-US", "English on load");
   },
   async after({ page, sec, ok }) {
-    const btn = sec.locator("button[aria-pressed]");
-    const en = await readS(page);
-    await btn.click(); await page.waitForTimeout(150);
-    const es = await readS(page);
-    fixed(ok, es, 1, "Español after toggle");
-    ok(es.content.length === en.content.length, `Español: same content elements (${es.content.length} vs ${en.content.length})`);
-    en.content.forEach((x, j) => {
-      const y = es.content[j], n = name(en, j);
-      ok(!!y && y.length > 0, `Español: ${n} non-empty`);
-      ok(y !== x, `Español: ${n} changed from English ("${(y || "").slice(0, 50)}")`);
-      ok(!!y && SPANISH.test(y), `Español: ${n} reads as Spanish ("${(y || "").slice(0, 50)}")`);
-    });
-    await btn.click(); await page.waitForTimeout(150);
-    const back = await readS(page);
-    fixed(ok, back, 0, "English after toggling back");
-    en.content.forEach((x, j) => ok(back.content[j] === x, `English after toggling back: ${name(en, j)} restored exactly`));
+    const en = load("en-US.json") || {}, es = load("es-ES.json") || {};
+    const before = await read(page);
+    await sec.locator('button[data-locale="es-ES"]').click(); await page.waitForTimeout(150);
+    const st = await read(page);
+    segs(ok, st, "es-ES", "Español");
+    for (const it of st.items) {
+      const b = before.items.find((x) => x.key === it.key), n = label(it);
+      ok(!!it.text, `Español: ${n} non-empty`);
+      ok(b && it.text !== b.text, `Español: ${n} differs from English ("${(it.text || "").slice(0, 50)}")`);
+      ok(it.text === es[it.key], `Español: ${n} matches es-ES.json`);
+      if (it.tag === "h1" || it.tag === "h2" || (it.text || "").length >= 30)
+        ok(SPANISH.test(it.text || ""), `Español: ${n} reads as Spanish ("${(it.text || "").slice(0, 50)}")`);
+    }
+    await sec.locator('button[data-locale="en-US"]').click(); await page.waitForTimeout(150);
+    const back = await read(page);
+    segs(ok, back, "en-US", "English after switching back");
+    for (const it of back.items) ok(it.text === en[it.key] && it.text === (before.items.find((x) => x.key === it.key) || {}).text, `English after switching back: ${label(it)} restored exactly`);
   },
 };

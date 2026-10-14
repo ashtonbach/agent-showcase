@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
+import { t, BASE_LOCALE } from "./i18n";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -29,10 +30,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${jost.variable}`}>
+    <html lang={BASE_LOCALE} className={`${cormorant.variable} ${jost.variable}`}>
       <body>
-        <a className="skip-link label" href="#main">
-          Skip to content
+        <a className="skip-link label" href="#main" data-i18n="skip">
+          {t("skip", "Skip to content")}
         </a>
         <header className="site-header">
           <div className="site-header-inner">
@@ -49,10 +50,10 @@ export default function RootLayout({
             <nav aria-label="Main">
               <ul className="nav-list label">
                 <li>
-                  <a href="https://ashtonbach.com/about">About</a>
+                  <a href="https://ashtonbach.com/about" data-i18n="nav.about">{t("nav.about", "About")}</a>
                 </li>
                 <li>
-                  <a href="mailto:info@ashtonbach.com">Contact</a>
+                  <a href="mailto:info@ashtonbach.com" data-i18n="nav.contact">{t("nav.contact", "Contact")}</a>
                 </li>
               </ul>
             </nav>
@@ -62,8 +63,8 @@ export default function RootLayout({
           {children}
         </main>
         <footer className="site-footer">
-          <p className="site-disclaimer">
-            Features and content for this demo were created by AI.
+          <p className="site-disclaimer" data-i18n="footer.disclaimer">
+            {t("footer.disclaimer", "Features and content for this demo were created by AI.")}
           </p>
           <span>&copy; 2026 AshtonBach LLC</span>
         </footer>

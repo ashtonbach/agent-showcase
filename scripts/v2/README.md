@@ -6,6 +6,13 @@
 | `check-feature.js <url> <slug> <who> <outdir> [--engine chromium\|webkit]` | Priya (preview), Felix (production) | Per-feature spec from `specs/<slug>.js` at 1280 and 390, zero console errors, no sideways scroll, no off-site requests, and a pixel diff of the feature against `refs/<slug>-<engine>-<width>.png` (max 1% of pixels). Last line `VISUAL {json}`. |
 | `reset.sh [--apply\|--base [--push]\|--pr]` | `--base --push`: prep before every run and the nightly workflow. `--pr`: explicit admin reset only (`RESET_MAIN=yes`) | Removes every feature folder in `app/lab/` and the two `app/page.tsx` lines. Dry run by default. `--base` writes the result to the `base` branch, never to main. |
 
+## Page text: messages/
+All user-facing page text (skip link, nav, footer note, the H1 names `demo.<slug>`, and the spanish-translation section copy
+`lab.spanish-translation.*`) lives in `messages/en-US.json` and is rendered with `data-i18n="<key>"` (via `app/i18n.ts`);
+`<html lang>` is `en-US`. `en-US.json` is base text: it is on main, so `reset.sh --base` keeps it, and no run may change it.
+The spanish-translation run adds `messages/es-ES.json` (Spain Spanish, same keys); the gate checks the keys, and
+`reset.sh` removes every `messages/*.json` except `en-US.json`.
+
 ## Base branch: production keeps the last demo
 Runs never reset main. `reset.sh --base --push` rebuilds `origin/base` from main with the lab slot empty (so it always has the
 current `scripts/v2`). Each run branches from `origin/base`, its PR targets main, and `gate.js <slug> origin/main <head>` allows

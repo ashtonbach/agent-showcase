@@ -1,0 +1,20 @@
+{
+  "skip": "Skip to content",
+  "nav.about": "About",
+  "nav.contact": "Contact",
+  "footer.disclaimer": "Features and content for this demo were created by AI.",
+  "demo.showcase": "Showcase",
+  "demo.dark-mode": "Dark mode toggle",
+  "demo.faq-accordion": "FAQ accordion",
+  "demo.pricing-table": "Pricing table",
+  "demo.animated-counter": "Animated counter",
+  "demo.tabs": "Tabs",
+  "demo.testimonial-card": "Quote card",
+  "demo.feature-grid": "Feature grid",
+  "demo.spanish-translation": "Spanish translation",
+  "lab.spanish-translation.eyebrow": "Language",
+  "lab.spanish-translation.heading": "Meet the agent team",
+  "lab.spanish-translation.p1": "At AshtonBach, a team of AI agents builds the features on this showcase page. Jonah writes the code, Priya reviews it, and Felix checks it on the live site.",
+  "lab.spanish-translation.p2": "A person designed the system and oversees it. Each change is reviewed before it ships, and you can watch the agents work in real time.",
+  "lab.spanish-translation.cta": "Meet the team"
+}

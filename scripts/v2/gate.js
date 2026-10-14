@@ -15,6 +15,9 @@ if (!menu.includes(slug)) fail("allowlist", `unknown feature "${slug}" (not in a
 const range = `${base}...${head}`;
 const files = git("diff", "--name-only", range).split("\n").filter(Boolean);
 out.files = files;
+// Messages: messages/en-US.json is the base locale (never changed by a run). The spanish-translation run adds exactly
+// messages/es-ES.json: flat JSON, string values only, exactly the same keys as en-US.json.
+const LOCALE_FILE = "messages/es-ES.json", BASE_LOCALE_FILE = "messages/en-US.json";
 const dir = `app/lab/${slug}/`, artDir = `public/lab/${slug}/`; // artDir: Naomi Sato's artwork (SVG only, checked below)
 // Runs branch from origin/base (main with the lab slot empty), so a PR to main also deletes the previous feature.
 // Pure deletions of another menu feature's folder or artwork are allowed and don't count toward the size cap.
@@ -24,12 +27,31 @@ out.removed = files.filter(oldFeature);
 for (const f of files) {
   if (f === "app/page.tsx" || f.startsWith(dir) || oldFeature(f)) continue;
   if (f === "app/lab/current.json") continue; // checked below
+  if (f === LOCALE_FILE && slug === "spanish-translation") continue; // Jonah's es-ES messages, checked below
   if (f.startsWith(artDir) && /^[a-z0-9-]+\.svg$/.test(f.slice(artDir.length))) continue;
   fail("allowlist", `file outside allowlist: ${f}`);
 }
 // The visible demo-name H1 reads app/lab/current.json: after the change it must be exactly {"slug":"<slug>"}.
 { let cur = null; try { cur = JSON.parse(git("show", `${head}:app/lab/current.json`)); } catch (e) {}
   if (!cur || Object.keys(cur).join() !== "slug" || cur.slug !== slug) fail("allowlist", `app/lab/current.json must be exactly {"slug":"${slug}"} (it sets the page H1)`); }
+if (slug === "spanish-translation") {
+  const load = (f) => { try { return JSON.parse(git("show", `${head}:${f}`)); } catch (e) { return null; } };
+  const en = load(BASE_LOCALE_FILE), es = load(LOCALE_FILE);
+  const flat = (o) => o && typeof o === "object" && !Array.isArray(o) && Object.values(o).every((v) => typeof v === "string");
+  if (!flat(en)) fail("allowlist", `${BASE_LOCALE_FILE} missing or not flat string JSON`);
+  if (!es) fail("allowlist", `${LOCALE_FILE} missing or not valid JSON`);
+  else if (!flat(es)) fail("allowlist", `${LOCALE_FILE} must be flat JSON with string values only`);
+  else if (flat(en)) {
+    const a = Object.keys(en).sort(), b = Object.keys(es).sort();
+    const miss = a.filter((k) => !(k in es)), extra = b.filter((k) => !(k in en)), empty = b.filter((k) => !es[k].trim());
+    if (miss.length) fail("allowlist", `${LOCALE_FILE} is missing keys from en-US.json: ${miss.join(", ")}`);
+    if (extra.length) fail("allowlist", `${LOCALE_FILE} has keys not in en-US.json: ${extra.join(", ")}`);
+    if (empty.length) fail("allowlist", `${LOCALE_FILE} has empty values: ${empty.join(", ")}`);
+    const same = a.filter((k) => k in es && en[k].length >= 12 && es[k].trim() === en[k].trim());
+    if (same.length) fail("allowlist", `${LOCALE_FILE} leaves text in English (identical to en-US.json): ${same.join(", ")}`);
+  }
+} else if (files.some((f) => f.startsWith("messages/"))) fail("allowlist", "messages/ may only change in the spanish-translation run (messages/es-ES.json)");
+if (files.includes(BASE_LOCALE_FILE)) fail("allowlist", `${BASE_LOCALE_FILE} is base text; a run may not change it`);
 if (!files.some((f) => f.startsWith(dir))) fail("allowlist", `no files in ${dir}`);
 if (files.some((f) => /(^|\/)(package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|npm-shrinkwrap\.json)$/.test(f)))
   fail("allowlist", "package.json or lockfile changed (no new dependencies)");
@@ -52,7 +74,8 @@ const added = git("diff", "-U0", range, "--", dir).split("\n").filter((l) => l.s
 for (const l of added) {
   for (const re of BANNED) if (re.test(l)) fail("banned", `banned call ${re.source}: ${l.slice(1).trim().slice(0, 120)}`);
   const m = /^\+\s*(?:import|export)\b[^"']*?from\s*["']([^"']+)["']/.exec(l) || /^\+\s*import\s*["']([^"']+)["']/.exec(l);
-  if (m && !(m[1] === "react" || (/^\.\//.test(m[1]) && !m[1].includes("..")))) fail("banned", `import not allowed: ${m[1]} (only "react" or ./ files in the folder)`);
+  const msgOk = slug === "spanish-translation" && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(m ? m[1] : "");
+  if (m && !msgOk && !(m[1] === "react" || (/^\.\//.test(m[1]) && !m[1].includes("..")))) fail("banned", `import not allowed: ${m[1]} (only "react", ./ files in the folder, or ../../../messages/<locale>.json for spanish-translation)`);
 }
 for (const f of files.filter((f) => f.startsWith(dir)))
   if (!/\.(tsx|ts|css|module\.css|svg)$/.test(f)) fail("allowlist", `file type not allowed: ${f}`);

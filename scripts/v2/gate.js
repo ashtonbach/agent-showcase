@@ -47,6 +47,8 @@ if (slug === "spanish-translation") {
     if (miss.length) fail("allowlist", `${LOCALE_FILE} is missing keys from en-US.json: ${miss.join(", ")}`);
     if (extra.length) fail("allowlist", `${LOCALE_FILE} has keys not in en-US.json: ${extra.join(", ")}`);
     if (empty.length) fail("allowlist", `${LOCALE_FILE} has empty values: ${empty.join(", ")}`);
+    const same = a.filter((k) => k in es && en[k].length >= 12 && es[k].trim() === en[k].trim());
+    if (same.length) fail("allowlist", `${LOCALE_FILE} leaves text in English (identical to en-US.json): ${same.join(", ")}`);
   }
 } else if (files.some((f) => f.startsWith("messages/"))) fail("allowlist", "messages/ may only change in the spanish-translation run (messages/es-ES.json)");
 if (files.includes(BASE_LOCALE_FILE)) fail("allowlist", `${BASE_LOCALE_FILE} is base text; a run may not change it`);

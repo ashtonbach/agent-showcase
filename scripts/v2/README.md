@@ -2,8 +2,8 @@
 
 | Script | Who runs it | What it does |
 |---|---|---|
-| `gate.js <slug> [base] [head]` | Priya (preview) and the automerge on the box | Allowlist (`app/lab/<slug>/**`, the two `app/page.tsx` lines, and `app/lab/current.json` = `{"slug":"<slug>"}` for the demo-name H1), no package.json/lockfile change, banned calls/imports, diff of 150 lines or fewer. Last line `GATE {json}`. |
-| `check-feature.js <url> <slug> <who> <outdir> [--engine chromium\|webkit]` | Priya (preview), Felix (production) | Per-feature spec from `specs/<slug>.js` at 1280 and 390, zero console errors, no sideways scroll, no off-site requests, and a pixel diff of the feature against `refs/<slug>-<engine>-<width>.png` (max 1% of pixels). Last line `VISUAL {json}`. |
+| `gate.js <slug> [base] [head]` | Rowan (preview) and the automerge on the box | Allowlist (`app/lab/<slug>/**`, the two `app/page.tsx` lines, and `app/lab/current.json` = `{"slug":"<slug>"}` for the demo-name H1), no package.json/lockfile change, banned calls/imports, diff of 150 lines or fewer. Last line `GATE {json}`. |
+| `check-feature.js <url> <slug> <who> <outdir> [--engine chromium\|webkit]` | Rowan (preview), Cedar (production) | Per-feature spec from `specs/<slug>.js` at 1280 and 390, zero console errors, no sideways scroll, no off-site requests, and a pixel diff of the feature against `refs/<slug>-<engine>-<width>.png` (max 1% of pixels). Last line `VISUAL {json}`. |
 | `reset.sh [--apply\|--base [--push]\|--pr]` | `--base --push`: prep before every run and the nightly workflow. `--pr`: explicit admin reset only (`RESET_MAIN=yes`) | Removes every feature folder in `app/lab/` and the two `app/page.tsx` lines. Dry run by default. `--base` writes the result to the `base` branch, never to main. |
 
 ## Page text: messages/
@@ -19,7 +19,7 @@ current `scripts/v2`). Each run branches from `origin/base`, its PR targets main
 the PR to delete the previous feature's folder and swap the Lab import. Production changes only when that PR merges.
 The base page heading is the single constant in `app/base-heading.ts`.
 
-Jonah Reyes writes each feature himself from a spec; there is no prepared reference code. `refs/` holds older screenshots:
+Alder writes each feature from a spec; there is no prepared reference code. `refs/` holds older screenshots:
 the pixel diff against them is informational and never blocks a merge (the merge gate is allowlist, size, banned calls, build
 and the functional checks in `specs/`). Regenerate references only with a human's approval:
 `node check-feature.js <url> <slug> Refs /tmp --engine chromium --update-refs` (and `--engine webkit`).
@@ -28,4 +28,4 @@ and the functional checks in `specs/`). Regenerate references only with a human'
 Every number a feature shows (stats, counters, prices, dates, counts) must be real and verifiable, with a label that says
 exactly what it counts and, if it changes over time, when it was counted (e.g. "Runs shipped by Oct 11").
 Put the source in a code comment next to the value. If a number can't be verified, label it on the page as example data
-(e.g. "Example data"), never present it as fact. Features and reviews follow this rule; Priya rejects a PR that breaks it.
+(e.g. "Example data"), never present it as fact. Features and reviews follow this rule; Rowan rejects a PR that breaks it.

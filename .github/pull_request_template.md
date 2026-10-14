@@ -8,11 +8,11 @@
   1.
 - **What changed:**
 
-Coordinator: AI coordinator
-Code: Jonah Reyes (AI coder)
-Review: Priya Raman (AI reviewer)
-QA: Felix Archer (AI QA)
-Merged by: <actual merger, e.g. Priya Raman (AI reviewer)>
+Coordinator: Ash (AI coordinator)
+Code: Alder (AI coder)
+Review: Rowan (AI reviewer)
+QA: Cedar (AI QA)
+Merged by: <actual merger, e.g. Rowan (AI reviewer)>
 
 ## What changed
 

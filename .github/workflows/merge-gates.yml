@@ -10,9 +10,43 @@ permissions:
   pull-requests: read
 
 jobs:
+  check-if-feature:
+    name: Check if feature PR
+    runs-on: ubuntu-latest
+    outputs:
+      is_feature: ${{ steps.check.outputs.is_feature }}
+      slug: ${{ steps.check.outputs.slug }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check if this is a feature PR
+        id: check
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          # Feature branches follow pattern: sc/<slug>-<hash> or sc/<slug-partial>-<hash>
+          if [[ "$BRANCH" =~ ^sc/ ]]; then
+            # Extract slug
+            SLUG=$(echo "$BRANCH" | sed 's/^sc\///' | sed 's/-[a-z0-9]\{6\}$//' | sed 's/translat$/translation/')
+            
+            # Verify slug exists in menu.json
+            if node -e "const m = require('./app/lab/menu.json'); if (!m.features.some(f => f.slug === '$SLUG')) process.exit(1);" 2>/dev/null; then
+              echo "is_feature=true" >> "$GITHUB_OUTPUT"
+              echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+              echo "Feature PR detected: $SLUG"
+            else
+              echo "is_feature=false" >> "$GITHUB_OUTPUT"
+              echo "Branch starts with sc/ but slug not found in menu.json: $SLUG"
+            fi
+          else
+            echo "is_feature=false" >> "$GITHUB_OUTPUT"
+            echo "Not a feature PR (branch: $BRANCH)"
+          fi
+
   gate-checks:
     name: Gate checks (Allowlist, Size, Banned calls)
     runs-on: ubuntu-latest
+    needs: check-if-feature
+    if: needs.check-if-feature.outputs.is_feature == 'true'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,33 +55,15 @@ jobs:
       - name: Fetch base branch
         run: git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
       
-      - name: Extract slug from branch name or PR
-        id: slug
-        run: |
-          # Try to extract slug from branch name (e.g., sc/spanish-translat-tmx0h9 -> spanish-translation)
-          BRANCH="${{ github.head_ref }}"
-          # Remove prefix and suffix, convert to full slug
-          SLUG=$(echo "$BRANCH" | sed 's/^sc\///' | sed 's/-[a-z0-9]\{6\}$//' | sed 's/translat$/translation/')
-          
-          # Verify slug exists in menu.json
-          if ! node -e "const m = require('./app/lab/menu.json'); if (!m.features.some(f => f.slug === '$SLUG')) process.exit(1);"; then
-            echo "Could not determine valid feature slug from branch name: $BRANCH"
-            echo "Available features:"
-            node -e "console.log(require('./app/lab/menu.json').features.map(f => f.slug).join(', '))"
-            exit 1
-          fi
-          
-          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
-          echo "Feature slug: $SLUG"
-      
       - name: Run gate checks
         run: |
-          node scripts/v2/gate.js "${{ steps.slug.outputs.slug }}" "origin/${{ github.base_ref }}" HEAD
+          node scripts/v2/gate.js "${{ needs.check-if-feature.outputs.slug }}" "origin/${{ github.base_ref }}" HEAD
 
   functional-checks:
     name: Functional checks
     runs-on: ubuntu-latest
-    needs: gate-checks
+    needs: [check-if-feature, gate-checks]
+    if: needs.check-if-feature.outputs.is_feature == 'true'
     steps:
       - uses: actions/checkout@v4
       
@@ -59,19 +75,6 @@ jobs:
       
       - name: Install dependencies
         run: npm ci
-      
-      - name: Extract slug from branch name
-        id: slug
-        run: |
-          BRANCH="${{ github.head_ref }}"
-          SLUG=$(echo "$BRANCH" | sed 's/^sc\///' | sed 's/-[a-z0-9]\{6\}$//' | sed 's/translat$/translation/')
-          
-          if ! node -e "const m = require('./app/lab/menu.json'); if (!m.features.some(f => f.slug === '$SLUG')) process.exit(1);"; then
-            echo "Could not determine valid feature slug"
-            exit 1
-          fi
-          
-          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
       
       - name: Install Playwright browsers
         run: npx playwright install chromium webkit
@@ -96,12 +99,13 @@ jobs:
       
       - name: Run functional checks
         run: |
-          node scripts/v2/check-feature.js http://localhost:3000 "${{ steps.slug.outputs.slug }}" CI /tmp/check-output
+          node scripts/v2/check-feature.js http://localhost:3000 "${{ needs.check-if-feature.outputs.slug }}" CI /tmp/check-output
 
   copy-coverage:
     name: Copy coverage (>=90% for spanish-translation)
     runs-on: ubuntu-latest
-    if: contains(github.head_ref, 'spanish-translat')
+    needs: check-if-feature
+    if: needs.check-if-feature.outputs.is_feature == 'true' && needs.check-if-feature.outputs.slug == 'spanish-translation'
     steps:
       - uses: actions/checkout@v4
       

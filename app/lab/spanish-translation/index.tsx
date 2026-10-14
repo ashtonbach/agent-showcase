@@ -9,6 +9,7 @@ const pack: Record<Locale, Record<string, string>> = { "en-US": en, "es-ES": es 
 const css = `
 .lab-es { width: min(720px, 100%); margin: 8px auto 56px; }
 .lab-es p { color: var(--mist); line-height: 1.65; margin: 0 0 16px; }
+.lab-es-cta { display: inline-block; margin: 0 0 20px; color: var(--sage); font-family: var(--sans); text-decoration: none; }
 .lab-es-lang { display: inline-flex; margin-top: 8px; }
 .lab-es-lang button {
   font-family: var(--sans); font-size: 14px; font-weight: 500;
@@ -37,6 +38,7 @@ export default function SpanishTranslation() {
       <h2 id="lab-es-h" data-i18n="lab.spanish-translation.heading">{t["lab.spanish-translation.heading"]}</h2>
       <p data-i18n="lab.spanish-translation.p1">{t["lab.spanish-translation.p1"]}</p>
       <p data-i18n="lab.spanish-translation.p2">{t["lab.spanish-translation.p2"]}</p>
+      <a className="lab-es-cta" data-cta="" data-i18n="lab.spanish-translation.cta" href="https://agents-live.davidashtonwells.workers.dev/">{t["lab.spanish-translation.cta"]}</a>
       <div className="lab-es-lang" role="group" aria-label="Language">
         <button type="button" data-locale="en-US" aria-pressed={locale === "en-US"} onClick={() => setLocale("en-US")}>English</button>
         <button type="button" data-locale="es-ES" aria-pressed={locale === "es-ES"} onClick={() => setLocale("es-ES")}>Español</button>

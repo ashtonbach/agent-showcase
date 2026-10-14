@@ -20,7 +20,7 @@ if [ "$MODE" = --base ]; then
   BAD=$(git diff --cached --name-status | awk '$1!="D" && $2!="app/page.tsx"' | grep -v '^$' || true)
   [ -n "$BAD" ] && { echo "BASE_FAIL unexpected changes: $BAD"; exit 1; }
   if ! git diff --cached --quiet; then
-    git -c user.name=ashtonbach-bot -c user.email=334832153+ashtonbach-bot@users.noreply.github.com commit -qm "Base: lab slot empty, from main $(git rev-parse --short origin/main) (Author: Jonah Reyes)"
+    git -c user.name=ashtonbach-coder -c user.email=334832153+ashtonbach-coder@users.noreply.github.com commit -qm "Base: lab slot empty, from main $(git rev-parse --short origin/main) (Author: Jonah Reyes)"
   fi
   echo "BASE_READY $(git rev-parse --short HEAD) (main $(git rev-parse --short origin/main))"
   if [ "${2:-}" = --push ]; then git push -q -f origin HEAD:refs/heads/base; echo "BASE_PUSHED origin/base"; fi
@@ -47,10 +47,10 @@ git add -A app/lab app/page.tsx; git add -A -- public/lab 2>/dev/null || true
 BAD=$(git diff --cached --name-status | awk '$1!="D" && $2!="app/page.tsx"' | grep -v '^$' || true)
 [ -n "$BAD" ] && { echo "RESET_FAIL unexpected changes: $BAD"; exit 1; }
 git diff --cached --name-only | grep -vE '^(app/page\.tsx|app/lab/[a-z0-9-]+/.*|public/lab/[a-z0-9-]+/.*)$' && { echo "RESET_FAIL outside allowlist"; exit 1; }
-git -c user.name=ashtonbach-bot -c user.email=334832153+ashtonbach-bot@users.noreply.github.com commit -qm "Reset: showcase back to base (Author: Jonah Reyes)"
+git -c user.name=ashtonbach-coder -c user.email=334832153+ashtonbach-coder@users.noreply.github.com commit -qm "Reset: showcase back to base (Author: Jonah Reyes)"
 BR=$(git rev-parse --abbrev-ref HEAD); git push -q origin "HEAD:$BR"
 URL=$(gh pr create -R "$R" -H "$BR" -B main -t "Reset: showcase back to base" -b "Author: Jonah Reyes (AI coder)
-Merged by: ashtonbach-bot (automated reset), only after the reset gate passes (deletes under app/lab/ and reverts the two app/page.tsx lines only)
+Merged by: (pending; automated reset), only after the reset gate passes (deletes under app/lab/ and reverts the two app/page.tsx lines only)
 
 Removes the v2 feature(s) $(echo $FEAT | tr '\n' ' ')and restores the lab slot. The classic heading and image are unchanged.
 

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="160" viewBox="0 0 720 160" role="img">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#121A16"/>
+      <stop offset="1" stop-color="#1A2620"/>
+    </linearGradient>
+    <linearGradient id="mist" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#B0CBBC" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#B0CBBC" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#B0CBBC" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B0CBBC"/>
+      <stop offset="1" stop-color="#7E9A8A"/>
+    </linearGradient>
+    <linearGradient id="stoneMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C7D8CC"/>
+      <stop offset="1" stop-color="#8EAA9A"/>
+    </linearGradient>
+    <linearGradient id="stoneTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2EFE6"/>
+      <stop offset="1" stop-color="#D4C9B0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.35" r="0.55">
+      <stop offset="0" stop-color="#D9B45A" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#D9B45A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="720" height="160" fill="url(#sky)"/>
+  <ellipse cx="360" cy="28" rx="220" ry="36" fill="url(#glow)"/>
+  <rect x="0" y="96" width="720" height="64" fill="#121A16"/>
+  <path d="M0 118 C80 104 150 126 240 112 C330 98 400 128 500 110 C590 96 660 118 720 108 L720 160 L0 160 Z" fill="#161F1B"/>
+  <rect x="0" y="70" width="720" height="40" fill="url(#mist)"/>
+
+  <ellipse cx="92" cy="128" rx="18" ry="6" fill="#0E1411" opacity="0.45"/>
+  <path d="M92 86 C80 98 78 112 86 124 C90 118 96 118 98 124 C106 110 104 96 92 86 Z" fill="#1C2A23"/>
+  <path d="M78 104 C70 108 68 116 74 122 C78 118 82 118 84 122 C88 114 86 106 78 104 Z" fill="#24362D"/>
+  <path d="M106 106 C98 110 98 118 104 122 C108 118 112 118 114 122 C116 114 114 108 106 106 Z" fill="#24362D"/>
+
+  <ellipse cx="628" cy="124" rx="16" ry="5" fill="#0E1411" opacity="0.4"/>
+  <path d="M628 90 C618 100 616 112 624 122 C628 116 632 116 634 122 C640 110 638 98 628 90 Z" fill="#1C2A23"/>
+  <path d="M616 106 C610 110 610 116 614 120 C618 116 620 116 622 120 C624 114 622 108 616 106 Z" fill="#24362D"/>
+
+  <g transform="translate(78,46)">
+    <polygon points="86,86 0,108 148,108 234,86" fill="#0E1411" opacity="0.35"/>
+    <polygon points="86,34 0,56 148,56 234,34" fill="url(#stone)"/>
+    <polygon points="0,56 0,78 148,78 148,56" fill="#6E8A7A"/>
+    <polygon points="148,56 148,78 234,56 234,34" fill="#4E685A"/>
+    <polygon points="86,34 0,56 20,50 106,28" fill="#C5D6CA"/>
+    <rect x="54" y="44" width="52" height="8" rx="2" fill="#121A16" opacity="0.18"/>
+    <rect x="62" y="58" width="36" height="6" rx="2" fill="#121A16" opacity="0.12"/>
+  </g>
+
+  <g transform="translate(236,30)">
+    <polygon points="86,94 0,116 148,116 234,94" fill="#0E1411" opacity="0.32"/>
+    <polygon points="86,26 0,48 148,48 234,26" fill="url(#stoneMid)"/>
+    <polygon points="0,48 0,70 148,70 148,48" fill="#7A9686"/>
+    <polygon points="148,48 148,70 234,48 234,26" fill="#5A7466"/>
+    <polygon points="86,26 0,48 20,42 106,20" fill="#D7E4DA"/>
+    <rect x="54" y="36" width="52" height="8" rx="2" fill="#121A16" opacity="0.16"/>
+    <rect x="62" y="50" width="36" height="6" rx="2" fill="#121A16" opacity="0.1"/>
+    <circle cx="80" cy="24" r="4" fill="#D9B45A" opacity="0.35"/>
+  </g>
+
+  <g transform="translate(394,10)">
+    <polygon points="86,102 0,124 148,124 234,102" fill="#0E1411" opacity="0.28"/>
+    <polygon points="86,22 0,44 148,44 234,22" fill="url(#stoneTop)"/>
+    <polygon points="0,44 0,66 148,66 148,44" fill="#C4B89A"/>
+    <polygon points="148,44 148,66 234,44 234,22" fill="#8A7E62"/>
+    <polygon points="86,22 0,44 20,38 106,16" fill="#F7F4EC"/>
+    <ellipse cx="117" cy="18" rx="28" ry="10" fill="#D9B45A" opacity="0.28"/>
+    <rect x="54" y="32" width="52" height="8" rx="2" fill="#D9B45A" opacity="0.55"/>
+    <rect x="62" y="46" width="36" height="6" rx="2" fill="#D9B45A" opacity="0.28"/>
+    <circle cx="80" cy="20" r="7" fill="#D9B45A"/>
+    <circle cx="80" cy="20" r="3.2" fill="#F2EFE6"/>
+  </g>
+
+  <path d="M0 0 H720 V8 H0 Z" fill="#121A16" opacity="0.35"/>
+  <path d="M0 152 H720 V160 H0 Z" fill="#0C1210"/>
+</svg>

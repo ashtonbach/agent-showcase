@@ -82,6 +82,22 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     ok(sx <= 0, `no sideways scroll (${sx}px overflow)`);
     const bb = await sec.boundingBox();
     ok(bb && bb.x >= 0 && bb.x + bb.width <= w + 1, `feature fits the ${w}px viewport`);
+    // NO-EYEBROW (David, 2026-10-14): no text may sit above the feature's <h2> (e.g. a small caps "EXAMPLE DATA" kicker).
+    // An "Example data" disclosure belongs in a plain line under the content. Buttons/links (e.g. a theme toggle) don't count.
+    const eb = await sec.evaluate((s) => {
+      const h = s.querySelector("h2"); if (!h) return { h2: false, text: [] };
+      const vis = (e) => { const r = e.getBoundingClientRect(), cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none" && +cs.opacity > 0; };
+      const tw = document.createTreeWalker(s, NodeFilter.SHOW_TEXT), text = [];
+      for (let n; (n = tw.nextNode()); ) {
+        const t = n.textContent.trim(), e = n.parentElement;
+        if (!t || !e || e.closest("style,script,h2,button,a,[role=tab],[role=tablist],input,select,label")) continue;
+        if (!(h.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_PRECEDING) || !vis(e)) continue;
+        text.push(t.slice(0, 40));
+      }
+      return { h2: true, text };
+    });
+    ok(eb.h2, "feature has an <h2> heading");
+    ok(eb.h2 && eb.text.length === 0, `no eyebrow above the heading${eb.text.length ? ` (found "${eb.text.join(" | ")}"; put any "Example data" note in a plain line under the content)` : ""}`);
     await spec.check({ page, sec, ok, w, engine, log, phase: "before-shot" });
     if (spec.art) { // design-led: Naomi's artwork must load (or show its fallback) and fit; its pixels are masked from the diff
       const arts = sec.locator("[data-art]"), n = await arts.count(), sb = await sec.boundingBox();

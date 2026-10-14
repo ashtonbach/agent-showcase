@@ -28,4 +28,5 @@ and the functional checks in `specs/`). Regenerate references only with a human'
 Every number a feature shows (stats, counters, prices, dates, counts) must be real and verifiable, with a label that says
 exactly what it counts and, if it changes over time, when it was counted (e.g. "Runs shipped by Oct 11").
 Put the source in a code comment next to the value. If a number can't be verified, label it on the page as example data
-(e.g. "Example data"), never present it as fact. Features and reviews follow this rule; Priya rejects a PR that breaks it.
+in a plain sentence-case line under the content (e.g. "Example data: ..."), never present it as fact. No eyebrow:
+nothing may sit above a feature's <h2> (no small caps kicker); `check-feature.js` fails the build if it does. Features and reviews follow this rule; Priya rejects a PR that breaks it.

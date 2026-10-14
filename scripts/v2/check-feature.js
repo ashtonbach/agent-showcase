@@ -74,6 +74,9 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     const r = await page.goto(url + (url.includes("?") ? "&" : "?") + "v=" + Date.now(), { waitUntil: "networkidle" });
     ok(r && r.status() === 200, `HTTP status ${r && r.status()}`);
     const sec = page.locator(`section[data-lab="${slug}"]`);
+    // Feature grid #117 (10/14): one width's first load on a fresh Vercel preview briefly served the page without the feature
+    // (the next width and production both had it). Retry the load once after 5s before calling it missing; a real miss still fails.
+    if ((await sec.count()) === 0) { log("feature section not found on first load; retrying once in 5s"); await page.waitForTimeout(5000); await page.goto(url + (url.includes("?") ? "&" : "?") + "v=" + Date.now(), { waitUntil: "networkidle" }); }
     if (!ok((await sec.count()) === 1, `feature section [data-lab="${slug}"] present on first load`)) { await ctx.close(); continue; }
     await sec.scrollIntoViewIfNeeded();
     ok(await sec.isVisible(), "feature visible");

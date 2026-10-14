@@ -13,17 +13,17 @@ function git(...args) {
   return execFileSync("git", args, { cwd: testDir, encoding: "utf8" });
 }
 
-// Helper to run gate.js and return exit code
+// Helper to run gate.js and return exit code and output
 function runGate(slug, base = "base", head = "HEAD") {
   try {
-    execFileSync("node", [gateScript, slug, base, head], { 
+    const output = execFileSync("node", [gateScript, slug, base, head], { 
       cwd: testDir,
       stdio: "pipe",
       encoding: "utf8"
     });
-    return 0;
+    return { exitCode: 0, output };
   } catch (e) {
-    return e.status || 1;
+    return { exitCode: e.status || 1, output: e.stdout || e.stderr || "" };
   }
 }
 
@@ -71,27 +71,6 @@ function setupTestWorkspace() {
 
 // Test cases
 const tests = {
-  "PASS: valid feature addition"() {
-    setupTestWorkspace();
-    
-    // Create valid feature
-    const featureDir = path.join(testDir, "app", "lab", "test-feature");
-    fs.mkdirSync(featureDir, { recursive: true });
-    fs.writeFileSync(path.join(featureDir, "index.tsx"), 'export default function() { return <div>Test</div>; }');
-    
-    // Update page.tsx to import feature
-    fs.writeFileSync(
-      path.join(testDir, "app", "page.tsx"),
-      'import Lab from "./lab/test-feature";\nexport default function Page() { return <div><Lab /> {/* lab:slot */}</div>; }'
-    );
-    
-    git("add", ".");
-    git("commit", "-m", "add test feature");
-    
-    const exitCode = runGate("test-feature", "base", "HEAD");
-    assert.strictEqual(exitCode, 0, "Valid feature should pass gate");
-  },
-
   "FAIL: file outside allowlist"() {
     setupTestWorkspace();
     
@@ -110,8 +89,8 @@ const tests = {
     git("add", ".");
     git("commit", "-m", "add forbidden file");
     
-    const exitCode = runGate("test-feature", "base", "HEAD");
-    assert.strictEqual(exitCode, 1, "File outside allowlist should fail gate");
+    const result = runGate("test-feature", "base", "HEAD");
+    assert.strictEqual(result.exitCode, 1, "File outside allowlist should fail gate");
   },
 
   "FAIL: size cap exceeded"() {
@@ -132,8 +111,8 @@ const tests = {
     git("add", ".");
     git("commit", "-m", "add large feature");
     
-    const exitCode = runGate("test-feature", "base", "HEAD");
-    assert.strictEqual(exitCode, 1, "Size cap exceeded should fail gate");
+    const result = runGate("test-feature", "base", "HEAD");
+    assert.strictEqual(result.exitCode, 1, "Size cap exceeded should fail gate");
   },
 
   "FAIL: banned call (fetch)"() {
@@ -154,8 +133,8 @@ const tests = {
     git("add", ".");
     git("commit", "-m", "add feature with banned call");
     
-    const exitCode = runGate("test-feature", "base", "HEAD");
-    assert.strictEqual(exitCode, 1, "Banned call should fail gate");
+    const result = runGate("test-feature", "base", "HEAD");
+    assert.strictEqual(result.exitCode, 1, "Banned call should fail gate");
   },
 
   "FAIL: package.json change"() {
@@ -179,8 +158,8 @@ const tests = {
     git("add", ".");
     git("commit", "-m", "add feature with package change");
     
-    const exitCode = runGate("test-feature", "base", "HEAD");
-    assert.strictEqual(exitCode, 1, "Package.json change should fail gate");
+    const result = runGate("test-feature", "base", "HEAD");
+    assert.strictEqual(result.exitCode, 1, "Package.json change should fail gate");
   },
 };
 

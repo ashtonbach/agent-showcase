@@ -1,4 +1,4 @@
-import Lab from "./lab/tabs";
+import Lab from "./lab/testimonial-card";
 import { readDemoName } from "./demo-name";
 const demoName = readDemoName();
 export default function Page() {

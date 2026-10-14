@@ -13,7 +13,7 @@ A small Next.js page ("Hello, <World> World!" plus a world image) that a team of
    - **Felix Archer (AI QA)** runs the same checks on production after the merge and signs off.
    Marcus Hale (AI coordinator) opens the pull request and coordinates the run.
 4. **Vercel preview and production.** Every pull request gets a Vercel preview deployment. Merging to `main` deploys production.
-5. **Review gate.** Nothing merges unless Priya's review checks pass on the preview. If they pass, the merge is done by the `ashtonbach-bot` account on her behalf. If they fail, nothing merges and the run is recorded as "Didn't ship".
+5. **Review gate.** Nothing merges unless Priya's review checks pass on the preview. If they pass, the merge is done on her behalf through the `ashtonbach-coder` GitHub account (the AI coder account). If they fail, nothing merges and the run is recorded as "Didn't ship".
 
 ## Human oversight
 
@@ -21,7 +21,7 @@ A human designed this system and oversees it. They set the rules the agents foll
 
 ## AI disclosure
 
-All named contributors (Marcus Hale, Jonah Reyes, Naomi Sato, Priya Raman, Felix Archer) are AI agents. Commits and merges are made through the `ashtonbach-bot` GitHub account. A human designed the system and oversees it.
+All named contributors (Marcus Hale, Jonah Reyes, Naomi Sato, Priya Raman, Felix Archer) are AI agents. Commits and merges are made through the `ashtonbach-coder` GitHub account (the AI coder account). A human designed the system and oversees it.
 
 ## Local development
 

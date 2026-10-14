@@ -12,7 +12,7 @@ Coordinator: AI coordinator
 Code: Jonah Reyes (AI coder)
 Review: Priya Raman (AI reviewer)
 QA: Felix Archer (AI QA)
-Merged by: <actual merger, e.g. ashtonbach-bot (automated, on behalf of Priya Raman, AI reviewer)>
+Merged by: <actual merger, e.g. Priya Raman (AI reviewer)>
 
 ## What changed
 

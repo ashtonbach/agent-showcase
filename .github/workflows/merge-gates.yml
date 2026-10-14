@@ -1,0 +1,149 @@
+name: Merge Gates
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-if-feature:
+    name: Check if feature PR
+    runs-on: ubuntu-latest
+    outputs:
+      is_feature: ${{ steps.check.outputs.is_feature }}
+      slug: ${{ steps.check.outputs.slug }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check if this is a feature PR
+        id: check
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          # Feature branches follow pattern: sc/<slug>-<hash> or sc/<slug-partial>-<hash>
+          if [[ "$BRANCH" =~ ^sc/ ]]; then
+            # Extract slug
+            SLUG=$(echo "$BRANCH" | sed 's/^sc\///' | sed 's/-[a-z0-9]\{6\}$//' | sed 's/translat$/translation/')
+            
+            # Verify slug exists in menu.json
+            if node -e "const m = require('./app/lab/menu.json'); if (!m.features.some(f => f.slug === '$SLUG')) process.exit(1);" 2>/dev/null; then
+              echo "is_feature=true" >> "$GITHUB_OUTPUT"
+              echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+              echo "Feature PR detected: $SLUG"
+            else
+              echo "is_feature=false" >> "$GITHUB_OUTPUT"
+              echo "Branch starts with sc/ but slug not found in menu.json: $SLUG"
+            fi
+          else
+            echo "is_feature=false" >> "$GITHUB_OUTPUT"
+            echo "Not a feature PR (branch: $BRANCH)"
+          fi
+
+  gate-checks:
+    name: Gate checks (Allowlist, Size, Banned calls)
+    runs-on: ubuntu-latest
+    needs: check-if-feature
+    if: needs.check-if-feature.outputs.is_feature == 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
+      
+      - name: Run gate checks
+        run: |
+          node scripts/v2/gate.js "${{ needs.check-if-feature.outputs.slug }}" "origin/${{ github.base_ref }}" HEAD
+
+  functional-checks:
+    name: Functional checks
+    runs-on: ubuntu-latest
+    needs: [check-if-feature, gate-checks]
+    if: needs.check-if-feature.outputs.is_feature == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npx playwright install chromium webkit
+      
+      - name: Build site
+        run: npm run build
+      
+      - name: Start preview server
+        run: |
+          npm run start &
+          # Wait for server to be ready
+          for i in {1..30}; do
+            if curl -s http://localhost:3000 > /dev/null; then
+              echo "Server is ready"
+              exit 0
+            fi
+            echo "Waiting for server... ($i/30)"
+            sleep 2
+          done
+          echo "Server failed to start"
+          exit 1
+      
+      - name: Run functional checks
+        run: |
+          node scripts/v2/check-feature.js http://localhost:3000 "${{ needs.check-if-feature.outputs.slug }}" CI /tmp/check-output
+
+  copy-coverage:
+    name: Copy coverage (>=90% for spanish-translation)
+    runs-on: ubuntu-latest
+    needs: check-if-feature
+    if: needs.check-if-feature.outputs.is_feature == 'true' && needs.check-if-feature.outputs.slug == 'spanish-translation'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check copy coverage
+        run: |
+          # Load both locale files
+          EN_FILE="messages/en-US.json"
+          ES_FILE="messages/es-ES.json"
+          
+          if [ ! -f "$ES_FILE" ]; then
+            echo "Error: $ES_FILE not found"
+            exit 1
+          fi
+          
+          # Count keys
+          EN_KEYS=$(node -e "console.log(Object.keys(require('./$EN_FILE')).length)")
+          ES_KEYS=$(node -e "console.log(Object.keys(require('./$ES_FILE')).length)")
+          
+          # Count translated (non-identical) keys
+          TRANSLATED=$(node -e "
+            const en = require('./$EN_FILE');
+            const es = require('./$ES_FILE');
+            const translated = Object.keys(en).filter(k => 
+              k in es && 
+              es[k].trim() !== '' && 
+              (en[k].length < 12 || es[k].trim() !== en[k].trim())
+            ).length;
+            console.log(translated);
+          ")
+          
+          # Calculate coverage
+          COVERAGE=$(node -e "console.log(Math.round($TRANSLATED / $EN_KEYS * 100))")
+          
+          echo "Copy coverage: $COVERAGE% ($TRANSLATED/$EN_KEYS keys translated)"
+          
+          if [ "$COVERAGE" -lt 90 ]; then
+            echo "Error: Copy coverage $COVERAGE% is below required 90%"
+            exit 1
+          fi
+          
+          echo "✓ Copy coverage check passed: $COVERAGE% >= 90%"

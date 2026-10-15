@@ -5,7 +5,7 @@ name: Reviewer Approval
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [main, fix/merge-gates-block]  # TEMP: lets the gate test PRs target this branch; removed before merge
+    branches: [main, fix/merge-gates-block, gate-test-base]  # TEMP: lets the gate test PRs target this branch; removed before merge
   pull_request_review:
     types: [submitted, dismissed, edited]
 

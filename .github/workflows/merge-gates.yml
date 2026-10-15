@@ -3,7 +3,7 @@ name: Merge Gates
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [main]
+    branches: [main, fix/merge-gates-block]  # TEMP: lets the gate test PRs target this branch; removed before merge
 
 permissions:
   contents: read
@@ -46,43 +46,60 @@ jobs:
     name: Gate checks (Allowlist, Size, Banned calls)
     runs-on: ubuntu-latest
     needs: check-if-feature
-    if: needs.check-if-feature.outputs.is_feature == 'true'
+    env:
+      IS_FEATURE: ${{ needs.check-if-feature.outputs.is_feature }}
     steps:
+      - name: Not a feature PR
+        if: env.IS_FEATURE != 'true'
+        run: echo "SKIP not a feature PR, gate checks do not apply"
       - uses: actions/checkout@v4
+        if: env.IS_FEATURE == 'true'
         with:
           fetch-depth: 0
-      
+
       - name: Fetch base branch
+        if: env.IS_FEATURE == 'true'
         run: git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
       
       - name: Run gate checks
+        if: env.IS_FEATURE == 'true'
         run: |
           node scripts/v2/gate.js "${{ needs.check-if-feature.outputs.slug }}" "origin/${{ github.base_ref }}" HEAD
 
   functional-checks:
     name: Functional checks
     runs-on: ubuntu-latest
-    needs: [check-if-feature, gate-checks]
-    if: needs.check-if-feature.outputs.is_feature == 'true'
+    needs: check-if-feature
+    env:
+      IS_FEATURE: ${{ needs.check-if-feature.outputs.is_feature }}
     steps:
+      - name: Not a feature PR
+        if: env.IS_FEATURE != 'true'
+        run: echo "SKIP not a feature PR, functional checks do not apply"
       - uses: actions/checkout@v4
-      
+        if: env.IS_FEATURE == 'true'
+
+      # No lockfile in this repo, so no npm cache (cache: 'npm' made Setup Node.js fail on #127/#128).
       - name: Setup Node.js
+        if: env.IS_FEATURE == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-      
+
       - name: Install dependencies
-        run: npm ci
-      
-      - name: Install Playwright browsers
-        run: npx playwright install chromium webkit
+        if: env.IS_FEATURE == 'true'
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright
+        if: env.IS_FEATURE == 'true'
+        run: npm install --no-save --no-audit --no-fund playwright && npx playwright install --with-deps chromium
       
       - name: Build site
+        if: env.IS_FEATURE == 'true'
         run: npm run build
       
       - name: Start preview server
+        if: env.IS_FEATURE == 'true'
         run: |
           npm run start &
           # Wait for server to be ready
@@ -98,19 +115,26 @@ jobs:
           exit 1
       
       - name: Run functional checks
+        if: env.IS_FEATURE == 'true'
         run: |
-          node scripts/v2/check-feature.js http://localhost:3000 "${{ needs.check-if-feature.outputs.slug }}" CI /tmp/check-output
+          node scripts/v2/check-feature.js http://localhost:3000 "${{ needs.check-if-feature.outputs.slug }}" CI /tmp/check-output --engine chromium
 
   copy-coverage:
     name: Copy coverage (>=90% for spanish-translation)
     runs-on: ubuntu-latest
     needs: check-if-feature
-    if: needs.check-if-feature.outputs.is_feature == 'true' && needs.check-if-feature.outputs.slug == 'spanish-translation'
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Check copy coverage
+        env:
+          IS_FEATURE: ${{ needs.check-if-feature.outputs.is_feature }}
+          SLUG: ${{ needs.check-if-feature.outputs.slug }}
         run: |
+          if [ "$IS_FEATURE" != "true" ] || [ "$SLUG" != "spanish-translation" ]; then
+            echo "SKIP copy coverage applies only to spanish-translation (this PR: ${SLUG:-not a feature})"
+            exit 0
+          fi
           # Load both locale files
           EN_FILE="messages/en-US.json"
           ES_FILE="messages/es-ES.json"

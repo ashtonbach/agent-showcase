@@ -1,5 +1,5 @@
 // Spanish translation (scalable i18n). Base text lives in messages/en-US.json and every visible string is rendered with
-// data-i18n="<key>". Jonah adds messages/es-ES.json (Spain Spanish, his own translation, same keys) and a segmented
+// data-i18n="<key>". Alder adds messages/es-ES.json (Spain Spanish, their own translation, same keys) and a segmented
 // English | Español switch. QA never compares against fixed Spanish copy: it reads both message files from this checkout.
 const fs = require("fs"), path = require("path");
 const MSG = path.join(__dirname, "..", "..", "..", "messages");
@@ -45,7 +45,7 @@ module.exports = {
     const np = sec.filter((i) => i.tag === "p" && /\.p\d$/.test(i.key)).length;
     ok(np >= 1 && np <= 2, `section has one or two paragraphs with data-i18n (got ${np})`);
     ok(sec.filter((i) => i.cta).length === 1, "section has one [data-cta] with data-i18n");
-    for (const k of ["skip", "nav.about", "nav.contact", "footer.disclaimer", "demo.spanish-translation"])
+    for (const k of ["skip", "nav.live", "nav.contact", "footer.disclaimer", "demo.spanish-translation"])
       ok(st.items.some((i) => i.key === k), `page renders "${k}" with data-i18n`);
     for (const it of st.items) ok(en && it.text === en[it.key], `English on load: ${label(it)} matches en-US.json`);
     segs(ok, st, "en-US", "English on load");

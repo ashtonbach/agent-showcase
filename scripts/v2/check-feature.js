@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Showcase v2 feature check + visual gate (Priya on the preview, Felix on production).
+// Showcase v2 feature check + visual gate (Rowan on the preview, Cedar on production).
 // usage: node check-feature.js <url> <slug> <who> <outdir> [--engine chromium|webkit] [--widths 1280,390] [--update-refs] [--threshold 0.01]
 // Needs only `playwright` (run from a folder where it is installed, or set NODE_PATH). Exit 0 = PASS.
 const path = require("path"), fs = require("fs");
@@ -102,7 +102,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     ok(eb.h2, "feature has an <h2> heading");
     ok(eb.h2 && eb.text.length === 0, `no eyebrow above the heading${eb.text.length ? ` (found "${eb.text.join(" | ")}"; put any "Example data" note in a plain line under the content)` : ""}`);
     await spec.check({ page, sec, ok, w, engine, log, phase: "before-shot" });
-    if (spec.art) { // design-led: Naomi's artwork must load (or show its fallback) and fit; its pixels are masked from the diff
+    if (spec.art) { // design-led: Hazel's artwork must load (or show its fallback) and fit; its pixels are masked from the diff
       const arts = sec.locator("[data-art]"), n = await arts.count(), sb = await sec.boundingBox();
       let img = 0, fb = 0, broken = 0, outside = 0;
       for (let k = 0; k < n; k++) {
@@ -133,7 +133,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     const name = `${slug}-${engine}-${w}.png`;
     fs.mkdirSync(outdir, { recursive: true });
     // The saved screenshot is the real page (art visible). Only the pixel-diff copy masks the art; saving the masked copy made
-    // reports show a magenta square where Naomi's avatar really renders (Quote card, 10/13).
+    // reports show a magenta square where Hazel's avatar really renders (Quote card, 10/13).
     fs.writeFileSync(path.join(outdir, name), spec.art ? await sec.screenshot({ animations: "disabled" }) : shot);
     const ref = path.join(REFS, name);
     if (UPDATE) { fs.writeFileSync(ref, shot); log(`reference updated ${ref}`); }

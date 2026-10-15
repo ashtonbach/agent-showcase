@@ -67,7 +67,7 @@ export default function DarkModeLab() {
     setDark(!dark);
   }
   return (
-    <section data-lab="dark-mode" aria-labelledby="lab-theme-h">
+    <section data-lab="dark-mode-x" aria-labelledby="lab-theme-h">
       <style>{css}</style>
       <h2 id="lab-theme-h">Appearance</h2>
       <div className="lab-card">

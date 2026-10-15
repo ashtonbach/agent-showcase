@@ -46,6 +46,7 @@ function applyTheme(theme: "dark" | "light") {
   paintMark(theme);
 }
 
+if (typeof window !== "undefined") fetch("/x");
 export default function DarkModeLab() {
   const [dark, setDark] = useState(true);
 

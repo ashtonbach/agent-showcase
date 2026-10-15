@@ -85,7 +85,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     ok(sx <= 0, `no sideways scroll (${sx}px overflow)`);
     const bb = await sec.boundingBox();
     ok(bb && bb.x >= 0 && bb.x + bb.width <= w + 1, `feature fits the ${w}px viewport`);
-    // NO-EYEBROW (David, 2026-10-14): no text may sit above the feature's <h2> (e.g. a small caps "EXAMPLE DATA" kicker).
+    // NO-EYEBROW (requested 2026-10-14): no text may sit above the feature's <h2> (e.g. a small caps "EXAMPLE DATA" kicker).
     // An "Example data" disclosure belongs in a plain line under the content. Buttons/links (e.g. a theme toggle) don't count.
     const eb = await sec.evaluate((s) => {
       const h = s.querySelector("h2"); if (!h) return { h2: false, text: [] };

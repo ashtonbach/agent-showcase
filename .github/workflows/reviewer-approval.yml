@@ -2,6 +2,12 @@ name: Reviewer Approval
 
 # Gate 7: a second agent (Rowan, account ashtonbach-reviewer) reads the diff and can refuse.
 # Passes only when Rowan's latest review on the PR is APPROVED. REQUEST_CHANGES or no review fails.
+#
+# Important: do NOT post a failing check named "Reviewer approval" on pull_request before the
+# review lands. That left two check runs on the same head (failure + later success) and kept
+# mergeStateStatus BLOCKED even after APPROVED (#172, #173). Probe is a different check name;
+# the required check "Reviewer approval" only runs on review events, or on pull_request when
+# Rowan is already APPROVED (re-verify after a new push).
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -14,17 +20,49 @@ permissions:
   pull-requests: read
 
 jobs:
+  probe:
+    name: Reviewer probe
+    runs-on: ubuntu-latest
+    outputs:
+      approved: ${{ steps.check.outputs.approved }}
+      pr: ${{ steps.check.outputs.pr }}
+    steps:
+      - name: Probe Rowan's latest review
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          REVIEWER: ashtonbach-reviewer
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -e
+          STATE=$(gh api "repos/$REPO/pulls/$PR/reviews" --paginate --jq "[.[] | select(.user.login==\"$REVIEWER\" and (.state==\"APPROVED\" or .state==\"CHANGES_REQUESTED\" or .state==\"DISMISSED\"))] | last | .state // \"NONE\"")
+          echo "Rowan's latest review: $STATE"
+          echo "pr=$PR" >> "$GITHUB_OUTPUT"
+          if [ "$STATE" = "APPROVED" ]; then
+            echo "approved=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "approved=false" >> "$GITHUB_OUTPUT"
+          fi
+
   reviewer-approval:
     name: Reviewer approval
+    needs: probe
+    # Required check name. Skip on pull_request until APPROVED so we never leave a sticky FAILURE
+    # under this name on the head SHA. Always run on pull_request_review (pass or fail).
+    if: |
+      github.event_name == 'pull_request_review' ||
+      (github.event_name == 'pull_request' && needs.probe.outputs.approved == 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Check Rowan's latest review
         env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
           REVIEWER: ashtonbach-reviewer
+          PR: ${{ needs.probe.outputs.pr }}
         run: |
+          set -e
           STATE=$(gh api "repos/$REPO/pulls/$PR/reviews" --paginate --jq "[.[] | select(.user.login==\"$REVIEWER\" and (.state==\"APPROVED\" or .state==\"CHANGES_REQUESTED\" or .state==\"DISMISSED\"))] | last | .state // \"NONE\"")
           echo "Rowan's latest review: $STATE"
           if [ "$STATE" != "APPROVED" ]; then

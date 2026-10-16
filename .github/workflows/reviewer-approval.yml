@@ -1,34 +1,25 @@
 name: Reviewer Approval
-
-# Gate 7: a second agent (Rowan, account ashtonbach-reviewer) reads the diff and can refuse.
-# Passes only when Rowan's latest review on the PR is APPROVED. REQUEST_CHANGES or no review fails.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
   pull_request_review:
     types: [submitted, dismissed, edited]
-
 permissions:
   contents: read
   pull-requests: read
-
 jobs:
   reviewer-approval:
     name: Reviewer approval
     runs-on: ubuntu-latest
     steps:
-      - name: Check Rowan's latest review
+      - name: Check Rowan's latest review on this head
         env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
           REVIEWER: ashtonbach-reviewer
+          PR: ${{ github.event.pull_request.number }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          STATE=$(gh api "repos/$REPO/pulls/$PR/reviews" --paginate --jq "[.[] | select(.user.login==\"$REVIEWER\" and (.state==\"APPROVED\" or .state==\"CHANGES_REQUESTED\" or .state==\"DISMISSED\"))] | last | .state // \"NONE\"")
-          echo "Rowan's latest review: $STATE"
-          if [ "$STATE" != "APPROVED" ]; then
-            echo "FAIL merge needs Rowan's APPROVED review (latest: $STATE)"
-            exit 1
-          fi
+          set -e
+          STATE=$(gh api "repos/$REPO/pulls/$PR/reviews" --paginate --jq "[.[] | select(.user.login==\"$REVIEWER\" and .commit_id==\"$HEAD\" and (.state==\"APPROVED\" or .state==\"CHANGES_REQUESTED\" or .state==\"DISMISSED\"))] | last | .state // \"NONE\"")
+          echo "Rowan's latest review on $HEAD: $STATE"
+          if [ "$STATE" != "APPROVED" ]; then echo "FAIL needs Rowan APPROVED on current head ($STATE)"; exit 1; fi
           echo "PASS Rowan approved"

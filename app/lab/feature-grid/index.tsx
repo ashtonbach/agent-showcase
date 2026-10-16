@@ -19,8 +19,9 @@ const css = `
 .lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px}
 .lab-card h3{font-family:var(--serif);font-weight:400;font-size:20px;margin:12px 0 8px}
 .lab-card p{margin:0;color:#E8EEE9;line-height:1.45;font-size:15px}
-.lab-icon{display:block;width:32px;height:32px}
-.lab-fb{display:block;width:32px;height:32px;border-radius:8px;background:rgba(176,203,188,.28);border:1px solid rgba(176,203,188,.45)}
+.lab-tile{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:var(--sage,#B0CBBC)}
+.lab-icon{display:block;width:32px;height:32px;background:var(--sage,#B0CBBC);border-radius:6px}
+.lab-fb{display:block;width:32px;height:32px;border-radius:6px;background:#121A16}
 @media (prefers-reduced-motion:reduce){.lab-grid *{animation:none!important;transition:none!important}}
 `;
 
@@ -30,18 +31,23 @@ function Icon({ i }: { i: number }) {
     const el = document.getElementById("lab-fg-i" + i) as HTMLImageElement | null;
     if (el && el.complete && el.naturalWidth === 0) setFail(true);
   }, [i]);
-  if (fail) return <span data-art="fallback" aria-hidden="true" className="lab-fb" />;
   return (
-    <img
-      id={"lab-fg-i" + i}
-      data-art="image"
-      src={"/lab/feature-grid/icon-" + i + ".svg"}
-      width={32}
-      height={32}
-      alt=""
-      className="lab-icon"
-      onError={() => setFail(true)}
-    />
+    <span className="lab-tile">
+      {fail ? (
+        <span data-art="fallback" aria-hidden="true" className="lab-fb" />
+      ) : (
+        <img
+          id={"lab-fg-i" + i}
+          data-art="image"
+          src={"/lab/feature-grid/icon-" + i + ".svg"}
+          width={32}
+          height={32}
+          alt=""
+          className="lab-icon"
+          onError={() => setFail(true)}
+        />
+      )}
+    </span>
   );
 }
 

@@ -11,7 +11,10 @@ const menu = JSON.parse(fs.readFileSync(path.join(root, "app/lab/menu.json"), "u
 const git = (...a) => execFileSync("git", ["-C", root, ...a], { maxBuffer: 1 << 26 }).toString();
 const out = { slug, allowlist: "PASS", size: "PASS", banned: "PASS", lines: 0, max: MAX, files: [], problems: [] };
 const fail = (k, m) => { out[k] = "FAIL"; out.problems.push(m); };
-if (!menu.includes(slug)) fail("allowlist", `unknown feature "${slug}" (not in app/lab/menu.json)`);
+// Typed requests (Local runs) use their own folder, app/lab/custom-<timestamp>/, and are not on the menu.
+// A custom run may change only that folder, current.json and the page.tsx Lab lines: no artwork, no messages (fail closed).
+const custom = /^custom-[0-9]{10,13}$/.test(slug || "");
+if (!menu.includes(slug) && !custom) fail("allowlist", `unknown feature "${slug}" (not in app/lab/menu.json)`);
 const range = `${base}...${head}`;
 const files = git("diff", "--name-only", range).split("\n").filter(Boolean);
 out.files = files;
@@ -28,7 +31,7 @@ for (const f of files) {
   if (f === "app/page.tsx" || f.startsWith(dir) || oldFeature(f)) continue;
   if (f === "app/lab/current.json") continue; // checked below
   if (f === LOCALE_FILE && slug === "spanish-translation") continue; // Alder's es-ES messages, checked below
-  if (f.startsWith(artDir) && /^[a-z0-9-]+\.svg$/.test(f.slice(artDir.length))) continue;
+  if (!custom && f.startsWith(artDir) && /^[a-z0-9-]+\.svg$/.test(f.slice(artDir.length))) continue;
   fail("allowlist", `file outside allowlist: ${f}`);
 }
 // The visible demo-name H1 reads app/lab/current.json: after the change it must be exactly {"slug":"<slug>"}.

@@ -1,4 +1,4 @@
-import Lab from "./lab/animated-counter";
+import Lab from "./lab/testimonial-card";
 import { readDemoKey, demoTitle } from "./demo-name";
 const demoKey = readDemoKey();
 const demoName = demoTitle();

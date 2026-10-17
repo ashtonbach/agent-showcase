@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Skip automated showcase demo PRs (sc/* heads, titled "Coder: ... (showcase v2)").
+# CodeRabbit has no head-branch filter, so demo PRs are excluded by title keyword.
+reviews:
+  auto_review:
+    enabled: true
+    ignore_title_keywords:
+      - "(showcase v2)"

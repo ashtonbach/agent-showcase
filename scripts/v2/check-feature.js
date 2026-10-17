@@ -56,7 +56,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     const d = await pixelDiff(pg, fs.readFileSync(args[1]).toString("base64"), fs.readFileSync(args[2]).toString("base64"));
     console.log(JSON.stringify(d)); await b.close(); process.exit(d.size || d.ratio > THRESH ? 1 : 0); })(); return; }
 (async () => {
-  const spec = require(path.join(__dirname, "specs", slug + ".js"));
+  const spec = require(path.join(__dirname, "specs", (/^custom-[0-9]{10,13}$/.test(slug) ? "custom" : slug) + ".js")); // typed requests: generic checks
   const b = await pw[engine].launch({ headless: true });
   for (const w of widths) {
     log(`--- ${engine} ${w}px`);
@@ -136,7 +136,8 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     // reports show a magenta square where Hazel's avatar really renders (Quote card, 10/13).
     fs.writeFileSync(path.join(outdir, name), spec.art ? await sec.screenshot({ animations: "disabled" }) : shot);
     const ref = path.join(REFS, name);
-    if (UPDATE) { fs.writeFileSync(ref, shot); log(`reference updated ${ref}`); }
+    if (spec.noRef) log(`visual: typed request, no reference to diff (one-off content; layout, errors and network checks still apply)`);
+    else if (UPDATE) { fs.writeFileSync(ref, shot); log(`reference updated ${ref}`); }
     else if (!fs.existsSync(ref)) ok(false, `visual: reference ${name} missing`);
     else {
       const d = await pixelDiff(page, shot.toString("base64"), fs.readFileSync(ref).toString("base64"));

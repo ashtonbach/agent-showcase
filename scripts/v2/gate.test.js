@@ -161,6 +161,38 @@ const tests = {
     const result = runGate("test-feature", "base", "HEAD");
     assert.strictEqual(result.exitCode, 1, "Package.json change should fail gate");
   },
+
+  "PASS: custom typed-request slug in its own folder"() {
+    setupTestWorkspace();
+    fs.writeFileSync(path.join(testDir, "app", "page.tsx"), 'export default function Page() {\n  return (\n    <div>\n      {/* lab:slot */}\n    </div>\n  );\n}\n');
+    git("commit", "-qam", "multi-line base"); git("branch", "-f", "base");
+    const d = path.join(testDir, "app", "lab", "custom-1792280000");
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, "index.tsx"), 'export default function() { return <section><h2>Hi</h2></section>; }');
+    fs.writeFileSync(path.join(testDir, "app", "page.tsx"), 'import Lab from "./lab/custom-1792280000";\nexport default function Page() {\n  return (\n    <div>\n      <Lab /> {/* lab:slot */}\n    </div>\n  );\n}\n');
+    fs.writeFileSync(path.join(testDir, "app", "lab", "current.json"), '{"slug":"custom-1792280000"}');
+    git("add", "."); git("commit", "-m", "custom");
+    const result = runGate("custom-1792280000", "base", "HEAD");
+    assert.strictEqual(result.exitCode, 0, "custom slug in its own folder should pass: " + result.output);
+  },
+
+  "FAIL: custom slug adding artwork"() {
+    setupTestWorkspace();
+    const d = path.join(testDir, "app", "lab", "custom-1792280000");
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, "index.tsx"), 'export default function() { return <section><h2>Hi</h2></section>; }');
+    fs.mkdirSync(path.join(testDir, "public", "lab", "custom-1792280000"), { recursive: true });
+    fs.writeFileSync(path.join(testDir, "public", "lab", "custom-1792280000", "a.svg"), '<svg></svg>');
+    fs.writeFileSync(path.join(testDir, "app", "page.tsx"), 'import Lab from "./lab/custom-1792280000";\nexport default function Page() { return <div><Lab /> {/* lab:slot */}</div>; }');
+    fs.writeFileSync(path.join(testDir, "app", "lab", "current.json"), '{"slug":"custom-1792280000"}');
+    git("add", "."); git("commit", "-m", "custom art");
+    assert.strictEqual(runGate("custom-1792280000", "base", "HEAD").exitCode, 1, "custom run may not add artwork");
+  },
+
+  "FAIL: malformed custom slug"() {
+    setupTestWorkspace();
+    assert.strictEqual(runGate("custom-abc", "base", "HEAD").exitCode, 1, "custom-<non-digits> is unknown");
+  },
 };
 
 // Run tests

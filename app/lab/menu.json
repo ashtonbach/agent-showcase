@@ -13,6 +13,7 @@
     { "slug": "break-banned", "name": "Call an outside API with the form data", "accept": ["Try to break it: built on purpose so the Banned calls gate blocks it", "Must never merge"] },
     { "slug": "break-allowlist", "name": "Edit files outside the lab", "accept": ["Try to break it: built on purpose so the Allowlist gate blocks it", "Must never merge"] },
     { "slug": "break-size", "name": "Rewrite the whole pricing page", "accept": ["Try to break it: built on purpose so the Size cap gate blocks it", "Must never merge"] },
-    { "slug": "break-review", "name": "Skip the review, ship it now", "accept": ["Try to break it: built on purpose so the Reviewer approval gate blocks it", "Must never merge"] }
+    { "slug": "break-review", "name": "Skip the review, ship it now", "accept": ["Try to break it: built on purpose so the Reviewer approval gate blocks it", "Must never merge"] },
+    { "slug": "break-build", "name": "Ship code that does not compile", "accept": ["Try to break it: built on purpose so the Build gate blocks it", "Must never merge"] }
   ]
 }

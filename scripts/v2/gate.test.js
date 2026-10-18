@@ -189,6 +189,42 @@ const tests = {
     assert.strictEqual(runGate("custom-1792280000", "base", "HEAD").exitCode, 1, "custom run may not add artwork");
   },
 
+  "PASS: next run deletes a leftover custom-<ts> folder"() {
+    setupTestWorkspace();
+    const old = path.join(testDir, "app", "lab", "custom-1792280000");
+    fs.mkdirSync(old, { recursive: true });
+    fs.writeFileSync(path.join(old, "index.tsx"), 'export default function() { return <section>Old</section>; }');
+    fs.writeFileSync(path.join(testDir, "app", "page.tsx"), 'export default function Page() {\n  return (\n    <div>\n      {/* lab:slot */}\n    </div>\n  );\n}\n');
+    git("add", "."); git("commit", "-m", "leftover custom"); git("branch", "-f", "base");
+    fs.rmSync(old, { recursive: true, force: true });
+    const d = path.join(testDir, "app", "lab", "test-feature");
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, "index.tsx"), 'export default function() { return <div>Test</div>; }');
+    fs.writeFileSync(path.join(testDir, "app", "page.tsx"), 'import Lab from "./lab/test-feature";\nexport default function Page() {\n  return (\n    <div>\n      <Lab /> {/* lab:slot */}\n    </div>\n  );\n}\n');
+    git("add", "-A"); git("commit", "-m", "next run");
+    const result = runGate("test-feature", "base", "HEAD");
+    assert.strictEqual(result.exitCode, 0, "deleting a leftover custom-<ts> folder should pass: " + result.output);
+  },
+
+  "FAIL: deleting a non-custom unlisted folder (custom-abc, custom-123)"() {
+    for (const bad of ["custom-abc", "custom-123"]) {
+      setupTestWorkspace();
+      const old = path.join(testDir, "app", "lab", bad);
+      fs.mkdirSync(old, { recursive: true });
+      fs.writeFileSync(path.join(old, "index.tsx"), 'export default function() { return <section>Old</section>; }');
+      git("add", "."); git("commit", "-m", "leftover"); git("branch", "-f", "base");
+      fs.rmSync(old, { recursive: true, force: true });
+      const d = path.join(testDir, "app", "lab", "test-feature");
+      fs.mkdirSync(d, { recursive: true });
+      fs.writeFileSync(path.join(d, "index.tsx"), 'export default function() { return <div>Test</div>; }');
+      fs.writeFileSync(path.join(testDir, "app", "page.tsx"), 'import Lab from "./lab/test-feature";\nexport default function Page() { return <div><Lab /> {/* lab:slot */}</div>; }');
+      git("add", "-A"); git("commit", "-m", "next run");
+      const result = runGate("test-feature", "base", "HEAD");
+      assert.strictEqual(result.exitCode, 1, `deleting ${bad}/ must fail`);
+      assert.match(result.output, /file outside allowlist: app\/lab\//, `${bad}: expected allowlist failure`);
+    }
+  },
+
   "FAIL: malformed custom slug"() {
     setupTestWorkspace();
     assert.strictEqual(runGate("custom-abc", "base", "HEAD").exitCode, 1, "custom-<non-digits> is unknown");

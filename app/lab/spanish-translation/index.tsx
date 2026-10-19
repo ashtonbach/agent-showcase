@@ -12,9 +12,9 @@ const css = `
 .lab-wrap h2{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--mist);margin:0 0 16px}
 .lab-wrap p{color:#E8EEE9;line-height:1.6;margin:0 0 14px}
 .lab-switch{display:flex;gap:0;margin-top:24px;border-radius:8px;overflow:hidden;width:fit-content}
-.lab-switch button{font-family:var(--sans);font-size:15px;padding:10px 20px;border:1px solid var(--sage);cursor:pointer;transition:background .15s,color .15s}
-.lab-switch button[data-active="true"]{background:var(--sage);color:#14201A;border-color:var(--sage)}
-.lab-switch button[data-active="false"]{background:transparent;color:var(--mist)}
+.lab-switch button{font-family:var(--sans);font-size:15px;padding:10px 20px;border:1px solid var(--sage);cursor:pointer;background:none;color:var(--mist);box-shadow:none;transition:background .15s,color .15s}
+.lab-switch button[data-active="true"]{background:var(--sage)!important;color:#14201A!important;border-color:var(--sage)}
+.lab-switch button[data-active="false"]{background:transparent!important;color:var(--mist);border:1px solid var(--sage)}
 .lab-switch button:first-child{border-radius:8px 0 0 8px}
 .lab-switch button:last-child{border-radius:0 8px 8px 0;margin-left:-1px}
 @media (prefers-reduced-motion:reduce){.lab-switch button{transition:none}}

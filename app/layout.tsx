@@ -50,7 +50,7 @@ export default function RootLayout({
             <nav aria-label="Main">
               <ul className="nav-list label">
                 <li>
-                  <a href="https://agents-live.davidashtonwells.workers.dev/" data-i18n="nav.live">{t("nav.live", "Watch the team live")}</a>
+                  <a href="https://agents-live.davidashtonwells.workers.dev/" data-i18n="nav.live">{t("nav.live", "Production workflow")}</a>
                 </li>
                 <li>
                   <a href="mailto:info@ashtonbach.com" data-i18n="nav.contact">{t("nav.contact", "Contact")}</a>

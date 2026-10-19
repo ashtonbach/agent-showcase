@@ -1,4 +1,4 @@
-import Lab from "./lab/spanish-translation";
+import Lab from "./lab/dark-mode";
 import { readDemoKey, demoTitle } from "./demo-name";
 const demoKey = readDemoKey();
 const demoName = demoTitle();

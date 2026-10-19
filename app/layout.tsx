@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { t, BASE_LOCALE } from "./i18n";
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+// Self-hosted (latin, variable-weight woff2 from Google Fonts, OFL): the build no longer fetches fonts.googleapis.com, which made a CI
+// "Build site" fail once on a bad font response ("next/font/google queries have exactly one entry") while Vercel built the same commit.
+const cormorant = localFont({
+  src: [{ path: "./fonts/cormorant-garamond-latin-var.woff2", weight: "400 600", style: "normal" }],
   display: "swap",
   variable: "--font-cormorant",
+  fallback: ["Georgia", "serif"],
 });
 
-const jost = Jost({
-  subsets: ["latin"],
-  weight: ["400", "500"],
+const jost = localFont({
+  src: [{ path: "./fonts/jost-latin-var.woff2", weight: "400 500", style: "normal" }],
   display: "swap",
   variable: "--font-jost",
+  fallback: ["system-ui", "sans-serif"],
 });
 
 export const metadata: Metadata = {

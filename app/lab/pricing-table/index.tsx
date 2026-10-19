@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 /* Example plan prices — illustrative showcase data, not live pricing */
 const TIERS = [
@@ -38,26 +38,26 @@ const css = `
 `;
 
 function HeaderArt() {
-  const ref = useRef<HTMLImageElement>(null);
-  const [showImg, setShowImg] = useState(true);
+  const [src, setSrc] = useState<string | null>(null);
 
   useEffect(() => {
-    const img = ref.current;
-    if (!img) return;
-    if (img.complete && img.naturalWidth === 0) setShowImg(false);
+    const probe = new window.Image();
+    probe.onload = () => {
+      if (probe.naturalWidth > 0) setSrc("/lab/pricing-table/header.svg");
+    };
+    probe.src = "/lab/pricing-table/header.svg";
   }, []);
 
-  if (!showImg) return <span className="lab-header-fb" data-art="fallback" aria-hidden="true" />;
+  if (!src) return <span className="lab-header-fb" data-art="fallback" aria-hidden="true" />;
   return (
     <img
-      ref={ref}
       className="lab-header-art"
       data-art="image"
-      src="/lab/pricing-table/header.svg"
+      src={src}
       width={720}
       height={160}
       alt=""
-      onError={() => setShowImg(false)}
+      onError={() => setSrc(null)}
     />
   );
 }

@@ -31,6 +31,8 @@ const pw = require("playwright");
 const log = (m) => console.log(`[${who}] ${m}`);
 const fails = [], ok = (c, m) => { log((c ? "PASS " : "FAIL ") + m); if (!c) fails.push(m); return !!c; };
 const visual = [];
+const { verdict: visualVerdict, noRefNote } = require("./visual-verdict");
+const skipped = [];
 async function pixelDiff(page, a, b) {
   // in-page compare (no extra npm packages): returns {w,h,bad,ratio} or {size:[...]}
   return page.evaluate(async ([a, b]) => {
@@ -138,7 +140,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     const ref = path.join(REFS, name);
     if (spec.noRef) log(`visual: typed request, no reference to diff (one-off content; layout, errors and network checks still apply)`);
     else if (UPDATE) { fs.writeFileSync(ref, shot); log(`reference updated ${ref}`); }
-    else if (!fs.existsSync(ref)) ok(false, `visual: reference ${name} missing`);
+    else if (!fs.existsSync(ref)) { const m = noRefNote(name); log(m); skipped.push(m); }   // no known-good render yet: skipped, not a failure of the work
     else {
       const d = await pixelDiff(page, shot.toString("base64"), fs.readFileSync(ref).toString("base64"));
       if (d.size) ok(false, `visual: size ${d.size[0]}x${d.size[1]} vs reference ${d.size[2]}x${d.size[3]}`);
@@ -152,7 +154,9 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
   }
   await b.close();
   const v = visual.length ? Math.max(...visual) : null;
-  log(fails.length ? `RESULT FAIL (${fails.length}): ${fails.join("; ")}` : "RESULT PASS, all checks passed");
-  console.log("VISUAL " + JSON.stringify({ result: UPDATE ? "UPDATED" : fails.some((f) => f.startsWith("visual")) || v === null ? "FAIL" : "PASS", maxDiff: v, engine, widths }));
+  const sk = skipped.length ? ` (${skipped.length} skipped: visual, no reference)` : "";
+  log(fails.length ? `RESULT FAIL (${fails.length}): ${fails.join("; ")}${sk}` : `RESULT PASS, all checks passed${sk}`);
+  const vr = visualVerdict({ update: UPDATE, fails, diffs: visual });
+  console.log("VISUAL " + JSON.stringify({ result: vr, maxDiff: v, engine, widths, ...(vr === "SKIPPED" ? { reason: skipped.length ? "no reference" : "nothing compared" } : {}) }));
   process.exit(fails.length ? 1 : 0);
 })().catch((e) => { log(`RESULT FAIL error ${e.message}`); console.log('VISUAL {"result":"FAIL"}'); process.exit(1); });

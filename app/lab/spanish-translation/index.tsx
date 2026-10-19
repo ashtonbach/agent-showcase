@@ -23,13 +23,12 @@ const css = `
 .lab-wrap{width:min(720px,100%);margin:8px auto 56px}
 .lab-wrap h2{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--mist);margin:0 0 16px}
 .lab-wrap p{color:#E8EEE9;line-height:1.6;margin:0 0 14px}
-.lab-lang{display:flex;margin-top:24px;border-radius:8px;overflow:hidden;width:fit-content}
-.lab-lang button{font-family:var(--sans);font-size:15px;padding:10px 20px;border:1px solid var(--sage);cursor:pointer;background-color:transparent;background-image:none;box-shadow:none;transition:background-color .15s,color .15s,border-color .15s}
+.lab-lang{margin-top:24px;width:fit-content;display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid var(--sage)}
+.lab-lang button{font-family:var(--sans);font-size:15px;padding:10px 20px;border:0;border-radius:0;cursor:pointer;background-color:#14201A;background-image:none;box-shadow:none;transition:background-color .15s,color .15s}
 @media (prefers-reduced-motion:reduce){.lab-lang button{transition:none}}
-.lab-lang button[data-active="true"]{background-color:var(--sage);color:#14201A;border-color:var(--sage)}
-.lab-lang button[data-active="false"]{background-color:transparent;color:var(--mist)}
-.lab-lang button:first-child{border-radius:8px 0 0 8px}
-.lab-lang button:last-child{border-radius:0 8px 8px 0;margin-left:-1px}
+.lab-lang button[data-active="true"]{background-color:var(--sage);color:#14201A}
+.lab-lang button[data-active="false"]{background-color:#14201A;color:var(--mist)}
+.lab-lang button+button{border-left:1px solid var(--sage)}
 `;
 
 export default function Lab() {

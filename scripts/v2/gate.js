@@ -17,7 +17,12 @@ const custom = /^custom-[0-9]{10,13}$/.test(slug || "");
 if (!menu.includes(slug) && !custom) fail("allowlist", `unknown feature "${slug}" (not in app/lab/menu.json)`);
 // Build on top: KEEP_LAB=<slug> (set by the kit when a typed request says to keep / add to the current page). That section's
 // files must not change or disappear, current.json keeps its slug, and page.tsx keeps <Lab /> and adds one <Extra /> for this run.
-const keep = process.env.KEEP_LAB || "";
+// The kit turns the mode on in two places that must agree: KEEP_LAB in its own env, and a fixed marker line it writes in the
+// PR body ("<!-- keep-lab: <slug> -->"), which this script reads from the pull_request event in Merge Gates (keep-marker.js).
+const envKeep = process.env.KEEP_LAB || "", bodyKeep = require("./keep-marker").fromEvent();
+if (bodyKeep === null) fail("allowlist", "bad keep-lab marker in the PR body (one line: <!-- keep-lab: <slug> -->)");
+if (envKeep && bodyKeep && envKeep !== bodyKeep) fail("allowlist", `KEEP_LAB "${envKeep}" does not match the PR body marker "${bodyKeep}"`);
+const keep = envKeep || bodyKeep || "";
 if (keep && (!/^[a-z0-9-]+$/.test(keep) || keep === slug)) fail("allowlist", `bad KEEP_LAB "${keep}"`);
 const keepFile = (f) => !!keep && (f.startsWith(`app/lab/${keep}/`) || f.startsWith(`public/lab/${keep}/`));
 const range = `${base}...${head}`;
@@ -72,7 +77,9 @@ if (files.some((f) => /(^|\/)(package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|b
 // the feature may swap the import slug instead of adding a second import.
 if (files.includes("app/page.tsx")) {
   const show = (ref) => { try { return git("show", `${ref}:app/page.tsx`); } catch (e) { return ""; } };
-  const strip = (t) => t.split("\n").filter((l) => !/^import (Lab|Extra) from "\.\/lab\/[a-z0-9-]+";$/.test(l) && !/^\s*<(Lab|Extra) \/>\s*$/.test(l) && !(keep && /^\s*<Extra \/>\s*\{\/\* lab:slot \*\/\}$/.test(l)))
+  // Extra lines are part of the allowed change only in keep mode; in normal mode an Extra import or render is an "other line".
+  const LB = keep ? "(Lab|Extra)" : "Lab", impRe = new RegExp(`^import ${LB} from "\\./lab/[a-z0-9-]+";$`), renRe = new RegExp(`^\\s*<${LB} \\/>\\s*$`);
+  const strip = (t) => t.split("\n").filter((l) => !impRe.test(l) && !renRe.test(l) && !(keep && /^\s*<Extra \/>\s*\{\/\* lab:slot \*\/\}$/.test(l)))
     .map((l) => l.replace(/^(\s*)<Lab \/>\s*(\{\/\* lab:slot \*\/\})$/, "$1$2")).join("\n");
   const b = show(base), h = show(head);
   const imps = h.split("\n").filter((l) => /^import Lab from /.test(l)), renders = (h.match(/<Lab \/>/g) || []).length;

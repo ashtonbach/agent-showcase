@@ -24,4 +24,21 @@ w("app/page.tsx", PAGE('import Lab from "./lab/faq-accordion";\nimport Extra fro
 t("build on top with KEEP_LAB passes", () => { const r = run({ KEEP_LAB: "faq-accordion" }); assert.strictEqual(r.code, 0, r.out); });
 t("build on top that also edits the kept section fails", () => { fs.appendFileSync(path.join(d, "app/lab/faq-accordion/index.tsx"), "// x\n"); g("commit", "-qam", "edit"); const r = run({ KEEP_LAB: "faq-accordion" }); assert.strictEqual(r.code, 1); assert.ok(/faq-accordion\/index\.tsx was changed/.test(r.out)); });
 t("KEEP_LAB without <Extra /> fails", () => { g("reset", "-q", "--hard", "HEAD~1"); w("app/page.tsx", PAGE('import Lab from "./lab/faq-accordion";', "      <Lab /> {/* lab:slot */}")); g("commit", "-qam", "noextra"); assert.strictEqual(run({ KEEP_LAB: "faq-accordion" }).code, 1); });
-fs.rmSync(d, { recursive: true, force: true }); console.log(`keep-lab: ${n}/5 passed`);
+// The CI path: in Merge Gates gate.js reads the PR body marker from the pull_request event (GITHUB_EVENT_PATH), no KEEP_LAB env.
+const marker = path.join(__dirname, "keep-marker.js"), ev = path.join(d, "..", path.basename(d) + "-event.json");
+const viaBody = (body, env = {}) => { fs.writeFileSync(ev, JSON.stringify({ pull_request: { body } })); return run({ KEEP_LAB: "", GITHUB_EVENT_PATH: ev, ...env }); };
+const BODY = "## Requested change\nKeep the FAQ and add a banner\n\n<!-- keep-lab: faq-accordion -->\n";
+// normal mode with Extra lines: a normal replace that also keeps the old section through <Extra /> (passed before: Extra lines were ignored)
+g("checkout", "-q", "-b", "extra-normal", "main"); w("app/lab/custom-1792388090/index.tsx", NEW); w("app/lab/current.json", '{"slug":"custom-1792388090"}');
+w("app/page.tsx", PAGE('import Lab from "./lab/custom-1792388090";\nimport Extra from "./lab/faq-accordion";', "      <Extra />\n      <Lab /> {/* lab:slot */}")); g("add", "-A"); g("commit", "-qm", "extra-normal");
+t("normal mode (no marker) fails a page.tsx that adds Extra lines", () => { for (const r of [viaBody("## Requested change\nAdd a banner\n"), run({})]) { assert.strictEqual(r.code, 1); assert.ok(/other lines changed/.test(r.out), r.out); } });
+g("checkout", "-q", "-b", "ontop2", "main"); w("app/lab/custom-1792388090/index.tsx", NEW);
+w("app/page.tsx", PAGE('import Lab from "./lab/faq-accordion";\nimport Extra from "./lab/custom-1792388090";', "      <Extra />\n      <Lab /> {/* lab:slot */}")); g("add", "-A"); g("commit", "-qm", "ontop2");
+t("keep mode from the PR body marker passes a build-on-top change", () => { const r = viaBody(BODY); assert.strictEqual(r.code, 0, r.out); });
+t("#212-style deletion fails with the marker and with kit env KEEP_LAB", () => { g("checkout", "-q", "replace"); const a = viaBody(BODY), b = run({ KEEP_LAB: "faq-accordion" }); for (const r of [a, b]) { assert.strictEqual(r.code, 1); assert.ok(/faq-accordion\/index\.tsx was deleted/.test(r.out)); } });
+t("marker parser: none -> normal mode, two or malformed -> fails closed", () => {
+  const m = (body) => { try { return { code: 0, out: execFileSync("node", [marker], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], env: { ...process.env, PR_BODY: body } }) }; } catch (e) { return { code: e.status, out: "" }; } };
+  assert.deepStrictEqual(m("no marker here"), { code: 0, out: "" }); assert.deepStrictEqual(m(BODY), { code: 0, out: "faq-accordion" });
+  assert.strictEqual(m(BODY + "<!-- keep-lab: other -->\n").code, 1); assert.strictEqual(m("<!-- keep-lab: ../x -->").code, 1);
+  g("checkout", "-q", "ontop2"); assert.strictEqual(viaBody(BODY + "<!-- keep-lab: other -->\n").code, 1); assert.strictEqual(viaBody(BODY, { KEEP_LAB: "other" }).code, 1); assert.strictEqual(viaBody(BODY, { KEEP_LAB: "faq-accordion" }).code, 0); });
+fs.rmSync(ev, { force: true }); fs.rmSync(d, { recursive: true, force: true }); console.log(`keep-lab: ${n}/9 passed`);

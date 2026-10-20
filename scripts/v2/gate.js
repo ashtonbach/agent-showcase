@@ -102,13 +102,17 @@ const stripComments = (t) => { let o = "", q = null; for (let i = 0; i < t.lengt
   if (c === "/" && n === "*") { i += 2; while (i < t.length && !(t[i] === "*" && t[i + 1] === "/")) { if (t[i] === "\n") o += "\n"; i++; } i++; o += " "; continue; }
   if (c === '"' || c === "'" || c === "`") q = c; o += c; } return o; };
 const SPEC = [/\bfrom\s*(["'`])([^"'`]*)\1/g, /\bimport\s*(["'`])([^"'`]*)\1/g, /\bimport\s*\(\s*(["'`])([^"'`]*)\1/g, /\brequire\s*\(\s*(["'`])([^"'`]*)\1/g];
-const labTexts = files.filter((f) => f.startsWith(dir) && /\.(tsx|ts)$/.test(f) && !deleted.has(f)).map((f) => { let t = ""; try { t = git("show", `${head}:${f}`); } catch (e) {} return stripComments(t); });
-const specs = [];
-for (const t of labTexts) {
+const labTexts = files.filter((f) => f.startsWith(dir) && /\.(tsx|ts)$/.test(f) && !deleted.has(f)).map((f) => { let t = ""; try { t = git("show", `${head}:${f}`); } catch (e) {} return { raw: t, t: stripComments(t) }; });
+const specs = [], rawSpecs = [];
+for (const { raw, t } of labTexts) {
+  // fail closed: the stripper is not a full JS lexer (regex literals, ${} in templates), so specifiers are also taken from
+  // the raw text; each must be allowed and must survive stripping, else it fails (even one that was really in a comment).
+  const kept = []; for (const re of SPEC) for (const m of t.matchAll(re)) kept.push(m[2]);
+  for (const re of SPEC) for (const m of raw.matchAll(re)) { rawSpecs.push(m[2]); if (!kept.includes(m[2])) fail("banned", `import specifier hidden by comment stripping: ${m[2]}`); }
   for (const re of BANNED) { const g = new RegExp(re.source, "g"); for (const m of t.matchAll(g)) fail("banned", `banned call ${re.source}: ${t.slice(Math.max(0, m.index - 20), m.index + 60).replace(/\s+/g, " ").trim().slice(0, 120)}`); }
   for (const re of SPEC) for (const m of t.matchAll(re)) specs.push(m[2]);
 }
-for (const sp of specs) {
+for (const sp of new Set([...specs, ...rawSpecs])) {
   const msgOk = slug === "spanish-translation" && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(sp);
   const keepOk = !!keep && sp === `../${keep}`; // build on top: the new lab renders the kept lab's component
   if (!msgOk && !keepOk && !(sp === "react" || (/^\.\//.test(sp) && !sp.includes("..")))) fail("banned", `import not allowed: ${sp} (only "react", ./ files in the folder, or ../../../messages/<locale>.json for spanish-translation)`);

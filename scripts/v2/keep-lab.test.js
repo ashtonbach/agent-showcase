@@ -52,10 +52,15 @@ t("two imports on one line: the second path is checked", () => { const r = RAW("
 t("bare import split across lines is checked", () => { const r = RAW("bare-split", 'import\n  "@/app/lab/x";'); assert.strictEqual(r.code, 1); assert.ok(/import not allowed: @\/app\/lab\/x/.test(r.out), r.out); });
 t("dynamic import split as import\\n( is banned", () => { const r = RAW("dyn-split", 'const p = import\n("./y");'); assert.strictEqual(r.code, 1); assert.ok(/banned call/.test(r.out), r.out); });
 t("multi-import, multi-line mix: every bad specifier is reported", () => { const r = RAW("mix", 'import { useState,\n  useEffect } from "react"; import Y from\n "./local"; import {\n  Z\n} from "../faq-accordion"; import\n"@/app/lab/w";', { KEEP_LAB: "faq-accordion" }); assert.strictEqual(r.code, 1); assert.ok(/import not allowed: @\/app\/lab\/w/.test(r.out), r.out); assert.ok(!/import not allowed: (react|\.\/local|\.\.\/faq-accordion)\b/.test(r.out), r.out); });
-t("commented-out import is ignored (comments stripped, strings kept)", () => { const r = RAW("comment", '// import X from "@/app/lab/faq-accordion";\n/* import Y from "../faq-accordion"; */\nconst s = "see // not a comment";'); assert.strictEqual(r.code, 0, r.out); });
+t("commented-out banned import fails closed; comment-like string passes", () => { let r = RAW("comment", '// import X from "@/app/lab/faq-accordion";'); assert.strictEqual(r.code, 1); assert.ok(/@\/app\/lab\/faq-accordion/.test(r.out), r.out); r = RAW("comment-ok", 'import { useState } from "react";\nconst s = "see // not a comment";'); assert.strictEqual(r.code, 0, r.out); });
+// 10/20 (#243 review 3): the stripper is not a JS lexer; specifiers from the raw text keep it fail-closed.
+for (const [k, env] of [["normal", {}], ["keep", { KEEP_LAB: "faq-accordion" }]]) {
+  t(`regex literal with a quote cannot hide an import (${k})`, () => { const r = RAW("rx-" + k, "const r = /'/; const s = '//'; import b from \"@/app/lab/dark-mode\";", env); assert.strictEqual(r.code, 1); assert.ok(/@\/app\/lab\/dark-mode/.test(r.out), r.out); });
+  t(`\${} in a template cannot hide an import (${k})`, () => { const r = RAW("tpl-" + k, 'const t = `${"`"}`; const s = "//"; import b from "@/app/lab/dark-mode";', env); assert.strictEqual(r.code, 1); assert.ok(/@\/app\/lab\/dark-mode/.test(r.out), r.out); });
+}
 t("marker parser: none -> normal mode, two or malformed -> fails closed", () => {
   const m = (body) => { try { return { code: 0, out: execFileSync("node", [marker], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], env: { ...process.env, PR_BODY: body } }) }; } catch (e) { return { code: e.status, out: "" }; } };
   assert.deepStrictEqual(m("no marker here"), { code: 0, out: "" }); assert.deepStrictEqual(m(BODY), { code: 0, out: "faq-accordion" });
   assert.strictEqual(m(BODY + "<!-- keep-lab: other -->\n").code, 1); assert.strictEqual(m("<!-- keep-lab: ../x -->").code, 1);
   g("checkout", "-q", "ontop2"); assert.strictEqual(viaBody(BODY + "<!-- keep-lab: other -->\n").code, 1); assert.strictEqual(viaBody(BODY, { KEEP_LAB: "other" }).code, 1); assert.strictEqual(viaBody(BODY, { KEEP_LAB: "faq-accordion" }).code, 0); });
-fs.rmSync(ev, { force: true }); fs.rmSync(d, { recursive: true, force: true }); console.log(`keep-lab: ${n}/20 passed`);
+fs.rmSync(ev, { force: true }); fs.rmSync(d, { recursive: true, force: true }); console.log(`keep-lab: ${n}/24 passed`);

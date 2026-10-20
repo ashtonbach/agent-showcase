@@ -20,21 +20,23 @@ function LabIcon({ src }: { src: string }) {
   const [bad, setBad] = useState(false);
   if (bad) {
     return (
-      <span className="lab-icon-fb" data-art="fallback" aria-hidden="true">
+      <span className="lab-icon-slot lab-icon-fb" data-art="fallback" aria-hidden="true">
         {FB}
       </span>
     );
   }
   return (
-    <img
-      className="lab-icon-img"
-      data-art="image"
-      src={src}
-      width={32}
-      height={32}
-      alt=""
-      onError={() => setBad(true)}
-    />
+    <span className="lab-icon-slot">
+      <img
+        className="lab-icon-img"
+        data-art="image"
+        src={src}
+        width={32}
+        height={32}
+        alt=""
+        onError={() => setBad(true)}
+      />
+    </span>
   );
 }
 
@@ -86,12 +88,22 @@ const css = `
   line-height: 1.45;
   color: var(--mist, #E8EEE9);
 }
-.lab-icon-img, .lab-icon-fb {
+.lab-icon-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--sage, #B0CBBC);
+  color: #121A16;
+}
+.lab-icon-img {
   display: block;
   width: 32px;
   height: 32px;
-  color: var(--sage, #B0CBBC);
 }
+.lab-icon-fb { color: #121A16; }
 @media (prefers-reduced-motion: reduce) {
   .lab-card { transition: none; }
 }

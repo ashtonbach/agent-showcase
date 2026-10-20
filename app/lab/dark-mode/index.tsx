@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 
 const css = `
 html[data-theme="light"]{background:#E8EEE9}
@@ -57,18 +57,14 @@ export default function LabDarkMode() {
     }
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     try {
       const saved = localStorage.getItem("ab-theme");
-      if (saved === "light") {
-        setDark(false);
-        applyTheme(false);
-      } else if (saved === "dark") {
-        setDark(true);
-        applyTheme(true);
-      }
+      const isDark = saved !== "light";
+      setDark(isDark);
+      applyTheme(isDark);
     } catch {
-      /* ignore */
+      applyTheme(true);
     }
   }, []);
 

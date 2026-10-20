@@ -15,10 +15,10 @@ const css = `
 .lab-x h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.2;margin:0 0 16px}
 .lab-x p{margin:0;font:400 15px/1.55 var(--sans);color:#E8EEE9}
 .lab-ban{position:fixed;left:0;right:0;top:var(--header-h,64px);z-index:40;max-height:100px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;text-align:center;font:500 14px/1.35 var(--sans);color:#F2EFE6;border-bottom:1px solid rgba(212,175,55,.45);box-shadow:0 4px 20px rgba(0,0,0,.35)}
-.lab-ban.lab-v0{background:linear-gradient(90deg,#8B0000 0%,#0B5D2E 50%,#8B6914 100%)}
+.lab-ban.lab-v0{background:linear-gradient(90deg,#8B0000 0%,#0B5D2E 50%,#7A5C10 100%)}
 .lab-ban.lab-v1{background:linear-gradient(90deg,#8B0000,#0B5D2E)}
 .lab-ban.lab-v1 .lab-cane{width:32px;height:32px;border-radius:6px;background:repeating-linear-gradient(45deg,#8B0000,#8B0000 5px,#F2EFE6 5px,#F2EFE6 10px);border:2px solid #D4AF37;flex:0 0 auto}
-.lab-ban.lab-v2{background:linear-gradient(180deg,#0B5D2E,#145A32 60%,#8B6914);letter-spacing:.04em}
+.lab-ban.lab-v2{background:linear-gradient(180deg,#0B5D2E,#145A32 60%,#7A5C10);letter-spacing:.04em}
 .lab-ban.lab-v3{background:linear-gradient(90deg,#8B6914,#0B5D2E,#8B0000);font-size:16px}
 .lab-gfx{font-size:28px;line-height:1;flex:0 0 auto}
 .lab-snow{pointer-events:none;position:fixed;inset:0;z-index:30;overflow:hidden}

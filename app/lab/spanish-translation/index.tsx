@@ -31,12 +31,11 @@ export default function Lab() {
         [data-lab="spanish-translation"] h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.25;margin:0 0 16px}
         [data-lab="spanish-translation"] p{margin:0 0 14px;line-height:1.55;color:#E8EEE9}
         .lab-lang{display:flex;gap:0;margin-top:24px;border-radius:8px;overflow:hidden;width:fit-content}
-        .lab-lang button{font-family:var(--sans);font-size:14px;padding:10px 20px;cursor:pointer;border:1px solid var(--sage);transition:background .15s,color .15s}
+        .lab-lang button{appearance:none;-webkit-appearance:none;font-family:var(--sans);font-size:14px;padding:10px 20px;cursor:pointer;border:1px solid var(--sage)}
         .lab-lang button[aria-pressed="true"]{background-color:var(--sage);color:#14201A;border-color:var(--sage)}
-        .lab-lang button[aria-pressed="false"]{background:none;background-color:transparent;color:var(--mist,#F2EFE6);box-shadow:none}
+        .lab-lang button[aria-pressed="false"]{background-color:rgba(0,0,0,0);color:var(--mist,#F2EFE6);box-shadow:none}
         .lab-lang button:first-child{border-radius:8px 0 0 8px}
         .lab-lang button:last-child{border-radius:0 8px 8px 0;border-left:none}
-        @media (prefers-reduced-motion:reduce){.lab-lang button{transition:none}}
       `}</style>
       <h2 id={headingId} data-i18n="lab.spanish-translation.heading">{msgs["lab.spanish-translation.heading"]}</h2>
       <p data-i18n="lab.spanish-translation.p1">{msgs["lab.spanish-translation.p1"]}</p>

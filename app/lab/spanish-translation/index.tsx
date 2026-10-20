@@ -24,13 +24,16 @@ const css = `
 .lab-spanish-wrap h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.25; margin: 0 0 16px; }
 .lab-spanish-wrap p { margin: 0 0 14px; line-height: 1.55; color: #e8eee9; }
 .lab-lang { display: flex; gap: 0; margin-top: 20px; width: fit-content; max-width: 100%; }
-.lab-lang button { font-family: var(--sans); font-size: 14px; padding: 10px 18px; cursor: pointer; appearance: none; border: 1px solid var(--sage); background: none; background-color: rgba(0, 0, 0, 0); color: var(--mist, #f2efe6); transition: background-color 0.15s, color 0.15s; }
+.lab-lang button { font-family: var(--sans); font-size: 14px; padding: 10px 18px; cursor: pointer; appearance: none; border: 1px solid var(--sage); background-image: none; }
 .lab-lang button:first-child { border-radius: 8px 0 0 8px; }
 .lab-lang button:last-child { border-radius: 0 8px 8px 0; border-left: none; }
-.lab-lang button[aria-pressed="true"] { background-color: var(--sage); color: #14201a; }
-.lab-lang button[aria-pressed="false"] { background-color: rgba(0, 0, 0, 0); color: var(--mist, #f2efe6); }
-@media (prefers-reduced-motion: reduce) { .lab-lang button { transition: none; } }
 `;
+
+function segStyle(active: boolean): { backgroundColor: string; color: string } {
+  return active
+    ? { backgroundColor: "rgb(176, 203, 188)", color: "#14201a" }
+    : { backgroundColor: "rgba(0, 0, 0, 0)", color: "rgb(242, 239, 230)" };
+}
 
 export default function SpanishTranslation() {
   const [locale, setLocale] = useState<Locale>("en-US");
@@ -59,6 +62,7 @@ export default function SpanishTranslation() {
           type="button"
           data-locale="en-US"
           aria-pressed={locale === "en-US"}
+          style={segStyle(locale === "en-US")}
           onClick={() => pick("en-US")}
         >
           English
@@ -67,6 +71,7 @@ export default function SpanishTranslation() {
           type="button"
           data-locale="es-ES"
           aria-pressed={locale === "es-ES"}
+          style={segStyle(locale === "es-ES")}
           onClick={() => pick("es-ES")}
         >
           Español

@@ -101,7 +101,7 @@ const stripComments = (t) => { let o = "", q = null; for (let i = 0; i < t.lengt
   if (c === "/" && n === "/") { while (i < t.length && t[i] !== "\n") i++; o += "\n"; continue; }
   if (c === "/" && n === "*") { i += 2; while (i < t.length && !(t[i] === "*" && t[i + 1] === "/")) { if (t[i] === "\n") o += "\n"; i++; } i++; o += " "; continue; }
   if (c === '"' || c === "'" || c === "`") q = c; o += c; } return o; };
-const SPEC = [/\bfrom\s*(["'`])([^"'`]*)\1/g, /\bimport\s*(["'`])([^"'`]*)\1/g, /\bimport\s*\(\s*(["'`])([^"'`]*)\1/g, /\brequire\s*\(\s*(["'`])([^"'`]*)\1/g];
+const SPEC = [/\b(?:import|export)\b[^;"'`]*?\bfrom\s*(["'`])([^"'`]*)\1/g, /\bimport\s*(["'`])([^"'`]*)\1/g, /\bimport\s*\(\s*(["'`])([^"'`]*)\1/g, /\brequire\s*\(\s*(["'`])([^"'`]*)\1/g];
 const labTexts = files.filter((f) => f.startsWith(dir) && /\.(tsx|ts)$/.test(f) && !deleted.has(f)).map((f) => { let t = ""; try { t = git("show", `${head}:${f}`); } catch (e) {} return { raw: t, t: stripComments(t) }; });
 const specs = [], rawSpecs = [];
 for (const { raw, t } of labTexts) {
@@ -109,7 +109,8 @@ for (const { raw, t } of labTexts) {
   // the raw text; each must be allowed and must survive stripping, else it fails (even one that was really in a comment).
   const kept = []; for (const re of SPEC) for (const m of t.matchAll(re)) kept.push(m[2]);
   for (const re of SPEC) for (const m of raw.matchAll(re)) { rawSpecs.push(m[2]); if (!kept.includes(m[2])) fail("banned", `import specifier hidden by comment stripping: ${m[2]}`); }
-  for (const re of BANNED) { const g = new RegExp(re.source, "g"); for (const m of t.matchAll(g)) fail("banned", `banned call ${re.source}: ${t.slice(Math.max(0, m.index - 20), m.index + 60).replace(/\s+/g, " ").trim().slice(0, 120)}`); }
+  const seen = new Set(); // banned calls are checked on the raw text too (the stripper can mis-lex), each reported once
+  for (const re of BANNED) { const g = new RegExp(re.source, "g"); for (const m of [...t.matchAll(g), ...raw.matchAll(g)]) if (!seen.has(re.source + m.index) && seen.add(re.source + m.index)) fail("banned", `banned call ${re.source}: ${t.slice(Math.max(0, m.index - 20), m.index + 60).replace(/\s+/g, " ").trim().slice(0, 120)}`); }
   for (const re of SPEC) for (const m of t.matchAll(re)) specs.push(m[2]);
 }
 for (const sp of new Set([...specs, ...rawSpecs])) {

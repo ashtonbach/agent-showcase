@@ -1,4 +1,4 @@
-import Lab from "./lab/feature-grid";
+import Lab from "./lab/custom-1792469967";
 import { readDemoKey, demoTitle } from "./demo-name";
 const demoKey = readDemoKey();
 const demoName = demoTitle();

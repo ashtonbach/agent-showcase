@@ -16,7 +16,8 @@ const fail = (k, m) => { out[k] = "FAIL"; out.problems.push(m); };
 const custom = /^custom-[0-9]{10,13}$/.test(slug || "");
 if (!menu.includes(slug) && !custom) fail("allowlist", `unknown feature "${slug}" (not in app/lab/menu.json)`);
 // Build on top: KEEP_LAB=<slug> (set by the kit when a typed request says to keep / add to the current page). That section's
-// files must not change or disappear, current.json keeps its slug, and page.tsx keeps <Lab /> and adds one <Extra /> for this run.
+// files must not change or disappear. Like every run, the new lab takes the slot (current.json + the page.tsx Lab import point at it);
+// it imports the kept lab ("../<keep>") and renders it plus the additions, so the kept files stay byte-unchanged (10/20 2:18 AM CT).
 // The kit turns the mode on in two places that must agree: KEEP_LAB in its own env, and a fixed marker line it writes in the
 // PR body ("<!-- keep-lab: <slug> -->"), which this script reads from the pull_request event in Merge Gates (keep-marker.js).
 const envKeep = process.env.KEEP_LAB || "", bodyKeep = require("./keep-marker").fromEvent();
@@ -49,7 +50,7 @@ for (const f of files) {
 }
 // The visible demo-name H1 reads app/lab/current.json: after the change it must be exactly {"slug":"<slug>"}.
 { let cur = null; try { cur = JSON.parse(git("show", `${head}:app/lab/current.json`)); } catch (e) {}
-  const want = keep || slug;
+  const want = slug;
   if (!cur || Object.keys(cur).join() !== "slug" || cur.slug !== want) fail("allowlist", `app/lab/current.json must be exactly {"slug":"${slug}"} (it sets the page H1)`.replace(`"${slug}"`, `"${want}"`)); }
 if (slug === "spanish-translation") {
   const load = (f) => { try { return JSON.parse(git("show", `${head}:${f}`)); } catch (e) { return null; } };
@@ -77,20 +78,17 @@ if (files.some((f) => /(^|\/)(package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|b
 // the feature may swap the import slug instead of adding a second import.
 if (files.includes("app/page.tsx")) {
   const show = (ref) => { try { return git("show", `${ref}:app/page.tsx`); } catch (e) { return ""; } };
-  // Extra lines are part of the allowed change only in keep mode; in normal mode an Extra import or render is an "other line".
-  const LB = keep ? "(Lab|Extra)" : "Lab", impRe = new RegExp(`^import ${LB} from "\\./lab/[a-z0-9-]+";$`), renRe = new RegExp(`^\\s*<${LB} \\/>\\s*$`);
-  const strip = (t) => t.split("\n").filter((l) => !impRe.test(l) && !renRe.test(l) && !(keep && /^\s*<Extra \/>\s*\{\/\* lab:slot \*\/\}$/.test(l)))
+  // 10/20 2:18 AM CT: page.tsx changes only in the Lab slot lines, in every mode. An Extra import or render is an "other line".
+  const LB = "Lab", impRe = new RegExp(`^import ${LB} from "\\./lab/[a-z0-9-]+";$`), renRe = new RegExp(`^\\s*<${LB} \\/>\\s*$`);
+  const strip = (t) => t.split("\n").filter((l) => !impRe.test(l) && !renRe.test(l))
     .map((l) => l.replace(/^(\s*)<Lab \/>\s*(\{\/\* lab:slot \*\/\})$/, "$1$2")).join("\n");
-  // 10/20 (#234): a normal run may REMOVE a leftover build-on-top Extra (import + render) from page.tsx, never add one: the Extra lines
+  // 10/20 (#234): a run may REMOVE a leftover build-on-top Extra (import + render) from page.tsx, never add one: the Extra lines
   // are dropped from the base side only, so any Extra still in (or added to) the head is an "other line" and fails as before.
   const exRe = /^import Extra\w* from "\.\/lab\/[a-z0-9-]+";$|^\s*<Extra\w* \/>\s*$/;
-  const b0 = show(base), b = keep ? b0 : b0.split("\n").filter((l) => !exRe.test(l)).join("\n"), h = show(head);
+  const b0 = show(base), b = b0.split("\n").filter((l) => !exRe.test(l)).join("\n"), h = show(head);
   const imps = h.split("\n").filter((l) => /^import Lab from /.test(l)), renders = (h.match(/<Lab \/>/g) || []).length;
   if (strip(b) !== strip(h)) fail("allowlist", `app/page.tsx may only change the Lab import line and the <Lab /> render; other lines changed`);
-  if (keep) { const ex = h.split("\n").filter((l) => /^import Extra from /.test(l));
-    if (!(ex.length === 1 && ex[0] === `import Extra from "./lab/${slug}";`)) fail("allowlist", `build on top: app/page.tsx must add exactly one 'import Extra from "./lab/${slug}";'`);
-    if ((h.match(/<Extra \/>/g) || []).length !== 1) fail("allowlist", `build on top: app/page.tsx must render <Extra /> exactly once`); }
-  if (!(imps.length === 1 && imps[0] === `import Lab from "./lab/${keep || slug}";`)) fail("allowlist", `app/page.tsx must have exactly one 'import Lab from "./lab/${keep || slug}";' (found: ${imps.join(" | ") || "none"})`);
+  if (!(imps.length === 1 && imps[0] === `import Lab from "./lab/${slug}";`)) fail("allowlist", `app/page.tsx must have exactly one 'import Lab from "./lab/${slug}";' (found: ${imps.join(" | ") || "none"})`);
   if (renders !== 1) fail("allowlist", `app/page.tsx must render <Lab /> exactly once (found ${renders})`);
 } else fail("allowlist", "app/page.tsx must import and render the feature");
 // banned calls and imports in added lines of the feature folder
@@ -100,8 +98,10 @@ for (const l of added) {
   for (const re of BANNED) if (re.test(l)) fail("banned", `banned call ${re.source}: ${l.slice(1).trim().slice(0, 120)}`);
   const m = /^\+\s*(?:import|export)\b[^"']*?from\s*["']([^"']+)["']/.exec(l) || /^\+\s*import\s*["']([^"']+)["']/.exec(l);
   const msgOk = slug === "spanish-translation" && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(m ? m[1] : "");
-  if (m && !msgOk && !(m[1] === "react" || (/^\.\//.test(m[1]) && !m[1].includes("..")))) fail("banned", `import not allowed: ${m[1]} (only "react", ./ files in the folder, or ../../../messages/<locale>.json for spanish-translation)`);
+  const keepOk = !!keep && m && m[1] === `../${keep}`; // build on top: the new lab renders the kept lab's component
+  if (m && !msgOk && !keepOk && !(m[1] === "react" || (/^\.\//.test(m[1]) && !m[1].includes("..")))) fail("banned", `import not allowed: ${m[1]} (only "react", ./ files in the folder, or ../../../messages/<locale>.json for spanish-translation)`);
 }
+if (keep && !added.some((l) => new RegExp(`^\\+\\s*import\\b[^"']*from\\s*["']\\.\\./${keep}["']`).test(l))) fail("allowlist", `build on top: app/lab/${slug}/ must import and render the kept section (import ... from "../${keep}")`);
 for (const f of files.filter((f) => f.startsWith(dir)))
   if (!/\.(tsx|ts|css|module\.css|svg)$/.test(f)) fail("allowlist", `file type not allowed: ${f}`);
 // artwork: plain SVG only, small, nothing active or external

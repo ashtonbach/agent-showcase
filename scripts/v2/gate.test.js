@@ -189,6 +189,37 @@ const tests = {
     assert.strictEqual(runGate("custom-1792280000", "base", "HEAD").exitCode, 1, "custom run may not add artwork");
   },
 
+  "PASS: normal run removes a leftover Extra import and render"() {
+    setupTestWorkspace();
+    const pg = (extra) => 'import Lab from "./lab/test-feature";\n' + (extra ? 'import Extra from "./lab/custom-1792280000";\n' : '') + 'export default function Page() {\n  return (\n    <div>\n' + (extra ? '      <Extra />\n' : '') + '      <Lab /> {/* lab:slot */}\n    </div>\n  );\n}\n';
+    fs.mkdirSync(path.join(testDir, "app", "lab", "test-feature"), { recursive: true });
+    fs.writeFileSync(path.join(testDir, "app", "lab", "test-feature", "index.tsx"), 'export default function() { return <section>Old</section>; }');
+    fs.writeFileSync(path.join(testDir, "app", "page.tsx"), pg(true)); git("add", "."); git("commit", "-qm", "main with extra"); git("branch", "-f", "base");
+    fs.writeFileSync(path.join(testDir, "app", "lab", "test-feature", "index.tsx"), 'export default function() { return <section>New</section>; }');
+    fs.writeFileSync(path.join(testDir, "app", "page.tsx"), pg(false)); git("add", "."); git("commit", "-qm", "drop extra");
+    const r = runGate("test-feature", "base", "HEAD"); assert.strictEqual(r.exitCode, 0, "removing a leftover Extra should pass: " + r.output);
+  },
+
+  "FAIL: normal run adds an Extra"() {
+    setupTestWorkspace();
+    fs.mkdirSync(path.join(testDir, "app", "lab", "test-feature"), { recursive: true });
+    fs.writeFileSync(path.join(testDir, "app", "lab", "test-feature", "index.tsx"), 'export default function() { return <section>T</section>; }');
+    fs.writeFileSync(path.join(testDir, "app", "page.tsx"), 'import Lab from "./lab/test-feature";\nimport Extra from "./lab/custom-1792280000";\nexport default function Page() { return <div><Extra />\n<Lab /> {/* lab:slot */}</div>; }');
+    git("add", "."); git("commit", "-qm", "add extra");
+    assert.strictEqual(runGate("test-feature", "base", "HEAD").exitCode, 1, "a normal run may not add an Extra");
+  },
+
+  "FAIL: normal run removes Extra and changes another page.tsx line"() {
+    setupTestWorkspace();
+    fs.mkdirSync(path.join(testDir, "app", "lab", "test-feature"), { recursive: true });
+    fs.writeFileSync(path.join(testDir, "app", "lab", "test-feature", "index.tsx"), 'export default function() { return <section>T</section>; }');
+    fs.writeFileSync(path.join(testDir, "app", "page.tsx"), 'import Lab from "./lab/test-feature";\nimport Extra from "./lab/custom-1792280000";\nexport default function Page() {\n  return (\n    <div>\n      <Extra />\n      <Lab /> {/* lab:slot */}\n    </div>\n  );\n}\n');
+    git("add", "."); git("commit", "-qm", "main with extra"); git("branch", "-f", "base");
+    fs.writeFileSync(path.join(testDir, "app", "page.tsx"), 'import Lab from "./lab/test-feature";\nexport default function Page() {\n  return (\n    <main>\n      <Lab /> {/* lab:slot */}\n    </main>\n  );\n}\n');
+    git("add", "."); git("commit", "-qm", "drop extra + other change");
+    assert.strictEqual(runGate("test-feature", "base", "HEAD").exitCode, 1, "other page.tsx lines still may not change");
+  },
+
   "PASS: next run deletes a leftover custom-<ts> folder"() {
     setupTestWorkspace();
     const old = path.join(testDir, "app", "lab", "custom-1792280000");

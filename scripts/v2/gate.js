@@ -81,7 +81,10 @@ if (files.includes("app/page.tsx")) {
   const LB = keep ? "(Lab|Extra)" : "Lab", impRe = new RegExp(`^import ${LB} from "\\./lab/[a-z0-9-]+";$`), renRe = new RegExp(`^\\s*<${LB} \\/>\\s*$`);
   const strip = (t) => t.split("\n").filter((l) => !impRe.test(l) && !renRe.test(l) && !(keep && /^\s*<Extra \/>\s*\{\/\* lab:slot \*\/\}$/.test(l)))
     .map((l) => l.replace(/^(\s*)<Lab \/>\s*(\{\/\* lab:slot \*\/\})$/, "$1$2")).join("\n");
-  const b = show(base), h = show(head);
+  // 10/20 (#234): a normal run may REMOVE a leftover build-on-top Extra (import + render) from page.tsx, never add one: the Extra lines
+  // are dropped from the base side only, so any Extra still in (or added to) the head is an "other line" and fails as before.
+  const exRe = /^import Extra\w* from "\.\/lab\/[a-z0-9-]+";$|^\s*<Extra\w* \/>\s*$/;
+  const b0 = show(base), b = keep ? b0 : b0.split("\n").filter((l) => !exRe.test(l)).join("\n"), h = show(head);
   const imps = h.split("\n").filter((l) => /^import Lab from /.test(l)), renders = (h.match(/<Lab \/>/g) || []).length;
   if (strip(b) !== strip(h)) fail("allowlist", `app/page.tsx may only change the Lab import line and the <Lab /> render; other lines changed`);
   if (keep) { const ex = h.split("\n").filter((l) => /^import Extra from /.test(l));

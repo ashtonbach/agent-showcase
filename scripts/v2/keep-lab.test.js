@@ -58,9 +58,11 @@ for (const [k, env] of [["normal", {}], ["keep", { KEEP_LAB: "faq-accordion" }]]
   t(`regex literal with a quote cannot hide an import (${k})`, () => { const r = RAW("rx-" + k, "const r = /'/; const s = '//'; import b from \"@/app/lab/dark-mode\";", env); assert.strictEqual(r.code, 1); assert.ok(/@\/app\/lab\/dark-mode/.test(r.out), r.out); });
   t(`\${} in a template cannot hide an import (${k})`, () => { const r = RAW("tpl-" + k, 'const t = `${"`"}`; const s = "//"; import b from "@/app/lab/dark-mode";', env); assert.strictEqual(r.code, 1); assert.ok(/@\/app\/lab\/dark-mode/.test(r.out), r.out); });
 }
+t("banned calls are caught on raw text (regex literal / ${} in template)", () => { let r = RAW("rx-fetch", "const r = /'/; const s = '//'; fetch(\"https://evil.example\");"); assert.strictEqual(r.code, 1); assert.ok(/banned call .*fetch/.test(r.out), r.out); r = RAW("tpl-eval", 'const t = `${"`"}`; const s = "//"; eval("1");'); assert.strictEqual(r.code, 1); assert.ok(/banned call .*eval/.test(r.out), r.out); });
+t("'from \"x\"' inside a plain string is not an import", () => { const r = RAW("from-string", "const s = 'Pick from \"x\" below';"); assert.strictEqual(r.code, 0, r.out); });
 t("marker parser: none -> normal mode, two or malformed -> fails closed", () => {
   const m = (body) => { try { return { code: 0, out: execFileSync("node", [marker], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], env: { ...process.env, PR_BODY: body } }) }; } catch (e) { return { code: e.status, out: "" }; } };
   assert.deepStrictEqual(m("no marker here"), { code: 0, out: "" }); assert.deepStrictEqual(m(BODY), { code: 0, out: "faq-accordion" });
   assert.strictEqual(m(BODY + "<!-- keep-lab: other -->\n").code, 1); assert.strictEqual(m("<!-- keep-lab: ../x -->").code, 1);
   g("checkout", "-q", "ontop2"); assert.strictEqual(viaBody(BODY + "<!-- keep-lab: other -->\n").code, 1); assert.strictEqual(viaBody(BODY, { KEEP_LAB: "other" }).code, 1); assert.strictEqual(viaBody(BODY, { KEEP_LAB: "faq-accordion" }).code, 0); });
-fs.rmSync(ev, { force: true }); fs.rmSync(d, { recursive: true, force: true }); console.log(`keep-lab: ${n}/24 passed`);
+fs.rmSync(ev, { force: true }); fs.rmSync(d, { recursive: true, force: true }); console.log(`keep-lab: ${n}/26 passed`);

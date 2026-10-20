@@ -93,17 +93,27 @@ if (files.includes("app/page.tsx")) {
 } else fail("allowlist", "app/page.tsx must import and render the feature");
 // banned calls and imports in added lines of the feature folder
 const BANNED = [/\bfetch\s*\(/, /\baxios\b/, /XMLHttpRequest/, /\bWebSocket\b/, /\bEventSource\b/, /sendBeacon/, /process\.env/, /dangerouslySetInnerHTML/, /\beval\s*\(/, /new\s+Function\s*\(/, /\bimport\s*\(/, /\brequire\s*\(/];
-const added = git("diff", "-U0", range, "--", dir).split("\n").filter((l) => l.startsWith("+") && !l.startsWith("+++"));
-for (const l of added) {
-  for (const re of BANNED) if (re.test(l)) fail("banned", `banned call ${re.source}: ${l.slice(1).trim().slice(0, 120)}`);
-  // 10/20 (#243 review): every `from "..."` on any added line counts, so a multi-line import's `} from "..."` line is checked too;
-  // bare `import "..."` likewise. Dynamic import( and require( are refused by BANNED above.
-  const m = /\bfrom\s*["']([^"']+)["']/.exec(l) || /^\+\s*import\s*["']([^"']+)["']/.exec(l);
-  const msgOk = slug === "spanish-translation" && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(m ? m[1] : "");
-  const keepOk = !!keep && m && m[1] === `../${keep}`; // build on top: the new lab renders the kept lab's component
-  if (m && !msgOk && !keepOk && !(m[1] === "react" || (/^\.\//.test(m[1]) && !m[1].includes("..")))) fail("banned", `import not allowed: ${m[1]} (only "react", ./ files in the folder, or ../../../messages/<locale>.json for spanish-translation)`);
+// 10/20 (#243 review): checked per lab file on its WHOLE head text (comments stripped, strings kept), not line by line, so an
+// import split across lines, two imports on one line, or a call split as `import\n(` cannot slip past. Every module specifier
+// from `from "x"`, `import "x"`, `import("x")` and `require("x")` is extracted and checked; import( and require( stay banned.
+const stripComments = (t) => { let o = "", q = null; for (let i = 0; i < t.length; i++) { const c = t[i], n = t[i + 1];
+  if (q) { o += c; if (c === "\\") { o += n || ""; i++; } else if (c === q) q = null; continue; }
+  if (c === "/" && n === "/") { while (i < t.length && t[i] !== "\n") i++; o += "\n"; continue; }
+  if (c === "/" && n === "*") { i += 2; while (i < t.length && !(t[i] === "*" && t[i + 1] === "/")) { if (t[i] === "\n") o += "\n"; i++; } i++; o += " "; continue; }
+  if (c === '"' || c === "'" || c === "`") q = c; o += c; } return o; };
+const SPEC = [/\bfrom\s*(["'`])([^"'`]*)\1/g, /\bimport\s*(["'`])([^"'`]*)\1/g, /\bimport\s*\(\s*(["'`])([^"'`]*)\1/g, /\brequire\s*\(\s*(["'`])([^"'`]*)\1/g];
+const labTexts = files.filter((f) => f.startsWith(dir) && /\.(tsx|ts)$/.test(f) && !deleted.has(f)).map((f) => { let t = ""; try { t = git("show", `${head}:${f}`); } catch (e) {} return stripComments(t); });
+const specs = [];
+for (const t of labTexts) {
+  for (const re of BANNED) { const g = new RegExp(re.source, "g"); for (const m of t.matchAll(g)) fail("banned", `banned call ${re.source}: ${t.slice(Math.max(0, m.index - 20), m.index + 60).replace(/\s+/g, " ").trim().slice(0, 120)}`); }
+  for (const re of SPEC) for (const m of t.matchAll(re)) specs.push(m[2]);
 }
-if (keep && !added.some((l) => new RegExp(`\\bfrom\\s*["']\\.\\./${keep}["']`).test(l))) fail("allowlist", `build on top: app/lab/${slug}/ must import and render the kept section (import ... from "../${keep}")`);
+for (const sp of specs) {
+  const msgOk = slug === "spanish-translation" && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(sp);
+  const keepOk = !!keep && sp === `../${keep}`; // build on top: the new lab renders the kept lab's component
+  if (!msgOk && !keepOk && !(sp === "react" || (/^\.\//.test(sp) && !sp.includes("..")))) fail("banned", `import not allowed: ${sp} (only "react", ./ files in the folder, or ../../../messages/<locale>.json for spanish-translation)`);
+}
+if (keep && !specs.includes(`../${keep}`)) fail("allowlist", `build on top: app/lab/${slug}/ must import and render the kept section (import ... from "../${keep}")`);
 for (const f of files.filter((f) => f.startsWith(dir)))
   if (!/\.(tsx|ts|css|module\.css|svg)$/.test(f)) fail("allowlist", `file type not allowed: ${f}`);
 // artwork: plain SVG only, small, nothing active or external

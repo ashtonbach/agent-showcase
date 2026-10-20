@@ -96,12 +96,14 @@ const BANNED = [/\bfetch\s*\(/, /\baxios\b/, /XMLHttpRequest/, /\bWebSocket\b/, 
 const added = git("diff", "-U0", range, "--", dir).split("\n").filter((l) => l.startsWith("+") && !l.startsWith("+++"));
 for (const l of added) {
   for (const re of BANNED) if (re.test(l)) fail("banned", `banned call ${re.source}: ${l.slice(1).trim().slice(0, 120)}`);
-  const m = /^\+\s*(?:import|export)\b[^"']*?from\s*["']([^"']+)["']/.exec(l) || /^\+\s*import\s*["']([^"']+)["']/.exec(l);
+  // 10/20 (#243 review): every `from "..."` on any added line counts, so a multi-line import's `} from "..."` line is checked too;
+  // bare `import "..."` likewise. Dynamic import( and require( are refused by BANNED above.
+  const m = /\bfrom\s*["']([^"']+)["']/.exec(l) || /^\+\s*import\s*["']([^"']+)["']/.exec(l);
   const msgOk = slug === "spanish-translation" && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(m ? m[1] : "");
   const keepOk = !!keep && m && m[1] === `../${keep}`; // build on top: the new lab renders the kept lab's component
   if (m && !msgOk && !keepOk && !(m[1] === "react" || (/^\.\//.test(m[1]) && !m[1].includes("..")))) fail("banned", `import not allowed: ${m[1]} (only "react", ./ files in the folder, or ../../../messages/<locale>.json for spanish-translation)`);
 }
-if (keep && !added.some((l) => new RegExp(`^\\+\\s*import\\b[^"']*from\\s*["']\\.\\./${keep}["']`).test(l))) fail("allowlist", `build on top: app/lab/${slug}/ must import and render the kept section (import ... from "../${keep}")`);
+if (keep && !added.some((l) => new RegExp(`\\bfrom\\s*["']\\.\\./${keep}["']`).test(l))) fail("allowlist", `build on top: app/lab/${slug}/ must import and render the kept section (import ... from "../${keep}")`);
 for (const f of files.filter((f) => f.startsWith(dir)))
   if (!/\.(tsx|ts|css|module\.css|svg)$/.test(f)) fail("allowlist", `file type not allowed: ${f}`);
 // artwork: plain SVG only, small, nothing active or external

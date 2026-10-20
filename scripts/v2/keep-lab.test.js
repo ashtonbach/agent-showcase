@@ -39,9 +39,16 @@ t("normal mode (no marker) fails a page.tsx that adds Extra lines", () => { for 
 g("checkout", "-q", "-b", "ontop2", "main"); w("app/lab/custom-1792388090/index.tsx", ONTOP); SLOT(); g("add", "-A"); g("commit", "-qm", "ontop2");
 t("keep mode from the PR body marker passes a build-on-top change", () => { const r = viaBody(BODY); assert.strictEqual(r.code, 0, r.out); });
 t("#212-style deletion fails with the marker and with kit env KEEP_LAB", () => { g("checkout", "-q", "replace"); const a = viaBody(BODY), b = run({ KEEP_LAB: "faq-accordion" }); for (const r of [a, b]) { assert.strictEqual(r.code, 1); assert.ok(/faq-accordion\/index\.tsx was deleted/.test(r.out)); } });
+// 10/20 (#243 review): multi-line imports. The `} from "..."` line is checked like any other.
+const ML = (src) => '"use client";\nimport {\n  default as Other,\n} from "' + src + '";\nexport default function B() { return <><Other /><section data-lab="custom-1792388090">B</section></>; }\n';
+const mlRun = (name, src, env) => { g("checkout", "-q", "-B", name, "main"); w("app/lab/custom-1792388090/index.tsx", ML(src)); SLOT(); g("add", "-A"); g("commit", "-qm", name); return run(env); };
+t("multi-line import of @/app/lab/<other> fails in normal and keep mode", () => { for (const env of [{}, { KEEP_LAB: "faq-accordion" }]) { const r = mlRun("ml-alias", "@/app/lab/faq-accordion", env); assert.strictEqual(r.code, 1); assert.ok(/import not allowed: @\/app\/lab\/faq-accordion/.test(r.out), r.out); } });
+t("multi-line import of ../<other> fails in normal mode", () => { const r = mlRun("ml-rel", "../faq-accordion", {}); assert.strictEqual(r.code, 1); assert.ok(/import not allowed: \.\.\/faq-accordion/.test(r.out), r.out); });
+t("multi-line import of ../<kept> passes in keep mode only", () => { const r = mlRun("ml-kept", "../faq-accordion", { KEEP_LAB: "faq-accordion" }); assert.strictEqual(r.code, 0, r.out); });
+t("multi-line import of ../<not-kept> fails in keep mode", () => { w("app/lab/other-lab/index.tsx", "export default function O() { return null; }\n"); g("checkout", "-q", "main"); g("add", "-A"); g("commit", "-qm", "other"); const r = mlRun("ml-other", "../other-lab", { KEEP_LAB: "faq-accordion" }); assert.strictEqual(r.code, 1); assert.ok(/import not allowed: \.\.\/other-lab/.test(r.out), r.out); });
 t("marker parser: none -> normal mode, two or malformed -> fails closed", () => {
   const m = (body) => { try { return { code: 0, out: execFileSync("node", [marker], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], env: { ...process.env, PR_BODY: body } }) }; } catch (e) { return { code: e.status, out: "" }; } };
   assert.deepStrictEqual(m("no marker here"), { code: 0, out: "" }); assert.deepStrictEqual(m(BODY), { code: 0, out: "faq-accordion" });
   assert.strictEqual(m(BODY + "<!-- keep-lab: other -->\n").code, 1); assert.strictEqual(m("<!-- keep-lab: ../x -->").code, 1);
   g("checkout", "-q", "ontop2"); assert.strictEqual(viaBody(BODY + "<!-- keep-lab: other -->\n").code, 1); assert.strictEqual(viaBody(BODY, { KEEP_LAB: "other" }).code, 1); assert.strictEqual(viaBody(BODY, { KEEP_LAB: "faq-accordion" }).code, 0); });
-fs.rmSync(ev, { force: true }); fs.rmSync(d, { recursive: true, force: true }); console.log(`keep-lab: ${n}/11 passed`);
+fs.rmSync(ev, { force: true }); fs.rmSync(d, { recursive: true, force: true }); console.log(`keep-lab: ${n}/15 passed`);

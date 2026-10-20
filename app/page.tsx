@@ -1,4 +1,4 @@
-import Lab from "./lab/faq-accordion";
+import Lab from "./lab/dark-mode";
 import Extra from "./lab/custom-1792472522";
 import { readDemoKey, demoTitle } from "./demo-name";
 const demoKey = readDemoKey();

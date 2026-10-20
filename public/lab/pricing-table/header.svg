@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="160" viewBox="0 0 720 160">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a2620"/>
+      <stop offset="100%" stop-color="#121A16"/>
+    </linearGradient>
+    <linearGradient id="mist" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#B0CBBC" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#B0CBBC" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#B0CBBC" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="tierFace" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c5d9cc"/>
+      <stop offset="100%" stop-color="#8fa89a"/>
+    </linearGradient>
+    <linearGradient id="tierTop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F2EFE6"/>
+      <stop offset="100%" stop-color="#d8d4c8"/>
+    </linearGradient>
+    <linearGradient id="accentTop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e8c97a"/>
+      <stop offset="100%" stop-color="#D9B45A"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="160" fill="url(#sky)"/>
+  <ellipse cx="360" cy="145" rx="340" ry="28" fill="url(#mist)"/>
+  <ellipse cx="120" cy="138" rx="90" ry="12" fill="#B0CBBC" opacity="0.12"/>
+  <ellipse cx="520" cy="142" rx="110" ry="14" fill="#B0CBBC" opacity="0.1"/>
+  <!-- tier 1 -->
+  <polygon points="48,128 48,108 168,108 168,128" fill="#6b8578"/>
+  <polygon points="48,108 168,108 168,98 58,98" fill="url(#tierTop)"/>
+  <polygon points="48,108 58,98 58,118 48,128" fill="#7a9486"/>
+  <!-- tier 2 -->
+  <polygon points="128,118 128,88 268,88 268,118" fill="#5f7a6c"/>
+  <polygon points="128,88 268,88 268,76 138,76" fill="url(#tierTop)"/>
+  <polygon points="128,88 138,76 138,106 128,118" fill="url(#tierFace)"/>
+  <rect x="148" y="94" width="36" height="4" rx="2" fill="#B0CBBC" opacity="0.5"/>
+  <rect x="148" y="102" width="52" height="3" rx="1.5" fill="#B0CBBC" opacity="0.35"/>
+  <!-- tier 3 featured -->
+  <polygon points="208,108 208,62 388,62 388,108" fill="#4a6358"/>
+  <polygon points="208,62 388,62 388,48 220,48" fill="url(#accentTop)"/>
+  <polygon points="208,62 220,48 220,94 208,108" fill="#c9a84e"/>
+  <rect x="232" y="72" width="48" height="5" rx="2.5" fill="#121A16" opacity="0.2"/>
+  <rect x="232" y="82" width="72" height="4" rx="2" fill="#121A16" opacity="0.15"/>
+  <rect x="232" y="90" width="56" height="4" rx="2" fill="#121A16" opacity="0.12"/>
+  <circle cx="372" cy="54" r="6" fill="#D9B45A" opacity="0.9"/>
+  <circle cx="372" cy="54" r="3" fill="#F2EFE6" opacity="0.6"/>
+  <!-- tier 4 -->
+  <polygon points="328,98 328,42 508,42 508,98" fill="#3d5248"/>
+  <polygon points="328,42 508,42 508,30 340,30" fill="url(#tierTop)"/>
+  <polygon points="328,42 340,30 340,86 328,98" fill="#6b8578"/>
+  <rect x="352" y="52" width="40" height="4" rx="2" fill="#B0CBBC" opacity="0.45"/>
+  <rect x="352" y="60" width="64" height="3" rx="1.5" fill="#B0CBBC" opacity="0.3"/>
+  <!-- tier 5 peak -->
+  <polygon points="448,88 448,28 608,28 608,88" fill="#35463e"/>
+  <polygon points="448,28 608,28 608,18 458,18" fill="url(#tierTop)"/>
+  <polygon points="448,28 458,18 458,78 448,88" fill="#5a7266"/>
+  <path d="M458 18 L533 18 L528 8 L463 8 Z" fill="#B0CBBC" opacity="0.35"/>
+  <circle cx="572" cy="24" r="4" fill="#B0CBBC" opacity="0.5"/>
+  <!-- foreground foliage -->
+  <path d="M0 160 L0 132 Q24 124 40 132 L56 128 Q72 118 88 128 L0 160Z" fill="#121A16"/>
+  <path d="M660 160 L720 160 L720 126 Q700 118 680 128 L660 124 Z" fill="#121A16"/>
+  <path d="M680 128 Q692 112 708 120 L720 115 L720 160 L660 160 Z" fill="#1a2620" opacity="0.9"/>
+</svg>

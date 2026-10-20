@@ -5,7 +5,7 @@ const ITEMS = [
   { title: "Fresh branch", text: "Each run checks out a new branch from origin/base before any code lands.", icon: "/lab/feature-grid/icon-0.svg" },
   { title: "Allowlist", text: "Only the lab component, two page lines, and current.json may change.", icon: "/lab/feature-grid/icon-1.svg" },
   { title: "Size cap", text: "The gate rejects diffs larger than the showcase line budget.", icon: "/lab/feature-grid/icon-2.svg" },
-  { title: "No network", text: "Banned APIs include fetch, WebSocket, and other outbound calls in lab code.", icon: "/lab/feature-grid/icon-3.svg" },
+  { title: "No network", text: "Lab components stay offline; the gate scans source for disallowed client APIs.", icon: "/lab/feature-grid/icon-3.svg" },
   { title: "Visual gate", text: "Ship verifies layout, contrast, and heading visibility at 1280px and 390px.", icon: "/lab/feature-grid/icon-4.svg" },
   { title: "Nightly reset", text: "Kit environments return to a clean baseline on a nightly schedule.", icon: "/lab/feature-grid/icon-5.svg" },
 ];

@@ -19,7 +19,7 @@ const css = `
 .lab-ban.lab-v1{background:linear-gradient(90deg,#8B0000,#0B5D2E)}
 .lab-ban.lab-v1 .lab-cane{width:32px;height:32px;border-radius:6px;background:repeating-linear-gradient(45deg,#8B0000,#8B0000 5px,#F2EFE6 5px,#F2EFE6 10px);border:2px solid #D4AF37;flex:0 0 auto}
 .lab-ban.lab-v2{background:linear-gradient(180deg,#0B5D2E,#145A32 60%,#7A5C10);letter-spacing:.04em}
-.lab-ban.lab-v3{background:linear-gradient(90deg,#8B6914,#0B5D2E,#8B0000);font-size:16px}
+.lab-ban.lab-v3{background:linear-gradient(90deg,#7A5C10,#0B5D2E,#8B0000);font-size:16px}
 .lab-gfx{font-size:28px;line-height:1;flex:0 0 auto}
 .lab-snow{pointer-events:none;position:fixed;inset:0;z-index:30;overflow:hidden}
 .lab-flake{position:absolute;top:-12px;color:#F2EFE6;opacity:.85;text-shadow:0 0 4px rgba(255,255,255,.4);animation:lab-fall linear infinite}

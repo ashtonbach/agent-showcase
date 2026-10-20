@@ -54,18 +54,18 @@ const css = `
   padding: 24px;
   background: rgba(18, 26, 22, 0.35);
 }
-.lab-icon { display: block; width: 32px; height: 32px; margin-bottom: 14px; }
-.lab-fallback {
+.lab-icon-slot {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin-bottom: 14px;
-  border-radius: 8px;
-  background: rgba(176, 203, 188, 0.12);
-  color: var(--sage);
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: var(--mist);
 }
+.lab-icon { display: block; width: 32px; height: 32px; }
+.lab-fallback { color: #121a16; }
 .lab-card h3 {
   font-family: var(--serif);
   font-weight: 400;
@@ -89,29 +89,31 @@ export default function FeatureGrid() {
         <ul className="lab-grid">
           {CARDS.map((card, i) => (
             <li key={card.title} className="lab-card">
-              {broken[i] ? (
-                <span className="lab-fallback" data-art="fallback" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <rect x="4" y="4" width="16" height="16" rx="3" />
-                  </svg>
-                </span>
-              ) : (
-                <img
-                  className="lab-icon"
-                  data-art="image"
-                  src={card.src}
-                  width={32}
-                  height={32}
-                  alt={card.alt}
-                  onError={() =>
-                    setBroken((prev) => {
-                      const next = [...prev];
-                      next[i] = true;
-                      return next;
-                    })
-                  }
-                />
-              )}
+              <span className="lab-icon-slot">
+                {broken[i] ? (
+                  <span className="lab-fallback" data-art="fallback" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="4" y="4" width="16" height="16" rx="3" />
+                    </svg>
+                  </span>
+                ) : (
+                  <img
+                    className="lab-icon"
+                    data-art="image"
+                    src={card.src}
+                    width={32}
+                    height={32}
+                    alt={card.alt}
+                    onError={() =>
+                      setBroken((prev) => {
+                        const next = [...prev];
+                        next[i] = true;
+                        return next;
+                      })
+                    }
+                  />
+                )}
+              </span>
               <h3>{card.title}</h3>
               <p>{card.body}</p>
             </li>

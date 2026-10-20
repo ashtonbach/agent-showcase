@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 const FB = (d: string) => (
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -18,37 +18,31 @@ const DATA: [string, string, ReactNode][] = [
 ];
 
 function SlotIcon({ i, fb }: { i: number; fb: ReactNode }) {
-  const ref = useRef<HTMLImageElement>(null);
-  const [ok, setOk] = useState(false);
+  const [useFb, setUseFb] = useState(false);
   const src = `/lab/feature-grid/icon-${i}.svg`;
-  const mark = () => {
-    const el = ref.current;
-    if (el && el.naturalWidth > 0) setOk(true);
-  };
-  useEffect(() => {
-    mark();
-  }, []);
+  if (useFb) {
+    return (
+      <div className="lab-ico">
+        <span className="lab-icon lab-icon-fb" data-art="fallback" aria-hidden="true">{fb}</span>
+      </div>
+    );
+  }
   return (
     <div className="lab-ico">
-      {!ok && (
-        <span className="lab-icon lab-icon-fb lab-ico-top" data-art="fallback" aria-hidden="true">{fb}</span>
-      )}
       <img
-        ref={ref}
         className="lab-icon"
         data-art="image"
         src={src}
         width={32}
         height={32}
         alt=""
-        onLoad={mark}
-        onError={() => setOk(false)}
+        onError={() => setUseFb(true)}
       />
     </div>
   );
 }
 
-const css = `.lab-fg{width:min(960px,100%);margin:8px auto 56px;color:var(--mist,#E8EEE9)}.lab-fg h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.15;margin:0 0 24px;color:#F2EFE6}.lab-grid{list-style:none;margin:0;padding:0;display:grid;gap:16px;grid-template-columns:1fr}@media(min-width:601px){.lab-grid{grid-template-columns:repeat(2,1fr)}}@media(min-width:901px){.lab-grid{grid-template-columns:repeat(3,1fr)}}.lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}.lab-card h3{margin:12px 0 8px;font-family:var(--serif);font-weight:400;font-size:1.15rem;color:#F2EFE6}.lab-card p{margin:0;font-size:.95rem;line-height:1.5;opacity:.92}.lab-icon{display:block;width:32px;height:32px}.lab-icon-fb{display:flex;align-items:center;justify-content:center;background:var(--sage,#B0CBBC);border-radius:8px}.lab-ico-top{position:absolute;inset:0;z-index:1}.lab-ico{position:relative;width:32px;height:32px;background:var(--sage,#B0CBBC);border-radius:8px;overflow:hidden}@media(prefers-reduced-motion:reduce){.lab-card{transition:none}}`;
+const css = `.lab-fg{width:min(960px,100%);margin:8px auto 56px;color:var(--mist,#E8EEE9)}.lab-fg h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.15;margin:0 0 24px;color:#F2EFE6}.lab-grid{list-style:none;margin:0;padding:0;display:grid;gap:16px;grid-template-columns:1fr}@media(min-width:601px){.lab-grid{grid-template-columns:repeat(2,1fr)}}@media(min-width:901px){.lab-grid{grid-template-columns:repeat(3,1fr)}}.lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}.lab-card h3{margin:12px 0 8px;font-family:var(--serif);font-weight:400;font-size:1.15rem;color:#F2EFE6}.lab-card p{margin:0;font-size:.95rem;line-height:1.5;opacity:.92}.lab-icon{display:block;width:32px;height:32px}.lab-icon-fb{display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--sage,#B0CBBC);border-radius:8px}.lab-ico{width:32px;height:32px;background:var(--sage,#B0CBBC);border-radius:8px;overflow:hidden}@media(prefers-reduced-motion:reduce){.lab-card{transition:none}}`;
 
 export default function FeatureGrid() {
   return (

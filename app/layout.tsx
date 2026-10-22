@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang={BASE_LOCALE} className={`${cormorant.variable} ${jost.variable}`}>
       <body>
-        <style>{`.site-header .brand .brand-mark{width:40px;height:auto}.site-footer .footer-mark{display:inline-flex;align-items:center;justify-content:center;align-self:center;padding:6px;opacity:.85;border:0;text-decoration:none}.site-footer .footer-mark:hover{opacity:1}.site-footer .footer-mark:focus-visible{outline:2px solid currentColor;outline-offset:2px}.footer-mark-img{display:block;width:22px;height:auto}@media (max-width:640px){.site-header .brand .brand-mark{width:34px}.footer-mark-img{width:18px}}`}</style>
+        <style>{`.site-header .brand .brand-mark{width:48px;height:auto}.site-footer .footer-mark{display:inline-flex;align-items:center;justify-content:center;align-self:center;padding:6px;opacity:.85;border:0;text-decoration:none}.site-footer .footer-mark:hover{opacity:1}.site-footer .footer-mark:focus-visible{outline:2px solid currentColor;outline-offset:2px}.footer-mark-img{display:block;width:22px;height:auto}@media (max-width:640px){.site-header .brand .brand-mark{width:34px}.footer-mark-img{width:18px}}`}</style>
         <a className="skip-link label" href="#main" data-i18n="skip">
           {t("skip", "Skip to content")}
         </a>
@@ -45,8 +45,8 @@ export default function RootLayout({
                 className="brand-mark"
                 src="/ab-mark.svg"
                 alt=""
-                width={40}
-                height={29}
+                width={48}
+                height={35}
               />
             </a>
             <nav aria-label="Main">

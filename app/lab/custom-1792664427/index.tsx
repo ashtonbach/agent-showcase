@@ -81,7 +81,7 @@ export default function Lab() {
   }, []);
 
   useEffect(() => {
-    const hdl = (e: KeyboardEvent) => {
+    const hdl = (e: globalThis.KeyboardEvent) => {
       const el = document.activeElement;
       if (el && el.classList.contains("lab-slider")) return;
       if (e.key === "ArrowLeft") setDay((d) => Math.max(0, d - 1));

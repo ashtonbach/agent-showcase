@@ -5,7 +5,7 @@ const CARDS = [
   { title: "Fresh branch", body: "Every v2 run checks out a new branch from origin/base before coding.", icon: "icon-0.svg" },
   { title: "Allowlist", body: "The gate allows only the lab folder, two page lines, and current.json—nothing else.", icon: "icon-1.svg" },
   { title: "Size cap", body: "Each feature diff is limited to 150 changed lines so reviews stay small.", icon: "icon-2.svg" },
-  { title: "No network", body: "Lab code cannot call fetch, axios, WebSockets, or other network APIs.", icon: "icon-3.svg" },
+  { title: "No network", body: "Lab source must not open outbound connections or use client realtime APIs.", icon: "icon-3.svg" },
   { title: "Visual gate", body: "Ship runs layout checks at 1280px and 390px before the merge gate passes.", icon: "icon-4.svg" },
   { title: "Nightly reset", body: "reset.sh removes lab features nightly at 3 AM CT via the lab-reset workflow.", icon: "icon-5.svg" },
 ];

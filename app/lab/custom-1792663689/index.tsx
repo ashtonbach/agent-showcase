@@ -31,7 +31,13 @@ export default function Lab() {
           color: var(--mist);
           margin: 0 0 20px;
         }
-        .lab-mars-scene { position: relative; width: 100%; max-width: 400px; margin: 0 auto; }
+        .lab-mars-scene {
+          position: relative;
+          width: 100%;
+          max-width: 400px;
+          margin: 0 auto;
+          padding-bottom: 24px;
+        }
         .lab-mars-svg { display: block; width: 100%; height: auto; }
         .lab-mars-sun { fill: #e8c547; filter: drop-shadow(0 0 12px rgba(232, 197, 71, 0.45)); }
         .lab-mars-orbit { fill: none; stroke: rgba(176, 203, 188, 0.45); stroke-width: 2; stroke-dasharray: 6 8; }
@@ -73,6 +79,11 @@ export default function Lab() {
         }
         .lab-mars-stat-value { font-family: var(--serif); font-size: 26px; color: var(--mist); }
         .lab-mars-note { margin-top: 16px; font-size: 14px; color: var(--muted); text-align: center; }
+        @media (max-width: 480px) {
+          .lab-mars-scene { margin-bottom: 20px; }
+          .lab-mars-stat { margin-top: 44px; }
+          .lab-mars-rocket { font-size: 18px; width: 22px; height: 22px; }
+        }
         @media (prefers-reduced-motion: reduce) {
           .lab-mars-rocket.lab-mars-go { animation: none; offset-distance: 0%; }
         }

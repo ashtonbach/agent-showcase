@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /* Transfer ~225M km over ~210 days — NASA Hohmann-style average */
 const MAX_DAY = 210;
@@ -26,9 +26,9 @@ function phase(day: number) {
 }
 
 function arcPoint(t: number) {
-  const x0 = EARTH_X + 2.5;
+  const x0 = EARTH_X + 1.2;
   const y0 = ROW_Y;
-  const x1 = MARS_X - 2.5;
+  const x1 = MARS_X - 1.2;
   const y1 = ROW_Y;
   const cx = (x0 + x1) / 2;
   const cy = ROW_Y - 22;
@@ -40,6 +40,7 @@ function arcPoint(t: number) {
 
 export default function Lab() {
   const [day, setDay] = useState(0);
+  const sliderRef = useRef<HTMLInputElement>(null);
   const t = day / MAX_DAY;
   const pos = arcPoint(t);
   const marsY = ROW_Y;
@@ -64,6 +65,18 @@ export default function Lab() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onKey]);
+
+  useEffect(() => {
+    const el = sliderRef.current;
+    if (!el) return;
+    const sync = () => setDay(Number(el.value));
+    el.addEventListener("input", sync);
+    el.addEventListener("change", sync);
+    return () => {
+      el.removeEventListener("input", sync);
+      el.removeEventListener("change", sync);
+    };
+  }, []);
 
   const css = `
 .lab-wrap{max-width:min(960px,100%);margin:8px auto 56px;padding:0 12px;box-sizing:border-box}
@@ -94,7 +107,7 @@ section[data-lab="custom-1792714407"]>h2{font-family:var(--serif);font-weight:40
           <div className="lab-scene" aria-hidden="true">
             <svg className="lab-arc" viewBox="0 0 100 100" preserveAspectRatio="none">
               <path
-                d={`M ${EARTH_X + 2.5} ${ROW_Y} Q ${(EARTH_X + MARS_X) / 2} ${ROW_Y - 22} ${MARS_X - 2.5} ${ROW_Y}`}
+                d={`M ${EARTH_X + 1.2} ${ROW_Y} Q ${(EARTH_X + MARS_X) / 2} ${ROW_Y - 22} ${MARS_X - 1.2} ${ROW_Y}`}
                 fill="none"
                 stroke="rgba(176,203,188,0.45)"
                 strokeWidth="0.4"
@@ -102,10 +115,10 @@ section[data-lab="custom-1792714407"]>h2{font-family:var(--serif);font-weight:40
                 vectorEffect="non-scaling-stroke"
               />
             </svg>
-            <div className="lab-sun" />
-            <div className="lab-earth" />
-            <div className="lab-mars" />
-            <span className="lab-rocket" style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: `rotate(${angle}deg)` }}>
+            <div className="lab-sun" data-lab-obj="sun" />
+            <div className="lab-earth" data-lab-obj="earth" />
+            <div className="lab-mars" data-lab-obj="mars" />
+            <span className="lab-rocket" data-lab-obj="rocket" style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: `rotate(${angle}deg)` }}>
               🚀
             </span>
           </div>
@@ -117,6 +130,7 @@ section[data-lab="custom-1792714407"]>h2{font-family:var(--serif);font-weight:40
           <label className="lab-stat-label" htmlFor="lab-day-slider">Journey timeline</label>
           <input
             id="lab-day-slider"
+            ref={sliderRef}
             className="lab-slider"
             type="range"
             min={0}

@@ -26,6 +26,17 @@ if (envKeep && bodyKeep && envKeep !== bodyKeep) fail("allowlist", `KEEP_LAB "${
 const keep = envKeep || bodyKeep || "";
 if (keep && (!/^[a-z0-9-]+$/.test(keep) || keep === slug)) fail("allowlist", `bad KEEP_LAB "${keep}"`);
 const keepFile = (f) => !!keep && (f.startsWith(`app/lab/${keep}/`) || f.startsWith(`public/lab/${keep}/`));
+// Change run (seeded from an existing section): new artwork in public/lab/<slug>/ is allowed only when every such file is
+// byte-identical (sha256) to the same file name in public/lab/<seed>/ at the seed commit, and that commit is on the base history.
+// Any other artwork stays rejected for custom runs. SEED_FROM env and the PR body marker must agree (seed-marker.js).
+const sm = require("./seed-marker"), envSeed = sm.fromEnv(), bodySeed = sm.fromEvent();
+if (envSeed === null) fail("allowlist", "bad SEED_FROM (expected <section>@<40-hex commit>)");
+if (bodySeed === null) fail("allowlist", "bad seed-from marker in the PR body (one line: <!-- seed-from: <section>@<commit> -->)");
+if (envSeed && bodySeed && (envSeed.slug !== bodySeed.slug || envSeed.sha !== bodySeed.sha)) fail("allowlist", "SEED_FROM does not match the PR body seed-from marker");
+let seed = envSeed || bodySeed || null;
+if (seed) { let onBase = false; try { execFileSync("git", ["-C", root, "merge-base", "--is-ancestor", seed.sha, base], { stdio: "ignore" }); onBase = true; } catch (e) {}
+  if (!onBase) { fail("allowlist", `seed commit ${seed.sha.slice(0, 7)} is not on the base history`); seed = null; } }
+const sha256 = (ref) => { try { return require("crypto").createHash("sha256").update(execFileSync("git", ["-C", root, "show", ref], { maxBuffer: 1 << 26 })).digest("hex"); } catch (e) { return ""; } };
 const range = `${base}...${head}`;
 const files = git("diff", "--name-only", range).split("\n").filter(Boolean);
 out.files = files;
@@ -38,6 +49,9 @@ const dir = `app/lab/${slug}/`, artDir = `public/lab/${slug}/`; // artDir: Hazel
 const deleted = new Set(git("diff", "--name-only", "--diff-filter=D", range).split("\n").filter(Boolean));
 // A previous typed request's folder (app/lab/custom-<10-13 digits>/) is not on the menu; deleting it is allowed too.
 const oldCustom = (f) => /^app\/lab\/custom-[0-9]{10,13}\//.test(f);
+const seededArt = (f) => { if (!custom || !seed || deleted.has(f) || !f.startsWith(artDir)) return false; const n = f.slice(artDir.length);
+  if (!/^[a-z0-9-]+\.svg$/.test(n)) return false; const a = sha256(`${head}:${f}`), b = sha256(`${seed.sha}:public/lab/${seed.slug}/${n}`);
+  if (a && b && a === b) return true; fail("allowlist", b ? `artwork ${f} differs from public/lab/${seed.slug}/${n} at the seed commit (a change run may only carry seeded artwork unchanged)` : `artwork ${f} has no public/lab/${seed.slug}/${n} at the seed commit`); return "failed"; };
 const oldFeature = (f) => !keepFile(f) && deleted.has(f) && /^(app|public)\/lab\/[a-z0-9-]+\//.test(f) && !f.startsWith(dir) && !f.startsWith(artDir) && (menu.includes(f.split("/")[2]) || oldCustom(f));
 out.removed = files.filter(oldFeature);
 for (const f of files) {
@@ -45,6 +59,7 @@ for (const f of files) {
   if (f === "app/page.tsx" || f.startsWith(dir) || oldFeature(f)) continue;
   if (f === "app/lab/current.json") continue; // checked below
   if (f === LOCALE_FILE && slug === "spanish-translation") continue; // Alder's es-ES messages, checked below
+  { const sa = seededArt(f); if (sa === true || sa === "failed") continue; }
   if (!custom && f.startsWith(artDir) && /^[a-z0-9-]+\.svg$/.test(f.slice(artDir.length))) continue;
   fail("allowlist", `file outside allowlist: ${f}`);
 }

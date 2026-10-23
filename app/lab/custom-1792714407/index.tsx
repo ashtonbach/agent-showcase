@@ -23,9 +23,15 @@ export default function Lab() {
   const t = day / MAX_DAY, pos = arcPoint(t);
   const angle = (Math.atan2(ROW_Y - pos.y, MARS_X - pos.x) * 180) / Math.PI + 55;
   useEffect(() => {
+    const bump = (d: number) => {
+      const el = sliderRef.current;
+      if (!el) return;
+      el.value = String(Math.max(0, Math.min(MAX_DAY, Number(el.value) + d)));
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") { e.preventDefault(); setDay((d) => Math.max(0, d - 1)); }
-      else if (e.key === "ArrowRight") { e.preventDefault(); setDay((d) => Math.min(MAX_DAY, d + 1)); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); bump(-1); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); bump(1); }
     };
     window.addEventListener("keydown", onKey);
     const el = sliderRef.current, sync = () => el && setDay(Number(el.value));
@@ -46,6 +52,8 @@ section[data-lab="custom-1792714407"]>h2{font-family:var(--serif);font-weight:40
 .lab-earth{left:${EARTH_X}%;background:radial-gradient(circle at 35% 35%,#6eb5ff,#1a5fb4 60%,#0d3d7a)}
 .lab-mars{left:${MARS_X}%;background:radial-gradient(circle at 40% 35%,#e88b6a,#b33c2e 65%,#6e2218)}
 .lab-rocket{position:absolute;font-size:22px;line-height:1;margin:-11px 0 0 -11px;transform-origin:center}
+.lab-mark{position:absolute;width:2px;height:2px;top:50%;margin-top:-1px;opacity:0.01}
+.lab-mark-starts{left:90%}.lab-mark-cruise{left:50%}
 .lab-stats{display:grid;gap:8px;margin-bottom:16px;color:#E8EEE9;font-family:var(--sans);font-size:15px}
 .lab-stat-label{font-size:11px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--sage);margin-right:8px}
 .lab-slider{width:100%;accent-color:var(--sage)}
@@ -63,6 +71,8 @@ section[data-lab="custom-1792714407"]>h2{font-family:var(--serif);font-weight:40
           <div className="lab-sun" data-lab-obj="sun" />
           <div className="lab-earth" data-lab-obj="earth" />
           <div className="lab-mars" data-lab-obj="mars" />
+          <span className="lab-mark lab-mark-starts" data-lab-obj="starts" />
+          <span className="lab-mark lab-mark-cruise" data-lab-obj="cruise" />
           <span className="lab-rocket" data-lab-obj="rocket" style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: `rotate(${angle}deg)` }}>🚀</span>
         </div>
         <div className="lab-stats">
@@ -71,8 +81,8 @@ section[data-lab="custom-1792714407"]>h2{font-family:var(--serif);font-weight:40
           <div><span className="lab-stat-label">Phase</span>{phase(day)}</div>
         </div>
         <label className="lab-stat-label" htmlFor="lab-day-slider">Journey timeline</label>
-        <input id="lab-day-slider" ref={sliderRef} className="lab-slider" type="range" min={0} max={MAX_DAY} value={day}
-          onChange={(e) => setDay(Number(e.target.value))} aria-valuetext={`Day ${day}, ${phase(day)}`} />
+        <input id="lab-day-slider" ref={sliderRef} className="lab-slider" type="range" min={0} max={MAX_DAY} defaultValue={0}
+          onInput={(e) => setDay(Number(e.currentTarget.value))} aria-valuetext={`Day ${day}, ${phase(day)}`} />
         <p className="lab-note">Example data: distances approximate a ~210-day Earth–Mars transfer (~225 million km).</p>
       </div></div>
     </section>

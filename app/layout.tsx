@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { t, BASE_LOCALE } from "./i18n";
+import { withBase } from "./base-path";
 
 // Self-hosted (latin, variable-weight woff2 from Google Fonts, OFL): the build no longer fetches fonts.googleapis.com, which made a CI
 // "Build site" fail once on a bad font response ("next/font/google queries have exactly one entry") while Vercel built the same commit.
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
   title: "AshtonBach | Agent Showcase",
   description: "A live demo of AI agents shipping a change end to end.",
   robots: { index: true, follow: true },
-  icons: { icon: "/ab-mark.svg" },
+  icons: { icon: withBase("/ab-mark.svg") },
 };
 
 export default function RootLayout({
@@ -40,10 +41,10 @@ export default function RootLayout({
         </a>
         <header className="site-header">
           <div className="site-header-inner">
-            <a className="brand" href="/" aria-label="AshtonBach home">
+            <a className="brand" href={withBase("/")} aria-label="AshtonBach home">
               <img
                 className="brand-mark"
-                src="/ab-mark.svg"
+                src={withBase("/ab-mark.svg")}
                 alt=""
                 width={48}
                 height={35}
@@ -52,7 +53,7 @@ export default function RootLayout({
             <nav aria-label="Main">
               <ul className="nav-list label">
                 <li>
-                  <a href="https://agents-live.davidashtonwells.workers.dev/" data-i18n="nav.live">{t("nav.live", "Production workflow")}</a>
+                  <a href="https://agents.ashtonbach.com/" data-i18n="nav.live">{t("nav.live", "Production workflow")}</a>
                 </li>
                 <li>
                   <a href="mailto:info@ashtonbach.com" data-i18n="nav.contact">{t("nav.contact", "Contact")}</a>
@@ -69,7 +70,7 @@ export default function RootLayout({
             {t("footer.disclaimer", "Features and content for this demo were created by AI.")}
           </p>
           <a className="footer-mark" href="https://ashtonbach.com" aria-label="AshtonBach">
-            <img className="footer-mark-img" src="/ab-mark.svg" alt="" width={22} height={16} />
+            <img className="footer-mark-img" src={withBase("/ab-mark.svg")} alt="" width={22} height={16} />
           </a>
         </footer>
         <script

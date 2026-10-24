@@ -67,7 +67,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     const errs = [], offsite = [];
     page.on("console", (m) => m.type() === "error" && errs.push(m.text()));
     let artMiss = 0; // missing artwork (404 under /lab/<slug>/) is allowed: the feature shows its fallback
-    page.on("response", (r) => { if (r.status() === 404 && new URL(r.url()).pathname.startsWith(`/lab/${slug}/`)) artMiss++; });
+    page.on("response", (r) => { if (r.status() === 404 && new URL(r.url()).pathname.replace(/^\/showcase(?=\/)/, "").startsWith(`/lab/${slug}/`)) artMiss++; });
     page.on("pageerror", (e) => errs.push(String(e)));
     const origin = new URL(url).origin;
     // Vercel injects its preview toolbar (vercel.live) on preview deployments only: block it, it is not part of the site.

@@ -1,36 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import en from "../../../messages/en-US.json";
-import es from "../../../messages/es-ES.json";
 
 type Locale = "en-US" | "es-ES" | "fr-FR";
 type Msg = Record<string, string>;
-const fr: Msg = {
-  skip: "Aller au contenu",
-  "nav.live": "Flux de production",
-  "nav.contact": "Contact",
-  "footer.disclaimer": "Les fonctionnalités et le contenu de cette démo ont été créés par l'IA.",
-  "demo.showcase": "Vitrine",
-  "demo.dark-mode": "Mode sombre",
-  "demo.faq-accordion": "FAQ",
-  "demo.pricing-table": "Tableau des tarifs",
-  "demo.animated-counter": "Compteur animé",
-  "demo.tabs": "Onglets",
-  "demo.testimonial-card": "Carte témoignage",
-  "demo.feature-grid": "Grille de fonctionnalités",
-  "demo.spanish-translation": "Traduction",
-  "lab.spanish-translation.eyebrow": "Langue",
-  "lab.spanish-translation.heading": "Rencontrez l'équipe d'agents",
-  "lab.spanish-translation.p1":
-    "Chez AshtonBach, une équipe d'agents IA construit les fonctionnalités de cette page vitrine. Alder écrit le code, Rowan le relit et Cedar le vérifie sur le site en direct.",
-  "lab.spanish-translation.p2":
-    "Une personne a conçu le système et le supervise. Chaque modification est relue avant publication, et vous pouvez voir les agents travailler en temps réel.",
-  "lab.spanish-translation.cta": "Rencontrer l'équipe",
-};
-const packs: Record<Locale, Msg> = { "en-US": en as Msg, "es-ES": es as Msg, "fr-FR": fr };
+const packs = JSON.parse("{\"en-US\":{\"skip\":\"Skip to content\",\"nav.live\":\"Production workflow\",\"nav.contact\":\"Contact\",\"footer.disclaimer\":\"Features and content for this demo were created by AI.\",\"demo.showcase\":\"Showcase\",\"demo.dark-mode\":\"Dark mode toggle\",\"demo.faq-accordion\":\"FAQ accordion\",\"demo.pricing-table\":\"Pricing table\",\"demo.animated-counter\":\"Animated counter\",\"demo.tabs\":\"Tabs\",\"demo.testimonial-card\":\"Quote card\",\"demo.feature-grid\":\"Feature grid\",\"demo.spanish-translation\":\"Spanish translation\",\"lab.spanish-translation.eyebrow\":\"Language\",\"lab.spanish-translation.heading\":\"Meet the agent team\",\"lab.spanish-translation.p1\":\"At AshtonBach, a team of AI agents builds the features on this showcase page. Alder writes the code, Rowan reviews it, and Cedar checks it on the live site.\",\"lab.spanish-translation.p2\":\"A person designed the system and oversees it. Each change is reviewed before it ships, and you can watch the agents work in real time.\",\"lab.spanish-translation.cta\":\"Meet the team\"},\"es-ES\":{\"skip\":\"Saltar al contenido\",\"nav.live\":\"Flujo de trabajo de producción\",\"nav.contact\":\"Contacto\",\"footer.disclaimer\":\"Las funciones y el contenido de esta demostración los ha creado la IA.\",\"demo.showcase\":\"Exhibición\",\"demo.dark-mode\":\"Interruptor de modo oscuro\",\"demo.faq-accordion\":\"Acordeón de preguntas frecuentes\",\"demo.pricing-table\":\"Tabla de precios\",\"demo.animated-counter\":\"Contador animado\",\"demo.tabs\":\"Pestañas\",\"demo.testimonial-card\":\"Tarjeta de cita\",\"demo.feature-grid\":\"Rejilla de funciones\",\"demo.spanish-translation\":\"Traducción al español\",\"lab.spanish-translation.eyebrow\":\"Idioma\",\"lab.spanish-translation.heading\":\"Conoced al equipo de agentes\",\"lab.spanish-translation.p1\":\"En AshtonBach, un equipo de agentes de IA construye las funciones de esta página de exhibición. Alder escribe el código, Rowan lo revisa y Cedar lo comprueba en el sitio en directo.\",\"lab.spanish-translation.p2\":\"Una persona diseñó el sistema y lo supervisa. Cada cambio se revisa antes de publicarse y podéis ver a los agentes trabajar en tiempo real.\",\"lab.spanish-translation.cta\":\"Conoced al equipo\"},\"fr-FR\":{\"skip\":\"Aller au contenu\",\"nav.live\":\"Flux de production\",\"nav.contact\":\"Contact\",\"footer.disclaimer\":\"Les fonctionnalités et le contenu de cette démo ont été créés par l'IA.\",\"demo.showcase\":\"Vitrine\",\"demo.dark-mode\":\"Mode sombre\",\"demo.faq-accordion\":\"FAQ\",\"demo.pricing-table\":\"Tableau des tarifs\",\"demo.animated-counter\":\"Compteur animé\",\"demo.tabs\":\"Onglets\",\"demo.testimonial-card\":\"Carte témoignage\",\"demo.feature-grid\":\"Grille de fonctionnalités\",\"demo.spanish-translation\":\"Traduction\",\"lab.spanish-translation.eyebrow\":\"Langue\",\"lab.spanish-translation.heading\":\"Rencontrez l'équipe d'agents\",\"lab.spanish-translation.p1\":\"Chez AshtonBach, une équipe d'agents IA construit les fonctionnalités de cette page vitrine. Alder écrit le code, Rowan le relit et Cedar le vérifie sur le site en direct.\",\"lab.spanish-translation.p2\":\"Une personne a conçu le système et le supervise. Chaque modification est relue avant publication, et vous pouvez voir les agents travailler en temps réel.\",\"lab.spanish-translation.cta\":\"Rencontrer l'équipe\"}}") as Record<Locale, Msg>;
 
-const css = `[data-lab="custom-1792813125"]{width:min(720px,100%);margin:8px auto 56px}[data-lab="custom-1792813125"] h2{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--mist);margin:0 0 .7rem}[data-lab="custom-1792813125"] p{color:var(--mist);margin:0 0 1rem;line-height:1.55}.lab-switch{display:inline-flex;flex-wrap:wrap;gap:0}.lab-seg{font-family:var(--sans);font-size:14px;padding:.45rem 1rem;cursor:pointer;background:transparent;color:var(--mist);border:1px solid var(--sage)}.lab-seg[aria-pressed="true"]{background:var(--sage);color:#14201A}`;
+const css = `[data-lab="custom-1792813125"]{width:min(720px,100%);margin:8px auto 56px}[data-lab="custom-1792813125"] h2{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--mist);margin:0 0 .7rem}[data-lab="custom-1792813125"] p{color:var(--mist);margin:0 0 1rem;line-height:1.55}.lab-switch{display:inline-flex;flex-wrap:wrap}.lab-seg{font-family:var(--sans);font-size:14px;padding:.45rem 1rem;cursor:pointer;background:transparent;color:var(--mist);border:1px solid var(--sage)}.lab-seg[aria-pressed="true"]{background:var(--sage);color:#14201A}`;
 
 function pageLang(locale: Locale) {
   if (locale === "fr-FR") return "fr";

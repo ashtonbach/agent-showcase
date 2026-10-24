@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type Locale = "en-US" | "es-ES" | "ja-JP" | "de-DE" | "pt-BR";
+type Locale = "en-US" | "es-ES" | "fr-FR" | "zh-CN" | "ja-JP" | "de-DE" | "pt-BR";
 type Msg = Record<string, string>;
 const en: Msg = {
   skip: "Skip to content",
@@ -64,11 +64,37 @@ const pt: Msg = {
   "lab.spanish-translation.p2":
     "Uma pessoa projetou o sistema e o supervisiona. Cada alteração é revisada antes de publicar, e você pode ver os agentes trabalhando em tempo real.",
 };
-const packs: Record<Locale, Msg> = { "en-US": en, "es-ES": es, "ja-JP": ja, "de-DE": de, "pt-BR": pt };
+const fr: Msg = {
+  "skip": "Aller au contenu",
+  "nav.live": "Flux de production",
+  "nav.contact": "Contact",
+  "footer.disclaimer": "Les fonctionnalités et le contenu de cette démo ont été créés par l'IA.",
+  "demo.showcase": "Vitrine",
+  "lab.spanish-translation.heading": "Rencontrez l'équipe d'agents",
+  "lab.spanish-translation.p1": "Chez AshtonBach, une équipe d'agents IA construit les fonctionnalités de cette page vitrine. Alder écrit le code, Rowan le relit et Cedar le vérifie sur le site en direct.",
+  "lab.spanish-translation.p2": "Une personne a conçu le système et le supervise. Chaque modification est relue avant publication, et vous pouvez voir les agents travailler en temps réel.",
+};
+const zh: Msg = {
+  "skip": "跳到内容",
+  "nav.live": "生产工作流",
+  "nav.contact": "联系",
+  "footer.disclaimer": "本演示的功能和内容由 AI 创建。",
+  "demo.showcase": "展示",
+  "lab.spanish-translation.heading": "认识代理团队",
+  "lab.spanish-translation.p1": "在 AshtonBach，一支 AI 代理团队负责构建此展示页面的功能。Alder 编写代码，Rowan 审查，Cedar 在实时站点上进行检查。",
+  "lab.spanish-translation.p2": "由人工设计并监督该系统。每次更改在发布前都会经过审查，您可以实时观看代理工作。",
+};
+const packs: Record<Locale, Msg> = { "en-US": en, "es-ES": es, "fr-FR": fr, "zh-CN": zh, "ja-JP": ja, "de-DE": de, "pt-BR": pt };
 const css = `[data-lab="custom-1792819891"]{width:min(720px,100%);margin:8px auto 56px}[data-lab="custom-1792819891"] h2{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--mist);margin:0 0 .7rem}[data-lab="custom-1792819891"] p{color:var(--mist);margin:0 0 1rem;line-height:1.55}.lab-switch{display:inline-flex;flex-wrap:wrap;max-width:100%}.lab-seg{font-family:var(--sans);font-size:14px;padding:.45rem 1rem;cursor:pointer;background:transparent;color:var(--mist);border:1px solid var(--sage)}.lab-seg[aria-pressed="true"]{background:var(--sage);color:#14201A}`;
 
+function pageLang(locale: Locale) {
+  if (locale === "fr-FR") return "fr";
+  if (locale === "zh-CN") return "zh-CN";
+  return locale;
+}
+
 function applyLocale(locale: Locale) {
-  document.documentElement.lang = locale;
+  document.documentElement.lang = pageLang(locale);
   const pack = packs[locale];
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     const key = node.getAttribute("data-i18n");
@@ -89,11 +115,13 @@ export default function Lab() {
       <p data-i18n="lab.spanish-translation.p1">{pack["lab.spanish-translation.p1"]}</p>
       <p data-i18n="lab.spanish-translation.p2">{pack["lab.spanish-translation.p2"]}</p>
       <div className="lab-switch" role="group" aria-label="Language">
-        <button type="button" aria-pressed={locale === "en-US"} className="lab-seg" onClick={() => setLocale("en-US")}>English</button>
-        <button type="button" aria-pressed={locale === "es-ES"} className="lab-seg" onClick={() => setLocale("es-ES")}>Español</button>
-        <button type="button" aria-pressed={locale === "ja-JP"} className="lab-seg" onClick={() => setLocale("ja-JP")}>日本語</button>
-        <button type="button" aria-pressed={locale === "de-DE"} className="lab-seg" onClick={() => setLocale("de-DE")}>Deutsch</button>
-        <button type="button" aria-pressed={locale === "pt-BR"} className="lab-seg" onClick={() => setLocale("pt-BR")}>Português</button>
+        <button type="button" data-locale="en-US" aria-pressed={locale === "en-US"} className="lab-seg" onClick={() => setLocale("en-US")}>English</button>
+        <button type="button" data-locale="es-ES" aria-pressed={locale === "es-ES"} className="lab-seg" onClick={() => setLocale("es-ES")}>Español</button>
+        <button type="button" data-locale="fr-FR" aria-pressed={locale === "fr-FR"} className="lab-seg" onClick={() => setLocale("fr-FR")}>Français</button>
+        <button type="button" data-locale="zh-CN" aria-pressed={locale === "zh-CN"} className="lab-seg" onClick={() => setLocale("zh-CN")}>中文</button>
+        <button type="button" data-locale="ja-JP" aria-pressed={locale === "ja-JP"} className="lab-seg" onClick={() => setLocale("ja-JP")}>日本語</button>
+        <button type="button" data-locale="de-DE" aria-pressed={locale === "de-DE"} className="lab-seg" onClick={() => setLocale("de-DE")}>Deutsch</button>
+        <button type="button" data-locale="pt-BR" aria-pressed={locale === "pt-BR"} className="lab-seg" onClick={() => setLocale("pt-BR")}>Português</button>
       </div>
     </section>
   );

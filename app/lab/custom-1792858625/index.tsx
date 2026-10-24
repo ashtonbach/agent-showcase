@@ -1,11 +1,53 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import en from "../../../messages/en-US.json";
-import es from "../../../messages/es-ES.json";
 
 type Locale = "en-US" | "es-ES" | "he-IL";
 type Msg = Record<string, string>;
+const en: Msg = {
+  skip: "Skip to content",
+  "nav.live": "Production workflow",
+  "nav.contact": "Contact",
+  "footer.disclaimer": "Features and content for this demo were created by AI.",
+  "demo.showcase": "Showcase",
+  "demo.dark-mode": "Dark mode toggle",
+  "demo.faq-accordion": "FAQ accordion",
+  "demo.pricing-table": "Pricing table",
+  "demo.animated-counter": "Animated counter",
+  "demo.tabs": "Tabs",
+  "demo.testimonial-card": "Quote card",
+  "demo.feature-grid": "Feature grid",
+  "demo.spanish-translation": "Spanish translation",
+  "lab.spanish-translation.eyebrow": "Language",
+  "lab.spanish-translation.heading": "Meet the agent team",
+  "lab.spanish-translation.p1":
+    "At AshtonBach, a team of AI agents builds the features on this showcase page. Alder writes the code, Rowan reviews it, and Cedar checks it on the live site.",
+  "lab.spanish-translation.p2":
+    "A person designed the system and oversees it. Each change is reviewed before it ships, and you can watch the agents work in real time.",
+  "lab.spanish-translation.cta": "Meet the team",
+};
+const es: Msg = {
+  skip: "Saltar al contenido",
+  "nav.live": "Flujo de trabajo de producción",
+  "nav.contact": "Contacto",
+  "footer.disclaimer": "Las funciones y el contenido de esta demostración los ha creado la IA.",
+  "demo.showcase": "Exhibición",
+  "demo.dark-mode": "Interruptor de modo oscuro",
+  "demo.faq-accordion": "Acordeón de preguntas frecuentes",
+  "demo.pricing-table": "Tabla de precios",
+  "demo.animated-counter": "Contador animado",
+  "demo.tabs": "Pestañas",
+  "demo.testimonial-card": "Tarjeta de cita",
+  "demo.feature-grid": "Rejilla de funciones",
+  "demo.spanish-translation": "Traducción al español",
+  "lab.spanish-translation.eyebrow": "Idioma",
+  "lab.spanish-translation.heading": "Conoced al equipo de agentes",
+  "lab.spanish-translation.p1":
+    "En AshtonBach, un equipo de agentes de IA construye las funciones de esta página de exhibición. Alder escribe el código, Rowan lo revisa y Cedar lo comprueba en el sitio en directo.",
+  "lab.spanish-translation.p2":
+    "Una persona diseñó el sistema y lo supervisa. Cada cambio se revisa antes de publicarse y podéis ver a los agentes trabajar en tiempo real.",
+  "lab.spanish-translation.cta": "Conoced al equipo",
+};
 const he: Msg = {
   skip: "דלג לתוכן",
   "nav.live": "זרימת עבודה בייצור",
@@ -28,7 +70,7 @@ const he: Msg = {
     "אדם אחד תכנן המערכת ומפקח עליה. כל שינוי נבדק לפני שהוא עולה לאוויר, ואפשר לצפות בסוכנים עובדים בזמן אמת.",
   "lab.spanish-translation.cta": "הכירו את הצוות",
 };
-const packs: Record<Locale, Msg> = { "en-US": en as Msg, "es-ES": es as Msg, "he-IL": he };
+const packs: Record<Locale, Msg> = { "en-US": en, "es-ES": es, "he-IL": he };
 
 const css = `[data-lab="custom-1792858625"]{width:min(720px,100%);margin:8px auto 56px}[data-lab="custom-1792858625"] h2{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--mist);margin:0 0 .7rem}[data-lab="custom-1792858625"] p{color:var(--mist);margin:0 0 1rem;line-height:1.55}.lab-switch{display:inline-flex;flex-wrap:wrap;gap:0}.lab-seg{font-family:var(--sans);font-size:14px;padding:.45rem 1rem;cursor:pointer;background:transparent;color:var(--mist);border:1px solid var(--sage)}.lab-seg[aria-pressed="true"]{background:var(--sage);color:#14201A}`;
 

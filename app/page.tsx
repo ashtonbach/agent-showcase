@@ -1,4 +1,4 @@
-import Lab from "./lab/custom-1792859091";
+import Lab from "./lab/tabs";
 import { readDemoKey, demoTitle } from "./demo-name";
 const demoKey = readDemoKey();
 const demoName = demoTitle();

@@ -1,0 +1,24 @@
+name: Warm CI cache
+
+# Merge Gates runs only on pull_request, and a PR can read caches saved on main but not on other PRs.
+# This saves the Playwright browser and apt package cache on main so every feature PR starts warm.
+on:
+  push:
+    branches: [main]
+    paths: ['.github/actions/playwright-setup/**', '.github/workflows/warm-ci-cache.yml']
+  schedule:
+    - cron: '17 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: ./.github/actions/playwright-setup

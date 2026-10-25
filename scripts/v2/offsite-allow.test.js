@@ -1,6 +1,6 @@
 // node --test scripts/v2/offsite-allow.test.js
 const test = require("node:test"), assert = require("node:assert"), fs = require("fs"), os = require("os"), path = require("path");
-const { allowedOffsite, refMeta, sizeNote, blockingFails, pngSize } = require("./offsite-allow");
+const { allowedOffsite, refMeta, sizeNote, exitCodeFor, pngSize } = require("./offsite-allow");
 const B = "https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092";
 test("edge beacon is allowed, with or without its version path", () => {
   assert.ok(allowedOffsite(B)); assert.ok(allowedOffsite("https://static.cloudflareinsights.com/beacon.min.js"));
@@ -11,10 +11,10 @@ test("look-alikes and other off-site requests are not allowed", () => {
     "https://static.cloudflareinsights.com/other.js", "https://static.cloudflareinsights.com/beacon.min.js/../x", "https://evil.example.com/x.js",
     "https://cloudflareinsights.com/cdn-cgi/rum"]) assert.ok(!allowedOffsite(u), u);
 });
-test("visual diffs are informational unless strict; other fails block", () => {
-  const f = ["visual: size 1024x330 vs reference 1024x172", "one toggle button with aria-pressed"];
-  assert.deepStrictEqual(blockingFails(f), ["one toggle button with aria-pressed"]);
-  assert.deepStrictEqual(blockingFails(f, true), f); assert.deepStrictEqual(blockingFails([f[0]]), []);
+test("a visual mismatch fails by default", () => {
+  assert.strictEqual(exitCodeFor(["visual: 3.10% pixels differ from reference (max 2%)"]), 1);
+  assert.strictEqual(exitCodeFor(["visual: size 1024x330 vs reference 1024x172"]), 1);
+  assert.strictEqual(exitCodeFor(["one toggle button with aria-pressed"]), 1); assert.strictEqual(exitCodeFor([]), 0);
 });
 test("size mismatch stays a visual FAIL and names the reference source", () => {
   const d = fs.mkdtempSync(path.join(os.tmpdir(), "refs-")), ref = path.join(d, "x.png");

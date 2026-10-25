@@ -9,11 +9,11 @@ const pngSize = (buf) => (buf && buf.length >= 24 && buf.toString("ascii", 12, 1
 const refMeta = (buf, url, now = new Date()) => { const s = pngSize(buf) || [0, 0]; return { w: s[0], h: s[1], from: url || "", at: now.toISOString() }; };
 // sizeNote: a size mismatch means the reference was taken from a different layout. It stays a visual FAIL (never silently
 // passed), and names the reference's origin so a stale reference is told apart from a real regression.
-const sizeNote = (d, ref) => {
+const refSource = (ref) => {
   let m = null; try { m = JSON.parse(fs.readFileSync(ref + ".json", "utf8")); } catch (e) { /* older references have no sidecar */ }
-  const src = m ? `reference from ${m.from || "unknown"} at ${m.at}` : "reference has no record of its source build (stale until regenerated with --update-refs)";
-  return `visual: size ${d[0]}x${d[1]} vs reference ${d[2]}x${d[3]} (${src})`;
+  return m ? `reference from ${m.from || "unknown"} at ${m.at}` : "reference has no record of its source build (stale until regenerated with --update-refs)";
 };
-// blockingFails: visual diffs are informational unless strict; every other FAIL blocks.
-const blockingFails = (fails, strict = false) => (strict ? fails.slice() : fails.filter((f) => !String(f).startsWith("visual")));
-module.exports = { allowedOffsite, pngSize, refMeta, sizeNote, blockingFails };
+const sizeNote = (d, ref) => `visual: size ${d[0]}x${d[1]} vs reference ${d[2]}x${d[3]} (${refSource(ref)})`;
+// exitCodeFor: every FAIL blocks, visual included (same as main): exit 1 if any check failed.
+const exitCodeFor = (fails) => ((fails || []).length ? 1 : 0);
+module.exports = { allowedOffsite, pngSize, refMeta, sizeNote, refSource, exitCodeFor };

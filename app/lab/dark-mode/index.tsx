@@ -18,7 +18,9 @@ html[data-theme="light"] body::before{
 html[data-theme="light"] .brand{color:#14201A}
 html[data-theme="light"] .brand-mark,
 html[data-theme="light"] .footer-mark-img{
-  filter:brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)}
+  filter:brightness(0) saturate(100%) invert(14%) sepia(28%) saturate(1600%) hue-rotate(118deg) brightness(.55)}
+html[data-theme="light"] .skip-link.label{color:#2F5A46}
+html[data-theme="light"] .skip-link:focus{color:#14201A;background:#E8EEE9;border:1px solid #2F5A46}
 html[data-theme="light"] .nav-list a{color:#2F5A46}
 html[data-theme="light"] .nav-list a:hover,
 html[data-theme="light"] .nav-list a:focus-visible,

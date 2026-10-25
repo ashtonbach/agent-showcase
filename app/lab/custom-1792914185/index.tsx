@@ -58,9 +58,9 @@ export default function Lab() {
         .lab-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .lab-hero-actions button {
           padding: 11px 20px; font-family: var(--sans); font-size: 14px; font-weight: 500; cursor: pointer;
-          border-radius: 8px; border: 1px solid var(--sage); background: rgba(176,203,188,0.12); color: var(--mist, #F2EFE6);
+          border-radius: 8px; border: 1px solid rgba(176,203,188,0.65); background: #1a2820; color: #F2EFE6;
         }
-        .lab-hero-actions button:first-child { background: var(--sage); color: #14201A; border-color: var(--sage); }
+        .lab-hero-actions button:first-child { background: var(--sage); color: #121A16; border-color: var(--sage); }
         .lab-hero-actions button:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
         @keyframes lab-grad-move {
           0%, 100% { background-position: 0% 50%; }

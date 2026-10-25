@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 const KEY = "ab-theme";
+const LIGHT_MARK =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 35"><path fill="#2F5A46" d="M34.3 35 17.2 2.2.5 34.8h16.3l3.4-7.8H13.1L17.1 16.5 23.9 27h4.1l4.3 8z"/></svg>'
+  );
 
 const css = `
 .lab-wrap{width:min(720px,100%);margin:8px auto 56px}
@@ -27,7 +32,6 @@ html[data-theme="light"] .lab-desc{color:#14201A}
 html[data-theme="light"] .lab-card{border-color:rgba(47,90,70,.28)}
 html[data-theme="light"] .lab-toggle{background:#2F5A46;color:#E8EEE9}
 html[data-theme="light"] .lab-toggle:focus-visible{outline-color:#2F5A46}
-html[data-theme="light"] img.brand-mark,html[data-theme="light"] img.footer-mark-img{filter:brightness(0) saturate(100%) invert(8%) sepia(18%) saturate(2200%) hue-rotate(118deg) brightness(.42)!important}
 html[data-theme="light"] .skip-link:focus{background:#E8EEE9;color:#14201A}
 @media (prefers-reduced-motion:reduce){.lab-toggle{transition:none}}
 `;
@@ -40,9 +44,18 @@ function persist(theme: "dark" | "light") {
   }
 }
 
+function syncMarks(isDark: boolean) {
+  document.querySelectorAll<HTMLImageElement>("img.brand-mark, img.footer-mark-img").forEach((img) => {
+    const el = img;
+    if (!el.dataset.abDefaultSrc) el.dataset.abDefaultSrc = el.getAttribute("src") || "";
+    el.src = isDark ? el.dataset.abDefaultSrc : LIGHT_MARK;
+  });
+}
+
 function applyDark(isDark: boolean) {
   if (isDark) delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = "light";
+  syncMarks(isDark);
   persist(isDark ? "dark" : "light");
 }
 
@@ -63,9 +76,11 @@ export default function DarkModeLab() {
       if (saved === "light") {
         setDark(false);
         document.documentElement.dataset.theme = "light";
+        syncMarks(false);
       } else if (saved === "dark") {
         setDark(true);
         delete document.documentElement.dataset.theme;
+        syncMarks(true);
       }
     } catch {
       /* ignore */

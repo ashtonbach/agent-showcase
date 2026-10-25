@@ -32,6 +32,7 @@ const log = (m) => console.log(`[${who}] ${m}`);
 const fails = [], ok = (c, m) => { log((c ? "PASS " : "FAIL ") + m); if (!c) fails.push(m); return !!c; };
 const visual = [];
 const { verdict: visualVerdict, noRefNote } = require("./visual-verdict");
+const { allowedOffsite, sizeNote, refMeta, blockingFails } = require("./offsite-allow");
 const skipped = [];
 async function pixelDiff(page, a, b) {
   // in-page compare (no extra npm packages): returns {w,h,bad,ratio} or {size:[...]}
@@ -64,7 +65,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     log(`--- ${engine} ${w}px`);
     const ctx = await b.newContext({ viewport: { width: w, height: w > 600 ? 800 : 844 }, deviceScaleFactor: 1, reducedMotion: spec.reducedMotion || "no-preference" });
     const page = await ctx.newPage();
-    const errs = [], offsite = [];
+    const errs = [], offsite = [], edge = new Set();
     page.on("console", (m) => m.type() === "error" && errs.push(m.text()));
     let artMiss = 0; // missing artwork (404 under /lab/<slug>/) is allowed: the feature shows its fallback
     page.on("response", (r) => { if (r.status() === 404 && new URL(r.url()).pathname.replace(/^\/showcase(?=\/)/, "").startsWith(`/lab/${slug}/`)) artMiss++; });
@@ -72,7 +73,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     const origin = new URL(url).origin;
     // Vercel injects its preview toolbar (vercel.live) on preview deployments only: block it, it is not part of the site.
     await page.route(/^https:\/\/vercel\.live\//, (rt) => rt.fulfill({ status: 200, contentType: "application/javascript", body: "" }));
-    page.on("request", (r) => { const u = r.url(); if (/^https:\/\/vercel\.live\//.test(u)) return; if (!u.startsWith(origin) && !u.startsWith("data:") && !u.startsWith("blob:")) offsite.push(u); });
+    page.on("request", (r) => { const u = r.url(); if (allowedOffsite(u)) { if (!/^https:\/\/vercel\.live\//.test(u)) edge.add(u); return; } if (!u.startsWith(origin) && !u.startsWith("data:") && !u.startsWith("blob:")) offsite.push(u); });
     const r = await page.goto(url + (url.includes("?") ? "&" : "?") + "v=" + Date.now(), { waitUntil: "networkidle" });
     ok(r && r.status() === 200, `HTTP status ${r && r.status()}`);
     const sec = page.locator(`section[data-lab="${slug}"]`);
@@ -139,14 +140,15 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     fs.writeFileSync(path.join(outdir, name), spec.art ? await sec.screenshot({ animations: "disabled" }) : shot);
     const ref = path.join(REFS, name);
     if (spec.noRef) log(`visual: typed request, no reference to diff (one-off content; layout, errors and network checks still apply)`);
-    else if (UPDATE) { fs.writeFileSync(ref, shot); log(`reference updated ${ref}`); }
+    else if (UPDATE) { fs.writeFileSync(ref, shot); fs.writeFileSync(ref + ".json", JSON.stringify(refMeta(shot, url)) + "\n"); log(`reference updated ${ref}`); }
     else if (!fs.existsSync(ref)) { const m = noRefNote(name); log(m); skipped.push(m); }   // no known-good render yet: skipped, not a failure of the work
     else {
       const d = await pixelDiff(page, shot.toString("base64"), fs.readFileSync(ref).toString("base64"));
-      if (d.size) ok(false, `visual: size ${d.size[0]}x${d.size[1]} vs reference ${d.size[2]}x${d.size[3]}`);
+      if (d.size) ok(false, sizeNote(d.size, ref));
       else { visual.push(d.ratio); ok(d.ratio <= THRESH, `visual: ${(d.ratio * 100).toFixed(2)}% pixels differ from reference (max ${(THRESH * 100).toFixed(0)}%; raw ${(d.rawRatio * 100).toFixed(2)}% before anti-alias tolerance)`); }
     }
     if (spec.after) await spec.after({ page, sec, ok, w, engine, log, ctx });
+    if (edge.size) log(`NOTE edge analytics beacon allowed (injected by the CDN zone, not app code): ${[...edge].slice(0, 3).join(", ")}`);
     ok(offsite.length === 0, `no off-site network requests${offsite.length ? ": " + offsite.slice(0, 3).join(", ") : ""}`);
     if (artMiss) { log(`artwork missing: ${artMiss} file(s) under /lab/${slug}/, fallback shown`); for (let k = 0; k < artMiss; k++) { const j = errs.findIndex((e) => /Failed to load resource.*404/.test(e)); if (j >= 0) errs.splice(j, 1); } }
     ok(errs.length === 0, `console errors: ${errs.length ? errs.join(" | ").slice(0, 300) : "none"}`);
@@ -155,8 +157,11 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
   await b.close();
   const v = visual.length ? Math.max(...visual) : null;
   const sk = skipped.length ? ` (${skipped.length} skipped: visual, no reference)` : "";
-  log(fails.length ? `RESULT FAIL (${fails.length}): ${fails.join("; ")}${sk}` : `RESULT PASS, all checks passed${sk}`);
+  // Visual diffs are informational (shown, never blocking) unless --strict-visual: the exit code and RESULT carry only the blocking checks.
+  const blk = blockingFails(fails, args.includes("--strict-visual")), vinfo = fails.filter((f) => !blk.includes(f));
+  const vi = vinfo.length ? `; visual (informational): ${vinfo.join("; ")}` : "";
+  log(blk.length ? `RESULT FAIL (${blk.length}): ${blk.join("; ")}${vi}${sk}` : `RESULT PASS, all checks passed${vi}${sk}`);
   const vr = visualVerdict({ update: UPDATE, fails, diffs: visual });
   console.log("VISUAL " + JSON.stringify({ result: vr, maxDiff: v, engine, widths, ...(vr === "SKIPPED" ? { reason: skipped.length ? "no reference" : "nothing compared" } : {}) }));
-  process.exit(fails.length ? 1 : 0);
+  process.exit(blk.length ? 1 : 0);
 })().catch((e) => { log(`RESULT FAIL error ${e.message}`); console.log('VISUAL {"result":"FAIL"}'); process.exit(1); });

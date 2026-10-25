@@ -99,6 +99,9 @@ export default function Lab() {
           font-size: 13px; cursor: pointer; border: 1px solid var(--sage); border-radius: 8px;
           background: transparent; color: var(--mist, #F2EFE6);
         }
+        /* Separate wrapped buttons: every button gets all four borders and rounded corners. Overrides the nested
+           spanish-translation section's unscoped joined-row rules (.lab-lang button:first-child/:last-child). */
+        .lab-custom .lab-card .lab-lang button { border-width: 1px; border-style: solid; border-color: var(--sage); border-radius: 8px; }
         .lab-custom .lab-lang button[aria-pressed="true"] { background: var(--sage); color: #14201A; border-color: var(--sage); }
         .lab-custom .lab-lang button:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
         .lab-custom .lab-spanish .lab-lang { display: none; }

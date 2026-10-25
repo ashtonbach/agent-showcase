@@ -1,6 +1,6 @@
 // Quote card: quote+name+role, rotates every 3s, pauses on hover; dots are buttons that jump to a quote and restart the timer.
 module.exports = {
-  art: 1, // design-led (Hazel): artwork slots, masked from the pixel diff
+  art: 1, // design-led (the designer): artwork slots, masked from the pixel diff
   async beforeShot({ sec }) { await sec.hover(); },
   async check({ sec, ok }) {
     ok(await sec.locator("blockquote").isVisible(), "quote visible");

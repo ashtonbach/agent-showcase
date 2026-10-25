@@ -2,8 +2,8 @@
 
 | Script | Who runs it | What it does |
 |---|---|---|
-| `gate.js <slug> [base] [head]` | Rowan (preview) and the automerge on the box | Allowlist (`app/lab/<slug>/**`, the two `app/page.tsx` lines, and `app/lab/current.json` = `{"slug":"<slug>"}` for the demo-name H1), no package.json/lockfile change, banned calls/imports, diff of 150 lines or fewer. Last line `GATE {json}`. |
-| `check-feature.js <url> <slug> <who> <outdir> [--engine chromium\|webkit]` | Rowan (preview), Cedar (production) | Per-feature spec from `specs/<slug>.js` at 1280 and 390, zero console errors, no sideways scroll, no off-site requests, and a pixel diff of the feature against `refs/<slug>-<engine>-<width>.png` (max 1% of pixels). Last line `VISUAL {json}`. |
+| `gate.js <slug> [base] [head]` | The reviewer (preview) and the automerge on the box | Allowlist (`app/lab/<slug>/**`, the two `app/page.tsx` lines, and `app/lab/current.json` = `{"slug":"<slug>"}` for the demo-name H1), no package.json/lockfile change, banned calls/imports, diff of 150 lines or fewer. Last line `GATE {json}`. |
+| `check-feature.js <url> <slug> <who> <outdir> [--engine chromium\|webkit]` | The reviewer (preview), QA (production) | Per-feature spec from `specs/<slug>.js` at 1280 and 390, zero console errors, no sideways scroll, no off-site requests, and a pixel diff of the feature against `refs/<slug>-<engine>-<width>.png` (max 1% of pixels). Last line `VISUAL {json}`. |
 | `reset.sh [--apply\|--base [--push]\|--pr]` | `--base --push`: prep before every run and the nightly workflow. `--pr`: explicit admin reset only (`RESET_MAIN=yes`) | Removes every feature folder in `app/lab/` and the two `app/page.tsx` lines. Dry run by default. `--base` writes the result to the `base` branch, never to main. |
 
 ## Page text: messages/
@@ -19,9 +19,10 @@ current `scripts/v2`). Each run branches from `origin/base`, its PR targets main
 the PR to delete the previous feature's folder and swap the Lab import. Production changes only when that PR merges.
 The base page heading is the single constant in `app/base-heading.ts`.
 
-Alder writes each feature from a spec; there is no prepared reference code. `refs/` holds older screenshots:
-the pixel diff against them is informational and never blocks a merge (the merge gate is allowlist, size, banned calls, build
-and the functional checks in `specs/`). Regenerate references only with a human's approval:
+The builder writes each feature from a spec; there is no prepared reference code. `refs/` holds known-good screenshots
+(each with a `<ref>.png.json` sidecar recording the build URL and time it came from). A visual FAIL (pixel diff over the
+threshold or a size mismatch against a reference) blocks a merge, like the allowlist, size, banned calls, build and the
+functional checks in `specs/`. A missing reference is skipped, not a failure. Regenerate references only with a human's approval:
 `node check-feature.js <url> <slug> Refs /tmp --engine chromium --update-refs` (and `--engine webkit`).
 
 ## Feature content: real numbers only
@@ -29,4 +30,4 @@ Every number a feature shows (stats, counters, prices, dates, counts) must be re
 exactly what it counts and, if it changes over time, when it was counted (e.g. "Runs shipped by Oct 11").
 Put the source in a code comment next to the value. If a number can't be verified, label it on the page as example data
 in a plain sentence-case line under the content (e.g. "Example data: ..."), never present it as fact. No eyebrow:
-nothing may sit above a feature's <h2> (no small caps kicker); `check-feature.js` fails the build if it does. Features and reviews follow this rule; Rowan rejects a PR that breaks it.
+nothing may sit above a feature's <h2> (no small caps kicker); `check-feature.js` fails the build if it does. Features and reviews follow this rule; the reviewer rejects a PR that breaks it.

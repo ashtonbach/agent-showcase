@@ -28,14 +28,10 @@ All pull requests to `main` must pass these required checks before merge:
 5. **Reviewer approval**
    - Manual approval by reviewer after checking Vercel preview
 
-## Advisory Checks (Informational)
-
-These checks provide information but do NOT block merge:
-
-- **Visual diff**: Pixel comparison against reference screenshots
-  - References may be outdated
-  - Used to detect unintended visual changes
-  - Max 1% pixel difference is informational only
+6. **Visual check** - `check-feature.js` on the Vercel preview
+   - Compares each width against its reference in `scripts/v2/refs/` (with a `<ref>.png.json` provenance sidecar)
+   - A pixel diff over 1% or a size mismatch is a FAIL and blocks merge
+   - A feature with no reference yet is skipped, not failed
 
 ## GitHub Repository Configuration
 
@@ -76,11 +72,11 @@ This verifies that gate violations are correctly detected and would block merge 
 
 ## PR Body Template
 
-The PR template at `.github/pull_request_template.md` includes a "Merge gate status" section that lists all required and advisory checks. Update this section as checks run:
+The PR template at `.github/pull_request_template.md` includes a "Merge gate status" section that lists all required checks. Update this section as checks run:
 
 - Required checks must show PASS before merge
 - A FAIL in any required check blocks merge
-- Advisory checks are clearly labeled as informational
+- A missing visual reference shows as SKIPPED, not FAIL
 
 ## Historical Context
 

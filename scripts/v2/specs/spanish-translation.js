@@ -1,5 +1,5 @@
 // Spanish translation (scalable i18n). Base text lives in messages/en-US.json and every visible string is rendered with
-// data-i18n="<key>". Alder adds messages/es-ES.json (Spain Spanish, their own translation, same keys) and a segmented
+// data-i18n="<key>". The builder adds messages/es-ES.json (Spain Spanish, their own translation, same keys) and a segmented
 // English | Español switch. QA never compares against fixed Spanish copy: it reads both message files from this checkout.
 const fs = require("fs"), path = require("path");
 const MSG = path.join(__dirname, "..", "..", "..", "messages");

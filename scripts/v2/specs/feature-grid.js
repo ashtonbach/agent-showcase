@@ -1,6 +1,6 @@
 // Feature grid: 6 cards with inline SVG icons in 3/2/1 columns.
 module.exports = {
-  art: 6, // design-led (Hazel): artwork slots, masked from the pixel diff
+  art: 6, // design-led (the designer): artwork slots, masked from the pixel diff
   async check({ sec, ok, w }) {
     const c = sec.locator("ul > li");
     ok((await c.count()) === 6, `6 cards (${await c.count()})`);

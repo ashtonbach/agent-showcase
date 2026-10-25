@@ -43,7 +43,7 @@ out.files = files;
 // Messages: messages/en-US.json is the base locale (never changed by a run). The spanish-translation run adds exactly
 // messages/es-ES.json: flat JSON, string values only, exactly the same keys as en-US.json.
 const LOCALE_FILE = "messages/es-ES.json", BASE_LOCALE_FILE = "messages/en-US.json";
-const dir = `app/lab/${slug}/`, artDir = `public/lab/${slug}/`; // artDir: Hazel's artwork (SVG only, checked below)
+const dir = `app/lab/${slug}/`, artDir = `public/lab/${slug}/`; // artDir: the designer's artwork (SVG only, checked below)
 // Runs branch from origin/base (main with the lab slot empty), so a PR to main also deletes the previous feature.
 // Pure deletions of another menu feature's folder or artwork are allowed and don't count toward the size cap.
 const deleted = new Set(git("diff", "--name-only", "--diff-filter=D", range).split("\n").filter(Boolean));
@@ -58,7 +58,7 @@ for (const f of files) {
   if (keepFile(f)) { fail("allowlist", `the request said to keep the current section: ${f} was ${deleted.has(f) ? "deleted" : "changed"}`); continue; }
   if (f === "app/page.tsx" || f.startsWith(dir) || oldFeature(f)) continue;
   if (f === "app/lab/current.json") continue; // checked below
-  if (f === LOCALE_FILE && slug === "spanish-translation") continue; // Alder's es-ES messages, checked below
+  if (f === LOCALE_FILE && slug === "spanish-translation") continue; // the builder's es-ES messages, checked below
   { const sa = seededArt(f); if (sa === true || sa === "failed") continue; }
   if (!custom && f.startsWith(artDir) && /^[a-z0-9-]+\.svg$/.test(f.slice(artDir.length))) continue;
   fail("allowlist", `file outside allowlist: ${f}`);

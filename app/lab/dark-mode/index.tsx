@@ -3,11 +3,30 @@
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "ab-theme";
+const HAZEL_MARK = "/lab/dark-mode/mark-light.svg";
+const LIGHT_MARK =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 594 420"><path fill="#14201A" d="M514 189l1-1c90-81 56-174-56-174H245l19 35h202c40 0 63 22 63 55 0 28-18 48-48 63l-1 1 90 81z"/><path fill="#2F5A46" d="M423 390 224 18 25 390h200l35-64H102L224 99l122 227h35z"/></svg>',
+  );
+
+function syncMarks(light: boolean) {
+  document
+    .querySelectorAll<HTMLImageElement>(".brand-mark, .footer-mark-img")
+    .forEach((img) => {
+      if (!img.dataset.abDefault) {
+        img.dataset.abDefault = img.currentSrc || img.src;
+      }
+      const def = img.dataset.abDefault;
+      img.src = light ? (img.dataset.abLight || LIGHT_MARK) : def;
+    });
+}
 
 function applyTheme(light: boolean) {
   const root = document.documentElement;
   if (light) root.dataset.theme = "light";
   else delete root.dataset.theme;
+  syncMarks(light);
 }
 
 const css = `
@@ -16,9 +35,6 @@ html[data-theme="light"] body{color:#14201A}
 html[data-theme="light"] body::before{
   background:linear-gradient(180deg,#E8EEE9 0%,#dfe8e2 100%)}
 html[data-theme="light"] .brand{color:#14201A}
-html[data-theme="light"] .brand-mark,
-html[data-theme="light"] .footer-mark-img{
-  filter:brightness(0) saturate(100%) invert(14%) sepia(28%) saturate(1600%) hue-rotate(118deg) brightness(.55)}
 html[data-theme="light"] .skip-link.label{color:#2F5A46}
 html[data-theme="light"] .skip-link:focus{color:#14201A;background:#E8EEE9;border:1px solid #2F5A46}
 html[data-theme="light"] .nav-list a{color:#2F5A46}

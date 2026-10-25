@@ -19,9 +19,10 @@ current `scripts/v2`). Each run branches from `origin/base`, its PR targets main
 the PR to delete the previous feature's folder and swap the Lab import. Production changes only when that PR merges.
 The base page heading is the single constant in `app/base-heading.ts`.
 
-Alder writes each feature from a spec; there is no prepared reference code. `refs/` holds older screenshots:
-the pixel diff against them is informational and never blocks a merge (the merge gate is allowlist, size, banned calls, build
-and the functional checks in `specs/`). Regenerate references only with a human's approval:
+The builder writes each feature from a spec; there is no prepared reference code. `refs/` holds known-good screenshots
+(each with a `<ref>.png.json` sidecar recording the build URL and time it came from). A visual FAIL (pixel diff over the
+threshold or a size mismatch against a reference) blocks a merge, like the allowlist, size, banned calls, build and the
+functional checks in `specs/`. A missing reference is skipped, not a failure. Regenerate references only with a human's approval:
 `node check-feature.js <url> <slug> Refs /tmp --engine chromium --update-refs` (and `--engine webkit`).
 
 ## Feature content: real numbers only

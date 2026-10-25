@@ -8,11 +8,11 @@
   1.
 - **What changed:**
 
-Coordinator: Ash (AI coordinator)
+Coordinator: the coordinator (AI coordinator)
 Code: the builder (AI coder)
-Review: Rowan (AI reviewer)
-QA: Cedar (AI QA)
-Merged by: <actual merger, e.g. Rowan (AI reviewer)>
+Review: the reviewer (AI reviewer)
+QA: QA (AI QA)
+Merged by: <actual merger, e.g. the reviewer (AI reviewer)>
 
 ## What changed
 
@@ -25,12 +25,10 @@ Merged by: <actual merger, e.g. Rowan (AI reviewer)>
 - Build: PENDING
 - Functional: PENDING
 - Copy coverage (>=90% for spanish-translation): PENDING / N/A
+- Visual check (pixel diff and size vs reference; no reference = SKIPPED): PENDING
 - Reviewer approval: PENDING
 
-**Advisory checks** (informational only):
-- Visual diff: informational (ref screenshots may be outdated)
-
-_Note: All required checks must show PASS before merge. A FAIL in any required check blocks merge. Advisory checks provide information but do not block merge._
+_Note: All required checks must show PASS before merge. A FAIL in any required check blocks merge. A visual FAIL (pixel diff over 1% or a size mismatch) blocks merge; a missing reference is skipped._
 
 ## How it was checked
 

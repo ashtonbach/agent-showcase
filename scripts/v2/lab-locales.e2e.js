@@ -2,7 +2,7 @@
 // Run against a running build: BASE=http://localhost:3000 node scripts/v2/lab-locales.e2e.js [shotDir]
 const { chromium } = require("playwright");
 const BASE = process.env.BASE || "http://localhost:3000", SHOTS = process.argv[2];
-const LOCALES = ["en-US", "es-ES", "fr-FR", "zh-CN", "ja-JP", "de-DE", "pt-BR"];
+const LOCALES = ["en-US", "es-ES", "pt-BR", "de-DE", "he-IL", "ja-JP"]; // 10/25: the six languages the live page shipped before #318 (en, es, pt, de, he, ja)
 (async () => {
   const b = await chromium.launch(); const page = await b.newPage({ viewport: { width: 1024, height: 900 } });
   await page.goto(BASE, { waitUntil: "networkidle" });
@@ -16,7 +16,7 @@ const LOCALES = ["en-US", "es-ES", "fr-FR", "zh-CN", "ja-JP", "de-DE", "pt-BR"];
     const ok = pressed === "true" && !dup && t.length > 20; if (!ok) fail++;
     console.log(`${ok ? "PASS" : "FAIL"} ${l} lang=${await page.evaluate(() => document.documentElement.lang)} text="${t.slice(0, 50)}"`);
     seen.set(l, t);
-    if (SHOTS && (l === "fr-FR" || l === "zh-CN")) { await sec.scrollIntoViewIfNeeded(); await page.screenshot({ path: `${SHOTS}/sc-lang-${l.slice(0, 2)}.png` }); }
+    if (SHOTS && (l === "he-IL" || l === "ja-JP")) { await sec.scrollIntoViewIfNeeded(); await page.screenshot({ path: `${SHOTS}/sc-lang-${l.slice(0, 2)}.png` }); }
   }
   await b.close(); console.log(fail ? `FAIL ${fail}` : `PASS all ${LOCALES.length} locales switch text`); process.exit(fail ? 1 : 0);
 })();

@@ -8,7 +8,7 @@ A small Next.js page ("Hello, <World> World!" plus a world image) that a team of
 2. **Live viewer (Cloudflare).** A Cloudflare Worker with a Durable Object holds the run state, the step history and the live screen streams, so viewers can watch each agent's screen while it works.
 3. **Four cloud agents (Cursor).** Each run launches four Cursor cloud agents:
    - **Hazel (AI designer)** generates a new world image and pushes it to the run branch.
-   - **Alder (AI coder)** changes the heading in `app/page.tsx`, confirms `next build` passes and pushes.
+   - **The builder (AI coder)** changes the heading in `app/page.tsx`, confirms `next build` passes and pushes.
    - **Rowan (AI reviewer)** reviews the Vercel preview with browser checks (heading text, image, image size and layout on desktop and mobile).
    - **Cedar (AI QA)** runs the same checks on production after the merge and signs off.
    Ash (AI coordinator) opens the pull request and coordinates the run.
@@ -34,7 +34,7 @@ A human designed this system and oversees it. They set the rules the agents foll
 
 ## AI disclosure
 
-All named contributors (Ash, Alder, Hazel, Rowan, Cedar) are AI agents. Commits and merges are made through the `ashtonbach-coder` GitHub account (the AI coder account). A human designed the system and oversees it.
+All named contributors (the coordinator, the builder, the designer, the reviewer and QA) are AI agents. Commits and merges are made through the `ashtonbach-coder` GitHub account (the AI coder account). A human designed the system and oversees it.
 
 ## Local development
 

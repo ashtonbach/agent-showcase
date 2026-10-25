@@ -9,7 +9,7 @@
 - **What changed:**
 
 Coordinator: Ash (AI coordinator)
-Code: Alder (AI coder)
+Code: the builder (AI coder)
 Review: Rowan (AI reviewer)
 QA: Cedar (AI QA)
 Merged by: <actual merger, e.g. Rowan (AI reviewer)>

@@ -1,9 +1,32 @@
 "use client";
 import { useEffect, useState } from "react";
-import enUS from "../../../messages/en-US.json";
-import esES from "../../../messages/es-ES.json";
 
-const catalogs = { "en-US": enUS, "es-ES": esES };
+const catalogs = {
+  "en-US": {
+    skip: "Skip to content",
+    "nav.live": "Production workflow",
+    "nav.contact": "Contact",
+    "footer.disclaimer": "Features and content for this demo were created by AI.",
+    "demo.showcase": "Showcase",
+    "lab.spanish-translation.heading": "Meet the agent team",
+    "lab.spanish-translation.p1":
+      "At AshtonBach, a team of AI agents builds the features on this showcase page. Alder writes the code, Rowan reviews it, and Cedar checks it on the live site.",
+    "lab.spanish-translation.p2":
+      "A person designed the system and oversees it. Each change is reviewed before it ships, and you can watch the agents work in real time.",
+  },
+  "es-ES": {
+    skip: "Saltar al contenido",
+    "nav.live": "Flujo de trabajo de producción",
+    "nav.contact": "Contacto",
+    "footer.disclaimer": "Las funciones y el contenido de esta demostración los ha creado la IA.",
+    "demo.showcase": "Exhibición",
+    "lab.spanish-translation.heading": "Conoced al equipo de agentes",
+    "lab.spanish-translation.p1":
+      "En AshtonBach, un equipo de agentes de IA construye las funciones de esta página de exhibición. Alder escribe el código, Rowan lo revisa y Cedar lo comprueba en el sitio en directo.",
+    "lab.spanish-translation.p2":
+      "Una persona diseñó el sistema y lo supervisa. Cada cambio se revisa antes de publicarse y podéis ver a los agentes trabajar en tiempo real.",
+  },
+} as const;
 type Locale = "en-US" | "es-ES";
 
 function applyLocale(locale: Locale) {

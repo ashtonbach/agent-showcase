@@ -27,7 +27,7 @@ html[data-theme="light"] .lab-desc{color:#14201A}
 html[data-theme="light"] .lab-card{border-color:rgba(47,90,70,.28)}
 html[data-theme="light"] .lab-toggle{background:#2F5A46;color:#E8EEE9}
 html[data-theme="light"] .lab-toggle:focus-visible{outline-color:#2F5A46}
-html[data-theme="light"] .brand-mark,html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)}
+html[data-theme="light"] img.brand-mark,html[data-theme="light"] img.footer-mark-img{filter:brightness(0) saturate(100%) invert(8%) sepia(18%) saturate(2200%) hue-rotate(118deg) brightness(.42)!important}
 html[data-theme="light"] .skip-link:focus{background:#E8EEE9;color:#14201A}
 @media (prefers-reduced-motion:reduce){.lab-toggle{transition:none}}
 `;

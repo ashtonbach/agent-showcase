@@ -16,11 +16,7 @@ const css = `
 .lab-tiers { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 @media (max-width: 760px) { .lab-tiers { grid-template-columns: 1fr; max-width: min(720px, 100%); margin: 0 auto; } }
 .lab-tier { position: relative; border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; background: rgba(18,26,22,0.35); color: #F2EFE6; }
-.lab-tier[data-best="true"] { border-color: var(--sage); background: rgba(176,203,188,0.42); box-shadow: 0 0 0 1px rgba(176,203,188,0.35); color: #121A16; }
-.lab-tier[data-best="true"] .lab-name,
-.lab-tier[data-best="true"] .lab-price,
-.lab-tier[data-best="true"] .lab-feats { color: #121A16; }
-.lab-tier[data-best="true"] .lab-price span { color: #14201A; opacity: 0.9; }
+.lab-tier[data-best="true"] { border-color: var(--sage); border-width: 2px; background: rgba(18,26,22,0.55); box-shadow: 0 12px 32px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(176,203,188,0.2); }
 .lab-badge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); font-family: var(--sans); font-weight: 500; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; background: var(--sage); color: #121A16; padding: 4px 12px; border-radius: 999px; }
 .lab-name { font-family: var(--serif); font-size: 22px; font-weight: 400; margin: 0 0 8px; color: var(--mist); }
 .lab-price { margin: 0 0 16px; font-size: 28px; color: var(--mist); }

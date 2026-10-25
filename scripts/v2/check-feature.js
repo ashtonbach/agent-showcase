@@ -32,7 +32,7 @@ const log = (m) => console.log(`[${who}] ${m}`);
 const fails = [], ok = (c, m) => { log((c ? "PASS " : "FAIL ") + m); if (!c) fails.push(m); return !!c; };
 const visual = [];
 const { verdict: visualVerdict, noRefNote } = require("./visual-verdict");
-const { allowedOffsite, sizeNote, refMeta, blockingFails } = require("./offsite-allow");
+const { allowedOffsite, refSource, refMeta, exitCodeFor } = require("./offsite-allow");
 const skipped = [];
 async function pixelDiff(page, a, b) {
   // in-page compare (no extra npm packages): returns {w,h,bad,ratio} or {size:[...]}
@@ -144,7 +144,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     else if (!fs.existsSync(ref)) { const m = noRefNote(name); log(m); skipped.push(m); }   // no known-good render yet: skipped, not a failure of the work
     else {
       const d = await pixelDiff(page, shot.toString("base64"), fs.readFileSync(ref).toString("base64"));
-      if (d.size) ok(false, sizeNote(d.size, ref));
+      if (d.size) ok(false, `visual: size ${d.size[0]}x${d.size[1]} vs reference ${d.size[2]}x${d.size[3]} (${refSource(ref)})`);
       else { visual.push(d.ratio); ok(d.ratio <= THRESH, `visual: ${(d.ratio * 100).toFixed(2)}% pixels differ from reference (max ${(THRESH * 100).toFixed(0)}%; raw ${(d.rawRatio * 100).toFixed(2)}% before anti-alias tolerance)`); }
     }
     if (spec.after) await spec.after({ page, sec, ok, w, engine, log, ctx });
@@ -157,11 +157,8 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
   await b.close();
   const v = visual.length ? Math.max(...visual) : null;
   const sk = skipped.length ? ` (${skipped.length} skipped: visual, no reference)` : "";
-  // Visual diffs are informational (shown, never blocking) unless --strict-visual: the exit code and RESULT carry only the blocking checks.
-  const blk = blockingFails(fails, args.includes("--strict-visual")), vinfo = fails.filter((f) => !blk.includes(f));
-  const vi = vinfo.length ? `; visual (informational): ${vinfo.join("; ")}` : "";
-  log(blk.length ? `RESULT FAIL (${blk.length}): ${blk.join("; ")}${vi}${sk}` : `RESULT PASS, all checks passed${vi}${sk}`);
+  log(fails.length ? `RESULT FAIL (${fails.length}): ${fails.join("; ")}${sk}` : `RESULT PASS, all checks passed${sk}`);
   const vr = visualVerdict({ update: UPDATE, fails, diffs: visual });
   console.log("VISUAL " + JSON.stringify({ result: vr, maxDiff: v, engine, widths, ...(vr === "SKIPPED" ? { reason: skipped.length ? "no reference" : "nothing compared" } : {}) }));
-  process.exit(blk.length ? 1 : 0);
+  process.exit(exitCodeFor(fails));
 })().catch((e) => { log(`RESULT FAIL error ${e.message}`); console.log('VISUAL {"result":"FAIL"}'); process.exit(1); });

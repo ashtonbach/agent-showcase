@@ -9,7 +9,7 @@ const css = `
 .lab-tiers { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
 @media (max-width: 760px) { .lab-tiers { grid-template-columns: 1fr; max-width: min(720px, 100%); margin: 0 auto; } }
 .lab-card { position: relative; border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; background: rgba(18, 26, 22, 0.35); color: var(--mist); }
-.lab-card[data-best="true"] { border-color: var(--sage); background: rgba(176, 203, 188, 0.12); box-shadow: 0 0 0 1px rgba(176, 203, 188, 0.35); }
+.lab-card[data-best="true"] { border-color: var(--sage); background: rgba(20, 32, 26, 0.92); box-shadow: 0 0 0 1px rgba(176, 203, 188, 0.45), 0 12px 32px rgba(0, 0, 0, 0.25); }
 .lab-badge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); font-family: var(--sans); font-weight: 500; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; background: var(--sage); color: #121A16; padding: 4px 12px; border-radius: 999px; }
 @media (prefers-reduced-motion: reduce) { .lab-card { transition: none; } }
 .lab-name { font-family: var(--serif); font-weight: 400; font-size: 22px; margin: 0 0 8px; text-align: center; }

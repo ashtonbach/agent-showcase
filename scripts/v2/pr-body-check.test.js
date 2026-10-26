@@ -23,13 +23,13 @@ test("Author line must name a team agent, and the footer must be the last two li
   assert.strictEqual(check("Author: AshtonBach Coder\n", { author: true }).code, 5);
   assert.strictEqual(check("Author: AshtonBach Coder (Alder, Builder)\n", { author: true }).code, 5);
   assert.strictEqual(check("x\r\n\r\n" + FOOT.replace(/\n/g, "\r\n"), { author: true }).code, 0);
-  for (const n of ["David", "Bob", "Ashton", "Grok", "Jonah"]) assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - " + n + "\nMerged by: pending\n", { author: true }).code, 5, n);
+  for (const n of ["Bob", "Ashton", "Grok", "Jonah", "Priya"]) assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - " + n + "\nMerged by: pending\n", { author: true }).code, 5, n);
   for (const n of ["Ash", "Hazel", "Alder", "Rowan", "Cedar", "Linden"]) assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - " + n + "\nMerged by: pending\n", { author: true }).code, 0, n);
   assert.strictEqual(check(FOOT + "\nAll named contributors are AI agents.\n", { author: true }).code, 5, "footer not last");
   assert.strictEqual(check("Author: AshtonBach Coder - Alder\nReview: x\nMerged by: pending\n", { author: true }).code, 5, "not adjacent");
 });
 test("--agent accepts only team agent names", () => {
-  for (const n of ["David", "Bob", "", "alder", "Jonah"]) assert.strictEqual(cli("", "--agent", n), 6, n);
+  for (const n of ["Bob", "", "alder", "Jonah", "Ashton"]) assert.strictEqual(cli("", "--agent", n), 6, n);
   for (const n of ["Ash", "Hazel", "Alder", "Rowan", "Cedar", "Linden"]) assert.strictEqual(cli("", "--agent", n), 0, n);
 });
 test("SSH remotes are not emails; a plain git@host address still is", () => {
@@ -40,7 +40,7 @@ test("reset exception: agent-less Author allowed only with --reset, footer still
   const R = "x\n\nAuthor: AshtonBach Coder\nMerged by: (pending; automated reset)\n";
   assert.strictEqual(check(R, { author: true }).code, 5);
   assert.strictEqual(cli(R, "--author", "--reset"), 0);
-  assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - David\nMerged by: x\n", { author: true, reset: true }).code, 5);
+  assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - Bob\nMerged by: x\n", { author: true, reset: true }).code, 5);
   assert.strictEqual(check("a@b.io\n" + R, { author: true, reset: true }).code, 4);
 });
 test("PR body check workflow runs on edits too, with --author, from the event payload, for all PRs", () => {

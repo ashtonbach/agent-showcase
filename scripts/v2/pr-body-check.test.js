@@ -19,19 +19,42 @@ test("a body with an email fails", () => {
 test("the noreply commit address is caught too", () => {
   assert.strictEqual(check(FOOT + "Co-authored-by: x <334832153+ashtonbach-coder@users.noreply.github.com>").code, 4);
 });
-test("Author line must name the agent", () => {
+test("Author line must name a team agent, and the footer must be the last two lines, adjacent", () => {
   assert.strictEqual(check("Author: AshtonBach Coder\n", { author: true }).code, 5);
   assert.strictEqual(check("Author: AshtonBach Coder (Alder, Builder)\n", { author: true }).code, 5);
-  assert.strictEqual(check("Author: AshtonBach Coder - Alder\r\n", { author: true }).code, 0);
+  assert.strictEqual(check("x\r\n\r\n" + FOOT.replace(/\n/g, "\r\n"), { author: true }).code, 0);
+  for (const n of ["David", "Bob", "Ashton", "Grok", "Jonah"]) assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - " + n + "\nMerged by: pending\n", { author: true }).code, 5, n);
+  for (const n of ["Ash", "Hazel", "Alder", "Rowan", "Cedar", "Linden"]) assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - " + n + "\nMerged by: pending\n", { author: true }).code, 0, n);
+  assert.strictEqual(check(FOOT + "\nAll named contributors are AI agents.\n", { author: true }).code, 5, "footer not last");
+  assert.strictEqual(check("Author: AshtonBach Coder - Alder\nReview: x\nMerged by: pending\n", { author: true }).code, 5, "not adjacent");
 });
-test("merge-gates runs the email check on every PR body from the event payload", () => {
-  const y = fs.readFileSync(path.join(__dirname, "../../.github/workflows/merge-gates.yml"), "utf8");
-  const job = y.slice(y.indexOf("  pr-body-check:"));
-  assert.ok(job.length > 0 && /PR_BODY: \$\{\{ github\.event\.pull_request\.body \}\}/.test(job), "body comes from the event payload via env");
-  assert.ok(/node scripts\/v2\/pr-body-check\.js/.test(job) && !/needs:/.test(job.split("\n  ").slice(0, 3).join()), "runs for all PRs, not only feature PRs");
+test("--agent accepts only team agent names", () => {
+  for (const n of ["David", "Bob", "", "alder", "Jonah"]) assert.strictEqual(cli("", "--agent", n), 6, n);
+  for (const n of ["Ash", "Hazel", "Alder", "Rowan", "Cedar", "Linden"]) assert.strictEqual(cli("", "--agent", n), 0, n);
 });
-test("reset PR body carries the Author line and is checked before gh pr create", () => {
+test("SSH remotes are not emails; a plain git@host address still is", () => {
+  assert.strictEqual(check("clone git@github.com:ashtonbach/agent-showcase.git\n" + FOOT, { author: true }).code, 0);
+  assert.strictEqual(check("mail git@github.com please").code, 4);
+});
+test("reset exception: agent-less Author allowed only with --reset, footer still last, email still refused", () => {
+  const R = "x\n\nAuthor: AshtonBach Coder\nMerged by: (pending; automated reset)\n";
+  assert.strictEqual(check(R, { author: true }).code, 5);
+  assert.strictEqual(cli(R, "--author", "--reset"), 0);
+  assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - David\nMerged by: x\n", { author: true, reset: true }).code, 5);
+  assert.strictEqual(check("a@b.io\n" + R, { author: true, reset: true }).code, 4);
+});
+test("PR body check workflow runs on edits too, with --author, from the event payload, for all PRs", () => {
+  const y = fs.readFileSync(path.join(__dirname, "../../.github/workflows/pr-body-check.yml"), "utf8");
+  assert.ok(/types: \[opened, edited, synchronize, reopened\]/.test(y), "edited trigger");
+  assert.ok(/PR_BODY: \$\{\{ github\.event\.pull_request\.body \}\}/.test(y), "body comes from the event payload via env");
+  assert.ok(/node scripts\/v2\/pr-body-check\.js --author \$RESET_FLAG/.test(y) && !/needs:/.test(y), "--author, runs for all PRs");
+  assert.ok(/startsWith\(github\.event\.pull_request\.title, 'Reset: '\) && '--reset'/.test(y), "reset exception keyed on the reset title");
+  assert.ok(!/pr-body-check/.test(fs.readFileSync(path.join(__dirname, "../../.github/workflows/merge-gates.yml"), "utf8")), "not in merge-gates (edits must not re-run the gates)");
+});
+test("reset PR body: checked before gh pr create, footer last, RESET_AGENT allowlisted", () => {
   const s = fs.readFileSync(path.join(__dirname, "reset.sh"), "utf8");
-  assert.ok(/-b "\$BODY"/.test(s) && s.indexOf("pr-body-check.js") < s.indexOf("gh pr create"));
-  assert.ok(/^BODY="Author: AshtonBach Coder\$\{RESET_AGENT:\+ - \$RESET_AGENT\}$/m.test(s));
+  assert.ok(/-b "\$BODY"/.test(s) && s.indexOf("pr-body-check.js\" --author --reset") > 0 && s.indexOf("pr-body-check.js\" --author --reset") < s.indexOf("gh pr create"));
+  assert.ok(/\nAuthor: AshtonBach Coder\$\{RESET_AGENT:\+ - \$RESET_AGENT\}\nMerged by: [^\n]*"\n/.test(s), "footer adjacent and last");
+  assert.ok(/--agent "\$RESET_AGENT" \|\| \{ echo "RESET_FAIL/.test(s), "invalid RESET_AGENT stops the reset");
+  assert.ok(/ALLOWED EXCEPTION/.test(s), "exception documented");
 });

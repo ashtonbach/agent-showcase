@@ -66,6 +66,34 @@ jobs:
         run: |
           node scripts/v2/gate.js "${{ needs.check-if-feature.outputs.slug }}" "origin/${{ github.base_ref }}" HEAD
 
+  lab-banned-only:
+    name: Lab code banned calls (non-feature PRs)
+    runs-on: ubuntu-latest
+    needs: check-if-feature
+    env:
+      IS_FEATURE: ${{ needs.check-if-feature.outputs.is_feature }}
+    steps:
+      # sc/ feature PRs already run the full gate above; this job covers every other PR that touches app/lab/<slug>/.
+      - name: Feature PR
+        if: env.IS_FEATURE == 'true'
+        run: echo "SKIP feature PR, the full gate runs in Gate checks"
+      - uses: actions/checkout@v4
+        if: env.IS_FEATURE != 'true'
+        with:
+          fetch-depth: 0
+      - name: Fetch base branch
+        if: env.IS_FEATURE != 'true'
+        run: git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
+      # Runs main's copy of the gate, so a PR cannot weaken the check it is judged by.
+      - name: Run banned-only gate
+        if: env.IS_FEATURE != 'true'
+        run: |
+          git show "origin/${{ github.base_ref }}:scripts/v2/gate.js" > /dev/null 2>&1 || { echo "main has no gate.js"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/gate"
+          for f in gate.js keep-marker.js seed-marker.js; do git show "origin/${{ github.base_ref }}:scripts/v2/$f" > "$RUNNER_TEMP/gate/$f"; done
+          if grep -q -- "--banned-only" "$RUNNER_TEMP/gate/gate.js"; then G="$RUNNER_TEMP/gate/gate.js"; else G=scripts/v2/gate.js; echo "main's gate.js has no --banned-only yet (first PR); using this PR's copy"; fi
+          node "$G" --banned-only "origin/${{ github.base_ref }}" HEAD
+
   functional-checks:
     name: Functional checks
     runs-on: ubuntu-latest

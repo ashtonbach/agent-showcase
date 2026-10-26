@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Showcase v2 merge gate. Usage: node scripts/v2/gate.js <slug> [base-ref=origin/main] [head-ref=HEAD]
+//                          or: node scripts/v2/gate.js --banned-only [base-ref] [head-ref]  (see below)
 // Exit 0 = PASS (merge allowed), 1 = FAIL. Last line is machine-readable: GATE {json}
 const { execFileSync } = require("child_process");
 const path = require("path");
@@ -9,6 +10,42 @@ const MAX = 150;
 const root = execFileSync("git", ["rev-parse", "--show-toplevel"]).toString().trim();
 const menu = JSON.parse(fs.readFileSync(path.join(root, "app/lab/menu.json"), "utf8")).features.map((f) => f.slug);
 const git = (...a) => execFileSync("git", ["-C", root, ...a], { maxBuffer: 1 << 26 }).toString();
+const BANNED = [/\bfetch\s*\(/, /\baxios\b/, /XMLHttpRequest/, /\bWebSocket\b/, /\bEventSource\b/, /sendBeacon/, /process\.env/, /dangerouslySetInnerHTML/, /\beval\s*\(/, /new\s+Function\s*\(/, /\bimport\s*\(/, /\brequire\s*\(/];
+// 10/20 (#243 review): checked per lab file on its WHOLE head text (comments stripped, strings kept), not line by line, so an
+// import split across lines, two imports on one line, or a call split as `import\n(` cannot slip past. Every module specifier
+// from `from "x"`, `import "x"`, `import("x")` and `require("x")` is extracted and checked; import( and require( stay banned.
+const stripComments = (t) => { let o = "", q = null; for (let i = 0; i < t.length; i++) { const c = t[i], n = t[i + 1];
+  if (q) { o += c; if (c === "\\") { o += n || ""; i++; } else if (c === q) q = null; continue; }
+  if (c === "/" && n === "/") { while (i < t.length && t[i] !== "\n") i++; o += "\n"; continue; }
+  if (c === "/" && n === "*") { i += 2; while (i < t.length && !(t[i] === "*" && t[i + 1] === "/")) { if (t[i] === "\n") o += "\n"; i++; } i++; o += " "; continue; }
+  if (c === '"' || c === "'" || c === "`") q = c; o += c; } return o; };
+const SPEC = [/\b(?:import|export)\b[^;"'`]*?\bfrom\s*(["'`])([^"'`]*)\1/g, /\bimport\s*(["'`])([^"'`]*)\1/g, /\bimport\s*\(\s*(["'`])([^"'`]*)\1/g, /\brequire\s*\(\s*(["'`])([^"'`]*)\1/g];
+// Banned-only mode (any PR that touches lab code but is not an sc/ feature PR): node scripts/v2/gate.js --banned-only [base] [head]
+// Runs only the banned-call and import checks on the changed .ts/.tsx files under app/lab/<slug>/. Slugs come from the diff and
+// must be a menu slug or custom-<10-13 digits>; lab code without a resolvable slug fails closed (exit 1).
+if (process.argv[2] === "--banned-only") {
+  const [bBase = "origin/main", bHead = "HEAD"] = process.argv.slice(3), range = `${bBase}...${bHead}`, probs = [];
+  const del = new Set(git("diff", "--name-only", "--diff-filter=D", range).split("\n").filter(Boolean));
+  const changed = git("diff", "--name-only", range).split("\n").filter((f) => f && f.startsWith("app/lab/") && !del.has(f) && /\.(tsx|ts|jsx|js|mjs|cjs)$/.test(f));
+  const keep = process.env.KEEP_LAB || require("./keep-marker").fromEvent() || "";
+  const slugs = new Set();
+  for (const f of changed) { const m = /^app\/lab\/([^/]+)\//.exec(f); const sl = m && m[1];
+    if (!sl || !(menu.includes(sl) || /^custom-[0-9]{10,13}$/.test(sl))) { probs.push(`lab code without a resolvable slug: ${f}`); continue; }
+    if (!/\.(tsx|ts)$/.test(f)) { probs.push(`lab file type not allowed: ${f}`); continue; }
+    slugs.add(sl); const raw = git("show", `${bHead}:${f}`), t = stripComments(raw), specs = [], kept = [];
+    for (const re of SPEC) for (const mm of t.matchAll(re)) kept.push(mm[2]);
+    for (const re of SPEC) for (const mm of raw.matchAll(re)) { specs.push(mm[2]); if (!kept.includes(mm[2])) probs.push(`${f}: import specifier hidden by comment stripping: ${mm[2]}`); }
+    const seen = new Set();
+    for (const re of BANNED) { const g = new RegExp(re.source, "g"); for (const mm of [...t.matchAll(g), ...raw.matchAll(g)]) if (!seen.has(re.source + mm.index) && seen.add(re.source + mm.index)) probs.push(`${f}: banned call ${re.source}: ${t.slice(Math.max(0, mm.index - 20), mm.index + 60).replace(/\s+/g, " ").trim().slice(0, 120)}`); }
+    for (const sp of new Set([...kept, ...specs])) {
+      const msgOk = sl === "spanish-translation" && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(sp), keepOk = !!keep && sp === `../${keep}`;
+      if (!msgOk && !keepOk && !(sp === "react" || (/^\.\//.test(sp) && !sp.includes("..")))) probs.push(`${f}: import not allowed: ${sp}`); } }
+  const ok = probs.length === 0;
+  console.log(`Banned-only · lab files ${changed.length} · slugs ${[...slugs].join(", ") || "none"} · Banned calls ${ok ? "PASS" : "FAIL"}`);
+  for (const p of probs) console.log("  - " + p);
+  console.log("GATE " + JSON.stringify({ mode: "banned-only", slugs: [...slugs], files: changed, problems: probs, result: ok ? "PASS" : "FAIL" }));
+  process.exit(ok ? 0 : 1);
+}
 const out = { slug, allowlist: "PASS", size: "PASS", banned: "PASS", lines: 0, max: MAX, files: [], problems: [] };
 const fail = (k, m) => { out[k] = "FAIL"; out.problems.push(m); };
 // Typed requests (Local runs) use their own folder, app/lab/custom-<timestamp>/, and are not on the menu.
@@ -107,16 +144,6 @@ if (files.includes("app/page.tsx")) {
   if (renders !== 1) fail("allowlist", `app/page.tsx must render <Lab /> exactly once (found ${renders})`);
 } else fail("allowlist", "app/page.tsx must import and render the feature");
 // banned calls and imports in added lines of the feature folder
-const BANNED = [/\bfetch\s*\(/, /\baxios\b/, /XMLHttpRequest/, /\bWebSocket\b/, /\bEventSource\b/, /sendBeacon/, /process\.env/, /dangerouslySetInnerHTML/, /\beval\s*\(/, /new\s+Function\s*\(/, /\bimport\s*\(/, /\brequire\s*\(/];
-// 10/20 (#243 review): checked per lab file on its WHOLE head text (comments stripped, strings kept), not line by line, so an
-// import split across lines, two imports on one line, or a call split as `import\n(` cannot slip past. Every module specifier
-// from `from "x"`, `import "x"`, `import("x")` and `require("x")` is extracted and checked; import( and require( stay banned.
-const stripComments = (t) => { let o = "", q = null; for (let i = 0; i < t.length; i++) { const c = t[i], n = t[i + 1];
-  if (q) { o += c; if (c === "\\") { o += n || ""; i++; } else if (c === q) q = null; continue; }
-  if (c === "/" && n === "/") { while (i < t.length && t[i] !== "\n") i++; o += "\n"; continue; }
-  if (c === "/" && n === "*") { i += 2; while (i < t.length && !(t[i] === "*" && t[i + 1] === "/")) { if (t[i] === "\n") o += "\n"; i++; } i++; o += " "; continue; }
-  if (c === '"' || c === "'" || c === "`") q = c; o += c; } return o; };
-const SPEC = [/\b(?:import|export)\b[^;"'`]*?\bfrom\s*(["'`])([^"'`]*)\1/g, /\bimport\s*(["'`])([^"'`]*)\1/g, /\bimport\s*\(\s*(["'`])([^"'`]*)\1/g, /\brequire\s*\(\s*(["'`])([^"'`]*)\1/g];
 const labTexts = files.filter((f) => f.startsWith(dir) && /\.(tsx|ts)$/.test(f) && !deleted.has(f)).map((f) => { let t = ""; try { t = git("show", `${head}:${f}`); } catch (e) {} return { raw: t, t: stripComments(t) }; });
 const specs = [], rawSpecs = [];
 for (const { raw, t } of labTexts) {

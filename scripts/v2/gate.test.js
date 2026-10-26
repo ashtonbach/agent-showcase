@@ -16,7 +16,7 @@ function git(...args) {
 // Helper to run gate.js and return exit code and output
 function runGate(slug, base = "base", head = "HEAD") {
   try {
-    const output = execFileSync("node", [gateScript, slug, base, head], { 
+    const output = execFileSync("node", [gateScript, slug, base, head].filter((a) => a !== null), { 
       cwd: testDir,
       stdio: "pipe",
       encoding: "utf8"
@@ -256,6 +256,39 @@ const tests = {
     }
   },
 
+  "FAIL: banned-only, fix/* branch adds fetch( to app/lab/custom-<digits>/index.tsx"() {
+    setupTestWorkspace(); git("checkout", "-q", "-b", "fix/ask-form");
+    const d = path.join(testDir, "app", "lab", "custom-1792972217"); fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, "index.tsx"), 'import { useState } from "react";\nexport default function Lab() { const [s] = useState(0); fetch("/x"); return <div>{s}</div>; }\n');
+    git("add", "."); git("commit", "-q", "-m", "fix");
+    const r = runGate("--banned-only", "base", "HEAD");
+    assert.strictEqual(r.exitCode, 1, "fetch( in lab code must fail banned-only: " + r.output);
+    assert.ok(/banned call .*fetch/.test(r.output), "reports the fetch call: " + r.output);
+  },
+  "PASS: banned-only, fix/* branch with clean lab code"() {
+    setupTestWorkspace(); git("checkout", "-q", "-b", "fix/ask-form");
+    const d = path.join(testDir, "app", "lab", "custom-1792972217"); fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, "index.tsx"), 'import { useState } from "react";\nimport { check } from "./validate";\nexport default function Lab() { const [s] = useState(""); return <p>{check(s)}</p>; }\n');
+    fs.writeFileSync(path.join(d, "validate.ts"), 'export const check = (v: string) => (v.trim() ? "" : "Please enter a value.");\n');
+    git("add", "."); git("commit", "-q", "-m", "fix");
+    const r = runGate("--banned-only", "base", "HEAD");
+    assert.strictEqual(r.exitCode, 0, "clean lab code should pass banned-only: " + r.output);
+  },
+  "FAIL: banned-only, lab code without a resolvable slug (fail closed)"() {
+    setupTestWorkspace(); git("checkout", "-q", "-b", "fix/other");
+    const d = path.join(testDir, "app", "lab", "not-on-menu"); fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, "index.tsx"), 'export default function Lab() { return <div />; }\n');
+    fs.writeFileSync(path.join(testDir, "app", "lab", "helper.ts"), 'export const x = 1;\n');
+    git("add", "."); git("commit", "-q", "-m", "fix");
+    const r = runGate("--banned-only", "base", "HEAD");
+    assert.strictEqual(r.exitCode, 1, "unresolvable slug must fail: " + r.output);
+    assert.ok(/not-on-menu/.test(r.output) && /helper\.ts/.test(r.output), "names both files: " + r.output);
+  },
+  "PASS: banned-only, PR without lab code changes"() {
+    setupTestWorkspace(); git("checkout", "-q", "-b", "docs/readme");
+    fs.writeFileSync(path.join(testDir, "README.md"), "docs\n"); git("add", "."); git("commit", "-q", "-m", "docs");
+    assert.strictEqual(runGate("--banned-only", "base", "HEAD").exitCode, 0);
+  },
   "FAIL: malformed custom slug"() {
     setupTestWorkspace();
     assert.strictEqual(runGate("custom-abc", "base", "HEAD").exitCode, 1, "custom-<non-digits> is unknown");

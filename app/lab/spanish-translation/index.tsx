@@ -23,10 +23,10 @@ const css = `
 .lab-wrap h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.25;margin:0 0 16px;color:var(--mist,#F2EFE6)}
 .lab-wrap p{margin:0 0 14px;line-height:1.6;color:#E8EEE9}
 .lab-seg{display:flex;margin-top:24px;border-radius:8px;overflow:hidden;gap:0;width:fit-content}
-.lab-seg button{font-family:var(--sans);font-size:15px;padding:10px 20px;border:1px solid var(--sage);cursor:pointer;transition:background .15s,color .15s}
+.lab-seg button{font-family:var(--sans);font-size:15px;padding:10px 20px;border:1px solid var(--sage);cursor:pointer;background-color:transparent;color:var(--mist,#F2EFE6);transition:background-color .15s,color .15s}
 @media (prefers-reduced-motion:reduce){.lab-seg button{transition:none}}
-.lab-seg button[data-active="true"]{background:var(--sage);color:#14201A;border-color:var(--sage)}
-.lab-seg button[data-active="false"]{background:#14201A;color:var(--mist,#F2EFE6);border:1px solid var(--sage)}
+.lab-seg button[data-active="true"]{background-color:var(--sage);color:#14201A;border-color:var(--sage)}
+.lab-seg button[data-active="false"]{background-color:transparent;color:var(--mist,#F2EFE6)}
 .lab-seg button:first-child{border-radius:8px 0 0 8px}
 .lab-seg button:last-child{border-radius:0 8px 8px 0;border-left:none}
 .lab-seg button[data-active="false"]:last-child{border-left:1px solid var(--sage)}

@@ -5,6 +5,8 @@
   --sage: #B0CBBC;
   --mist: #E8EEE9;
   --muted: rgba(232, 238, 233, 0.72);
+  /* error text and borders: AA on --forest; light-theme override below */
+  --danger: #FF9C8F;
 
   --serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --sans: var(--font-jost), "Jost", system-ui, sans-serif;
@@ -22,6 +24,9 @@
   --track-nav: 0.24em;
   --header-line: rgba(176, 203, 188, 0.22);
 }
+
+/* light (Mist) theme, if a section switches it */
+:root[data-theme="light"], [data-theme="light"] { --danger: #A3261B; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 

@@ -153,13 +153,17 @@ const BYPASS = {
   "Cherokee lowercase d": "\uAB70" + NM.slice(1),
   "Cherokee a, v, i": NM[0] + "\u13AA\u13D9\u13A5" + NM[4],
   "IPA d with tail, v with hook, dotless i": "\u0256" + NM[1] + "\u028B\u0131" + NM[4],
+  // round 4: tags must not hide the name
+  "the name as a whole tag": "see <" + NM + "> here",
+  "the name in a tag attribute": '<a title="' + NM + '">x</a>',
+  "the name between < and > across words": "if a < b then " + NM + " said c > d",
 };
 for (const [why, b] of Object.entries(BYPASS)) test("name bypass refused: " + why, () => {
   assert.strictEqual(check("## Requested change\n" + b + "\n\n" + FOOT, { author: true }).code, 8, JSON.stringify(b));
   assert.strictEqual(cli(b + "\n" + FOOT, "--author"), 8, JSON.stringify(b));
 });
 test("tags and links that do not hide the name still pass", () => {
-  for (const ok of ["a <b>bold</b> word", "[docs](https://x.example/" + NM + ")", "<" + NM + "son>", "\u1D05ata", NM + "\u3164son"])
+  for (const ok of ["a <b>bold</b> word", "<i>x</i> and <br/> and <code>y</code>", '<a href="https://x.example/">link</a>', "a < b > c", "[docs](https://x.example/" + NM + ")", "<" + NM + "son>", "\u1D05ata", NM + "\u3164son"])
     assert.strictEqual(check("## Requested change\n" + ok + "\n\n" + FOOT, { author: true }).code, 0, JSON.stringify(ok));
 });
 test("the workflow also checks the PR title with the same checker", () => {

@@ -13,7 +13,7 @@
 // Always (every mode, no flag; 10/26, with the companion kit change): the owner's first name as a whole word, any case, is refused
 // (exit 8, PR_BODY_NAME_REFUSED). Credit goes to the requester handle in the footer. A longer word that contains it passes.
 // The name is built from parts so this public file never spells it. Before matching (same steps as the kit pr-body-check.py):
-// decode HTML entities, strip HTML comments and tags, collapse markdown links to their text, NFKC, drop combining marks, all format
+// decode HTML entities, strip HTML comments; check three views (tags stripped, tags kept, each tag's inside); collapse markdown links to their text, NFKC, drop combining marks, all format
 // (Cf) chars incl. zero-width, bidi and tag chars, Hangul fillers and soft hyphens, fold Cyrillic/Greek/small-cap/IPA/Cherokee
 // look-alikes to Latin; then match twice with non-alphanumeric boundaries: once with * _ ` ~ inside words removed (bold or code marks inside the name) and
 // once with them as separators (name_x).
@@ -38,18 +38,24 @@ const HOMO = { "\u0430": "a", "\u0435": "e", "\u043E": "o", "\u0440": "p", "\u04
   // small capitals, IPA and Cherokee letters that look like d, a, v, i (Cherokee capitals lowercase into U+AB70-ABBF)
   "\u1D05": "d", "\u1D00": "a", "\u1D20": "v", "\u026A": "i", "\u0131": "i", "\u0251": "a", "\u0250": "a", "\u0256": "d", "\u0257": "d", "\u028B": "v", "\u028C": "v",
   "\u13A0": "d", "\uAB70": "d", "\u13AA": "a", "\uAB7A": "a", "\u13D9": "v", "\uABA9": "v", "\u13A5": "i", "\uAB75": "i" };
-function nameFold(t) {
+// Entity decode and HTML comment strip come first; the rest of the fold runs on each view of the text (see nameViews).
+function namePre(t) {
   t = String(t || "");
   for (let i = 0; i < 2; i++) t = t.replace(/&#(\d{1,7});?|&#x([0-9a-f]{1,6});?|&([a-z]{2,6});/gi, (m, d, h, n) => {
     const c = d ? +d : h ? parseInt(h, 16) : null; if (c != null) return c <= 0x10ffff ? String.fromCodePoint(c) : "";
     return NAMED_ENT[n.toLowerCase()] ?? m; });
-  t = t.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]*>/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
-  t = t.normalize("NFKC").normalize("NFD").replace(/\p{M}/gu, "").replace(/\p{Cf}/gu, "")
+  return t.replace(/<!--[\s\S]*?-->/g, "");
+}
+function namePost(t) {
+  t = t.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").normalize("NFKC").normalize("NFD").replace(/\p{M}/gu, "").replace(/\p{Cf}/gu, "")
     .replace(/[\u00AD\u115F\u1160\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2069\u3164\uFEFF\uFFA0]|[\u{E0000}-\u{E007F}]/gu, "");
   return [...t.toLowerCase()].map((c) => HOMO[c] || c).join("");
 }
-const hasOwnerName = (t) => { const f = nameFold(t);
-  return NAME.test(f.replace(/(?<=[a-z0-9])[*_`~]+(?=[a-z0-9])/g, "")) || NAME.test(f.replace(/[*_`~]/g, " ")); };
+// Three views so tags can neither join nor hide the name: tags stripped, tags kept, and the inside of each tag on its own.
+const nameViews = (t) => { const p = namePre(t); return [p.replace(/<[^>]*>/g, ""), p, ...[...p.matchAll(/<([^>]*)>/g)].map((m) => m[1])].map(namePost); };
+const nameFold = (t) => nameViews(t)[0];
+const hasOwnerName = (t) => nameViews(t).some((f) =>
+  NAME.test(f.replace(/(?<=[a-z0-9])[*_`~]+(?=[a-z0-9])/g, "")) || NAME.test(f.replace(/[*_`~]/g, " ")));
 const isAgent = (n) => TEAM.includes(n);
 // CodeRabbit appends its release-notes block after the author's text; the footer check ignores that block (emails are still checked in it).
 const BOT_BLOCK = /\n?<!-- This is an auto-generated comment: release notes by coderabbit\.ai -->[\s\S]*?<!-- end of auto-generated comment: release notes by coderabbit\.ai -->\s*/g;

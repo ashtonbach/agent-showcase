@@ -80,7 +80,7 @@ const css = `
 .lab-pt-fallback { background: rgba(176,203,188,0.16); }
 .lab-pt-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .lab-pt-card { position: relative; border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; background: transparent; color: #E8EEE9; }
-.lab-pt-best { border-color: var(--sage); background: rgba(176,203,188,0.1); }
+.lab-pt-best { border-color: var(--sage); background: rgba(10,18,15,0.6); box-shadow: 0 0 0 1px rgba(176,203,188,0.28) inset; }
 .lab-pt-badge { position: absolute; top: -12px; right: 20px; background: var(--sage); color: #14201A; font-family: var(--sans); font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; padding: 4px 10px; border-radius: 999px; }
 .lab-pt-name { font-family: var(--serif); font-weight: 400; font-size: 22px; margin: 4px 0 8px; color: #F2EFE6; }
 .lab-pt-price { font-size: 28px; margin: 0 0 16px; color: #F2EFE6; }

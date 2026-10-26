@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" width="720" height="160">
+  <rect x="0" y="0" width="720" height="160" fill="#121A16"/>
+
+  <!-- Step 1 -->
+  <rect x="60" y="110" width="110" height="50" rx="8" fill="#B0CBBC"/>
+  <rect x="78" y="94" width="74" height="10" rx="4" fill="#F2EFE6"/>
+
+  <!-- Step 2 -->
+  <rect x="210" y="86" width="120" height="74" rx="8" fill="#B0CBBC"/>
+  <rect x="230" y="70" width="80" height="10" rx="4" fill="#F2EFE6"/>
+  <circle cx="270" cy="110" r="14" fill="#F2EFE6"/>
+
+  <!-- Step 3 -->
+  <rect x="370" y="56" width="130" height="104" rx="8" fill="#B0CBBC"/>
+  <rect x="392" y="40" width="86" height="10" rx="4" fill="#F2EFE6"/>
+  <circle cx="435" cy="86" r="16" fill="#F2EFE6"/>
+  <rect x="405" y="112" width="60" height="8" rx="4" fill="#121A16" opacity="0.25"/>
+
+  <!-- Step 4 (top tier, accented) -->
+  <rect x="540" y="24" width="140" height="136" rx="10" fill="#D9B45A"/>
+  <rect x="564" y="8" width="92" height="12" rx="5" fill="#F2EFE6"/>
+  <circle cx="610" cy="48" r="18" fill="#121A16" opacity="0.85"/>
+  <rect x="570" y="80" width="80" height="9" rx="4" fill="#121A16" opacity="0.35"/>
+  <rect x="570" y="98" width="60" height="9" rx="4" fill="#121A16" opacity="0.25"/>
+
+  <!-- rising dashed guide line -->
+  <path d="M70 108 L228 84 L388 54 L548 22" fill="none" stroke="#F2EFE6" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 12" opacity="0.5"/>
+</svg>

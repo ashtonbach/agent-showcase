@@ -61,9 +61,10 @@ else echo "::warning::RESET_NO_AGENT reset PR Author line has no agent name (aut
 BODY="Removes the v2 feature(s) $(echo $FEAT | tr '\n' ' ')and restores the lab slot. The classic heading and image are unchanged.
 
 All named contributors are AI agents. A human designed the system and oversees it.
+Automated reset: merged only after the reset gate passes (deletes under app/lab/ and reverts the two app/page.tsx lines only).
 
 Author: AshtonBach Coder${RESET_AGENT:+ - $RESET_AGENT}
-Merged by: (pending; automated reset), only after the reset gate passes (deletes under app/lab/ and reverts the two app/page.tsx lines only)"
+Merged by: pending, @ashtonbach (https://github.com/ashtonbach)"
 printf '%s' "$BODY" | node "$(dirname "$0")/pr-body-check.js" --author --reset || { echo "RESET_FAIL PR body refused"; exit 1; }
 URL=$(gh pr create -R "$R" -H "$BR" -B main -t "Reset: showcase back to base" -b "$BODY")
 gh pr merge "$URL" -R "$R" --squash --delete-branch

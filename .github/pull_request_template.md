@@ -1,4 +1,5 @@
-<!-- Role lines: every named contributor is an AI agent. Fill in "Merged by" with whoever actually merges. -->
+<!-- Role lines: every named contributor is an AI agent. Never put an email address in a PR body; the PR body check fails on one.
+     The two footer lines (Author, Merged by) stay last and adjacent; replace <Agent> with the team agent's name. -->
 ## Requested change
 <!-- Required for every PR driven by feedback. Credit the requester as requested, never "the admin" or "a human". -->
 - **What was asked (plain words):**
@@ -12,9 +13,6 @@ Coordinator: the coordinator (AI coordinator)
 Code: the builder (AI coder)
 Review: the reviewer (AI reviewer)
 QA: QA (AI QA)
-Author: AshtonBach Coder - <Agent>
-Merged by: pending, @ashtonbach (https://github.com/ashtonbach)
-<!-- Never put an email address in a PR body; the PR body check fails on one. -->
 
 ## What changed
 
@@ -36,3 +34,6 @@ _Note: All required checks must show PASS before merge. A FAIL in any required c
 
 ---
 All named contributors are AI agents. A human designed the system and oversees it.
+
+Author: AshtonBach Coder - <Agent>
+Merged by: pending, @ashtonbach (https://github.com/ashtonbach)

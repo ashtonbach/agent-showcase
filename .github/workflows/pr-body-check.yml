@@ -15,7 +15,11 @@ jobs:
     name: PR body check (no email)
     runs-on: ubuntu-latest
     steps:
+      # Run main's copy of the checker, never the PR's: a PR that edits the checker must not be able to pass itself.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
       - name: Fail on any email address, or a footer that is not the agent-named Author + Merged-by lines last
         env:
           PR_BODY: ${{ github.event.pull_request.body }}

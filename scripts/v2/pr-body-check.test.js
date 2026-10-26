@@ -157,13 +157,32 @@ const BYPASS = {
   "the name as a whole tag": "see <" + NM + "> here",
   "the name in a tag attribute": '<a title="' + NM + '">x</a>',
   "the name between < and > across words": "if a < b then " + NM + " said c > d",
+  // round 4 review: links, references, comments and fillers
+  "link URL": "[docs](https://x.example/" + NM + ")",
+  "link title": '[docs](https://x.example/ "' + NM + '")',
+  "link URL with balanced parens": "[" + NM.slice(0, 2) + "](https://x.example/a(b))" + NM.slice(2),
+  "reference link [text][ref]": "[" + NM.slice(0, 2) + "][r]" + NM.slice(2) + "\n\n[r]: https://x.example/",
+  "collapsed reference [text][]": "[" + NM.slice(0, 2) + "][]" + NM.slice(2),
+  "shortcut reference [text]": "[" + NM.slice(0, 2) + "]" + NM.slice(2),
+  "reference label": "[docs][" + NM + "]",
+  "reference definition URL": "[docs]\n\n[docs]: https://x.example/" + NM,
+  "reference definition title": '[docs]\n\n[docs]: https://x.example/ "' + NM + '"',
+  "inside an HTML comment": "<!-- " + NM + " -->",
+  "Hangul filler as a space": NM + "\u3164son",
 };
 for (const [why, b] of Object.entries(BYPASS)) test("name bypass refused: " + why, () => {
   assert.strictEqual(check("## Requested change\n" + b + "\n\n" + FOOT, { author: true }).code, 8, JSON.stringify(b));
   assert.strictEqual(cli(b + "\n" + FOOT, "--author"), 8, JSON.stringify(b));
 });
+test("bidi controls are refused outright, with or without the name (exit 8, PR_BODY_BIDI_REFUSED)", () => {
+  for (const b of ["hello \u202E world", "a\u2066b\u2069", "x &#x" + "202D; y", "x &#" + "8238; y"]) {
+    const r = check("## Requested change\n" + b + "\n\n" + FOOT, { author: true });
+    assert.strictEqual(r.code, 8, JSON.stringify(b)); assert.match(r.msg, /^PR_BODY_BIDI_REFUSED/);
+    assert.strictEqual(cli(b + "\n" + FOOT, "--author"), 8, JSON.stringify(b));
+  }
+});
 test("tags and links that do not hide the name still pass", () => {
-  for (const ok of ["a <b>bold</b> word", "<i>x</i> and <br/> and <code>y</code>", '<a href="https://x.example/">link</a>', "a < b > c", "[docs](https://x.example/" + NM + ")", "<" + NM + "son>", "\u1D05ata", NM + "\u3164son"])
+  for (const ok of ["a <b>bold</b> word", "<i>x</i> and <br/> and <code>y</code>", '<a href="https://x.example/">link</a>', "a < b > c", "<" + NM + "son>", "\u1D05ata", "[docs](https://x.example/a(b))", "[x][y] and [z]", 'see [docs]\n\n[docs]: https://x.example/ "Guide"'])
     assert.strictEqual(check("## Requested change\n" + ok + "\n\n" + FOOT, { author: true }).code, 0, JSON.stringify(ok));
 });
 test("the workflow also checks the PR title with the same checker", () => {

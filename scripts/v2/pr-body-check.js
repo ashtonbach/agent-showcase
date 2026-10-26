@@ -13,11 +13,13 @@
 // Always (every mode, no flag; 10/26, with the companion kit change): the owner's first name as a whole word, any case, is refused
 // (exit 8, PR_BODY_NAME_REFUSED). Credit goes to the requester handle in the footer. A longer word that contains it passes.
 // The name is built from parts so this public file never spells it. Before matching (same steps as the kit pr-body-check.py):
-// decode HTML entities, strip HTML comments; check three views (tags stripped, tags kept, each tag's inside); collapse markdown links to their text, NFKC, drop combining marks, all format
-// (Cf) chars incl. zero-width, bidi and tag chars, Hangul fillers and soft hyphens, fold Cyrillic/Greek/small-cap/IPA/Cherokee
-// look-alikes to Latin; then match twice with non-alphanumeric boundaries: once with * _ ` ~ inside words removed (bold or code marks inside the name) and
-// once with them as separators (name_x).
-// CLI: node scripts/v2/pr-body-check.js [--author [--reset]] < body   exit 4 = email, 8 = owner name, 5 = bad/missing footer
+// decode HTML entities; check several views of the text (tags stripped, tags kept, each tag's inside, each HTML comment's inside,
+// the text with comments kept); in each, collapse markdown links ([t](url), [t][ref], [t][], [t]) to their text and check the
+// URLs, titles, ref labels and '[ref]: url "title"' definitions as views too; NFKC, drop combining marks, format (Cf) chars, Hangul
+// fillers and soft hyphens (each tried both removed and as a space), fold Cyrillic/Greek/small-cap/IPA/Cherokee look-alikes to Latin;
+// then match twice with non-alphanumeric boundaries: once with * _ ` ~ inside words removed (bold or code marks inside the name) and
+// once with them as separators (name_x). Bidi controls U+202A-202E and U+2066-2069 are refused outright (exit 8, PR_BODY_BIDI_REFUSED).
+// CLI: node scripts/v2/pr-body-check.js [--author [--reset]] < body   exit 4 = email, 8 = owner name or bidi control, 5 = bad/missing footer
 //      node scripts/v2/pr-body-check.js --agent NAME                  exit 6 unless NAME is a team agent
 const TEAM = ["Ash", "Hazel", "Alder", "Rowan", "Cedar", "Linden"];
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
@@ -38,21 +40,45 @@ const HOMO = { "\u0430": "a", "\u0435": "e", "\u043E": "o", "\u0440": "p", "\u04
   // small capitals, IPA and Cherokee letters that look like d, a, v, i (Cherokee capitals lowercase into U+AB70-ABBF)
   "\u1D05": "d", "\u1D00": "a", "\u1D20": "v", "\u026A": "i", "\u0131": "i", "\u0251": "a", "\u0250": "a", "\u0256": "d", "\u0257": "d", "\u028B": "v", "\u028C": "v",
   "\u13A0": "d", "\uAB70": "d", "\u13AA": "a", "\uAB7A": "a", "\u13D9": "v", "\uABA9": "v", "\u13A5": "i", "\uAB75": "i" };
-// Entity decode and HTML comment strip come first; the rest of the fold runs on each view of the text (see nameViews).
+// Nothing a normalization step removes is dropped unchecked: removed text (HTML comments, tags, link URLs and titles, reference
+// labels and definitions) is checked as its own view, and invisible characters are tried both removed and as a space.
 function namePre(t) {
   t = String(t || "");
   for (let i = 0; i < 2; i++) t = t.replace(/&#(\d{1,7});?|&#x([0-9a-f]{1,6});?|&([a-z]{2,6});/gi, (m, d, h, n) => {
     const c = d ? +d : h ? parseInt(h, 16) : null; if (c != null) return c <= 0x10ffff ? String.fromCodePoint(c) : "";
     return NAMED_ENT[n.toLowerCase()] ?? m; });
-  return t.replace(/<!--[\s\S]*?-->/g, "");
+  return t;
 }
-function namePost(t) {
-  t = t.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").normalize("NFKC").normalize("NFD").replace(/\p{M}/gu, "").replace(/\p{Cf}/gu, "")
-    .replace(/[\u00AD\u115F\u1160\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2069\u3164\uFEFF\uFFA0]|[\u{E0000}-\u{E007F}]/gu, "");
-  return [...t.toLowerCase()].map((c) => HOMO[c] || c).join("");
+// Bidi embedding, override and isolate controls are refused outright (they reorder what a reader sees).
+const BIDI = /[\u202A-\u202E\u2066-\u2069]/;
+const hasBidi = (t) => BIDI.test(String(t || "")) || BIDI.test(namePre(t));
+// Index of the bracket that closes the one at i (same open/close pair, nesting counted), or -1.
+function closeAt(s, i, o, c) { let d = 0; for (let k = i; k < s.length; k++) { if (s[k] === o) d++; else if (s[k] === c && --d === 0) return k; } return -1; }
+// Markdown links: [text](dest with balanced parens), [text][ref], [text][] and [text] collapse to text; dest and ref go to extra.
+function mdCollapse(s, extra) {
+  let out = "", i = 0;
+  while (i < s.length) {
+    const j = s[i] === "[" ? closeAt(s, i, "[", "]") : -1;
+    if (j < 0) { out += s[i++]; continue; }
+    out += mdCollapse(s.slice(i + 1, j), extra); i = j + 1;
+    const pair = s[i] === "(" ? ["(", ")"] : s[i] === "[" ? ["[", "]"] : null;
+    const m = pair ? closeAt(s, i, pair[0], pair[1]) : -1;
+    if (m >= 0) { extra.push(s.slice(i + 1, m)); i = m + 1; }
+  }
+  return out;
 }
-// Three views so tags can neither join nor hide the name: tags stripped, tags kept, and the inside of each tag on its own.
-const nameViews = (t) => { const p = namePre(t); return [p.replace(/<[^>]*>/g, ""), p, ...[...p.matchAll(/<([^>]*)>/g)].map((m) => m[1])].map(namePost); };
+const INVIS = /\p{Cf}|[\u00AD\u115F\u1160\u180E\u200B-\u200F\u2060-\u2069\u3164\uFEFF\uFFA0]|[\u{E0000}-\u{E007F}]/gu;
+const namePost = (t) => { t = t.normalize("NFKC").normalize("NFD").replace(/\p{M}/gu, "");
+  return ["", " "].map((r) => [...t.replace(INVIS, r).toLowerCase()].map((c) => HOMO[c] || c).join("")); };
+function nameViews(t) {
+  const p = namePre(t), comments = [...p.matchAll(/<!--([\s\S]*?)-->/g)].map((m) => m[1]), q = p.replace(/<!--[\s\S]*?-->/g, "");
+  const raw = [q.replace(/<[^>]*>/g, ""), q, ...[...q.matchAll(/<([^>]*)>/g)].map((m) => m[1]), ...comments, p], views = [];
+  for (const v of raw) {
+    const extra = [...v.matchAll(/(?:^|\n) {0,3}\[([^\]\n]+)\]:[ \t]*([^\n]*)/g)].flatMap((m) => [m[1], m[2]]);
+    views.push(mdCollapse(v, extra), ...extra);
+  }
+  return views.flatMap(namePost);
+}
 const nameFold = (t) => nameViews(t)[0];
 const hasOwnerName = (t) => nameViews(t).some((f) =>
   NAME.test(f.replace(/(?<=[a-z0-9])[*_`~]+(?=[a-z0-9])/g, "")) || NAME.test(f.replace(/[*_`~]/g, " ")));
@@ -62,11 +88,12 @@ const BOT_BLOCK = /\n?<!-- This is an auto-generated comment: release notes by c
 const hasAgentAuthor = (t, reset = false) => FOOT(reset).test(norm(t).replace(BOT_BLOCK, "\n"));
 function check(body, { author = false, reset = false } = {}) {
   if (emailsIn(body)) return { code: 4, msg: `PR_BODY_EMAIL_REFUSED: body contains ${emailsIn(body)} email address(es); remove them` };
+  if (hasBidi(body)) return { code: 8, msg: "PR_BODY_BIDI_REFUSED: body contains a bidirectional control character (U+202A-202E or U+2066-2069); remove it" };
   if (hasOwnerName(body)) return { code: 8, msg: "PR_BODY_NAME_REFUSED: body names the owner by first name; credit the requester handle instead" };
   if (author && !hasAgentAuthor(body, reset)) return { code: 5, msg: "PR_BODY_AUTHOR_REFUSED: body must end with 'Author: AshtonBach Coder - <Agent>' then '" + MERGED + "' (team agents: " + TEAM.join(", ") + ")" };
   return { code: 0, msg: "PR_BODY_OK" };
 }
-module.exports = { TEAM, MERGED, emailsIn, hasOwnerName, nameFold, isAgent, hasAgentAuthor, check };
+module.exports = { TEAM, MERGED, emailsIn, hasOwnerName, hasBidi, nameFold, nameViews, isAgent, hasAgentAuthor, check };
 if (require.main === module) {
   const a = process.argv.slice(2);
   if (a.includes("--agent")) { const n = a[a.indexOf("--agent") + 1] || ""; if (isAgent(n)) process.exit(0); console.error(`PR_AGENT_REFUSED: ${JSON.stringify(n)} is not a team agent name`); process.exit(6); }

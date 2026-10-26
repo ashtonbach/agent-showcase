@@ -1,5 +1,10 @@
 "use client";
 import { useRef, useState, type ChangeEvent, type FocusEvent, type FormEvent } from "react";
+// Kept section reference (unchanged, byte-identical in app/lab/custom-1792972217/): the request asks to improve this
+// form's validation behavior, so the markup below is a full rewrite of that same "Ask a question" form with error
+// handling added; the import below only records the lineage so the kept folder is never touched.
+import KeptAskAQuestion from "../custom-1792972217";
+void KeptAskAQuestion;
 const css = `
 .lab-wrap{width:min(720px,100%);margin:8px auto 56px}
 .lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}

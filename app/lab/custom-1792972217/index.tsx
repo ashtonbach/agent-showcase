@@ -15,6 +15,7 @@ const css = `
 .lab-textarea{min-height:120px;resize:vertical}
 .lab-submit{font-size:.9rem;align-self:flex-start}
 .lab-input[aria-invalid="true"],.lab-textarea[aria-invalid="true"]{border-color:var(--danger);box-shadow:0 0 0 1px var(--danger)}
+.lab-error:empty{margin-top:-6px}
 .lab-error{font-family:var(--sans);font-size:.85rem;line-height:1.4;color:var(--danger);margin:0}
 .lab-count{font-family:var(--sans);font-size:.75rem;color:var(--muted);align-self:flex-end}
 .lab-count[data-over="true"]{color:var(--danger)}
@@ -41,7 +42,7 @@ export default function Lab() {
     setSubmitted(true); setFormOpen(false);
   }
   const aria = (f: Field) => ({ "aria-invalid": errors[f] ? ("true" as const) : undefined, "aria-describedby": [errors[f] ? `lab-${f}-error` : "", f === "question" ? "lab-question-count" : ""].filter(Boolean).join(" ") || undefined });
-  const err = (f: Field) => errors[f] ? <p id={`lab-${f}-error`} className="lab-error" aria-live="polite">{errors[f]}</p> : null;
+  const err = (f: Field) => <p id={`lab-${f}-error`} className="lab-error" aria-live="polite">{errors[f] || ""}</p>;
   const qLen = values.question.trim().length;
   return (
     <section data-lab="custom-1792972217" aria-labelledby="lab-contact-heading" className="lab-wrap">

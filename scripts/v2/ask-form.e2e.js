@@ -85,6 +85,16 @@ const ok = (cond, msg) => { n++; if (cond) console.log("PASS " + msg); else { fa
   ok(posted.length === 0, "valid: client-only, no request sent");
   await ctx.close();
 
+  // 8. live region is stable: same node before, during and after an error
+  { const c3 = await b.newContext(); const p4 = await c3.newPage();
+    await p4.goto(BASE, { waitUntil: "networkidle" }); await p4.click("button.lab-toggle");
+    const live = await p4.$("#lab-name-error");
+    ok(!!live && (await live.getAttribute("aria-live")) === "polite" && (await live.textContent()) === "", "live: name error node exists, polite, empty before any error");
+    await p4.focus("#lab-name"); await p4.focus("#lab-email");
+    ok(await live.evaluate((n) => n.isConnected && n === document.getElementById("lab-name-error") && n.textContent === "Please enter your name."), "live: same node gets the error text");
+    await p4.fill("#lab-name", "Test Person");
+    ok(await live.evaluate((n) => n.isConnected && n === document.getElementById("lab-name-error") && n.textContent === ""), "live: same node cleared to empty, not removed");
+    await c3.close(); }
   // 7. error text is a polite live region; form has no server action
   const c2 = await b.newContext(); const p3 = await c2.newPage();
   await p3.goto(BASE, { waitUntil: "networkidle" }); await p3.click("button.lab-toggle"); await p3.click("button.lab-submit");

@@ -6,7 +6,18 @@ const MSG = path.join(__dirname, "..", "..", "..", "messages");
 const S = 'section[data-lab="spanish-translation"]';
 const SPANISH = /[áéíóúñ¿¡]|\b(el|la|los|las|del|que|y|en|un|una|es|para|con|por|su|al|de)\b/i;
 const load = (f) => { try { return JSON.parse(fs.readFileSync(path.join(MSG, f), "utf8")); } catch (e) { return null; } };
-const read = (page) => page.evaluate((s) => {
+// Wait until every CSS transition/animation in the section has finished, so computed colors are the settled
+// end state (a 150ms background-color transition sampled after a 150ms wait reads e.g. rgba(176,203,188,0.008)).
+const settle = (page) => page.evaluate(async (s) => {
+  const sec = document.querySelector(s); if (!sec || !sec.getAnimations) return;
+  for (let i = 0; i < 20; i++) {
+    const a = sec.getAnimations({ subtree: true }).filter((x) => x.playState !== "finished");
+    if (!a.length) return;
+    await Promise.race([Promise.all(a.map((x) => x.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 2000))]);
+  }
+}, S);
+const read = async (page) => { await settle(page); return readNow(page); };
+const readNow = (page) => page.evaluate((s) => {
   const sec = document.querySelector(s), t = (e) => (e ? e.textContent.trim() : null);
   const seg = (loc) => { const b = sec && sec.querySelector(`button[data-locale="${loc}"]`); if (!b) return null;
     const cs = getComputedStyle(b); return { text: t(b), pressed: b.getAttribute("aria-pressed"), bg: cs.backgroundColor, border: cs.borderTopWidth }; };
@@ -27,6 +38,7 @@ const segs = (ok, st, active, tag) => {
 };
 const label = (it) => (it.inSec ? (it.cta ? "call to action" : it.tag === "h2" ? "heading" : it.tag === "p" ? "paragraph" : it.tag) : "page") + ` [${it.key}]`;
 module.exports = {
+  _test: { settle, read, readNow, segs },
   async check({ page, ok }) {
     const en = load("en-US.json"), es = load("es-ES.json");
     ok(!!en, "messages/en-US.json present (base text)");

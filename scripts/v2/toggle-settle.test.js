@@ -4,6 +4,7 @@
 const assert = require("assert");
 const { chromium } = require("playwright");
 const spec = require("./specs/spanish-translation");
+const { settle } = require("./settle");
 const HTML = `<style>button{border:1px solid rgb(176,203,188);background-color:transparent;transition:background-color .6s linear}
 button[aria-pressed="true"]{background-color:rgb(176,203,188)}</style>
 <section data-lab="spanish-translation"><button data-locale="en-US" aria-pressed="false">English</button><button data-locale="es-ES" aria-pressed="true">Español</button></section>
@@ -28,6 +29,31 @@ button[aria-pressed="true"]{background-color:rgb(176,203,188)}</style>
       spec._test.segs((c, m) => { if (!c) fails.push(m); }, st, "es-ES", "x");
       assert.ok(fails.some((m) => /inactive segment is outlined, not filled/.test(m)), fails.join("; "));
     });
+    await t("settle throws 'toggle did not settle within Ns' when a finite transition outlasts the cap", async () => {
+      await page.setContent(HTML.replace(".6s linear", "10s linear")); await page.waitForTimeout(50);
+      await page.click('button[data-locale="en-US"]'); const t0 = Date.now();
+      await assert.rejects(spec._test.settle(page, 500), /toggle did not settle within 0\.5s/);
+      assert.ok(Date.now() - t0 < 2000, "total wait is capped");
+      await assert.rejects(spec._test.read(page), /toggle did not settle within 3s/);
+    });
+    await t("infinite animations (iterations === Infinity) are ignored, not waited on", async () => {
+      await page.setContent(HTML + `<style>@keyframes spin{to{transform:rotate(1turn)}} .sp{animation:spin 1s linear infinite}</style>`);
+      await page.evaluate(() => { const i = document.createElement("i"); i.className = "sp"; document.querySelector("section").append(i); });
+      const t0 = Date.now(); await spec._test.settle(page); assert.ok(Date.now() - t0 < 1000);
+      const st = await spec._test.read(page); assert.strictEqual(st.en.bg, "rgba(0, 0, 0, 0)");
+    });
+    await t("missing section fails with a clear error (no silent pass)", async () => {
+      await page.setContent("<main>no lab here</main>");
+      await assert.rejects(spec._test.read(page), /toggle cannot settle: no element matches section\[data-lab="spanish-translation"\]/);
+      await assert.rejects(settle(page, "#nope", { label: "x" }), /x cannot settle: no element matches #nope/);
+    });
+    await t("no getAnimations support fails with a clear error", async () => {
+      await page.setContent(HTML); await page.evaluate(() => { Element.prototype.getAnimations = undefined; });
+      await assert.rejects(spec._test.read(page), /toggle cannot settle: getAnimations\(\) is not supported/);
+    });
+    await t("spanish spec has no fixed waits left", async () => {
+      assert.ok(!/waitForTimeout/.test(require("fs").readFileSync(require.resolve("./specs/spanish-translation"), "utf8")));
+    });
   } finally { await b.close(); }
-  console.log(`toggle-settle: ${n}/3 passed`);
+  console.log(`toggle-settle: ${n}/8 passed`);
 })().catch((e) => { console.error("FAIL", e.message); process.exit(1); });

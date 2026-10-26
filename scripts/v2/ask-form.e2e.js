@@ -81,6 +81,7 @@ const ok = (cond, msg) => { n++; if (cond) console.log("PASS " + msg); else { fa
   await page.waitForSelector(".lab-thanks");
   await shot("5-valid-sent.png");
   ok((await page.textContent(".lab-thanks")) === "Thank you for your submission. We appreciate you reaching out.", "valid: existing success message");
+  // quiet window to prove NO request goes out after submit (a network negative), not a transition: fixed wait is correct
   await page.waitForTimeout(300);
   ok(posted.length === 0, "valid: client-only, no request sent");
   await ctx.close();

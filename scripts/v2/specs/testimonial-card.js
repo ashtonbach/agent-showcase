@@ -16,7 +16,8 @@ module.exports = {
     await page.mouse.move(0, 0);
     const q = sec.locator("blockquote");
     const i0 = await q.getAttribute("data-index");
-    await page.waitForTimeout(3500);
+    // rotation timer (setInterval), not a transition: poll for the change, still bounded by the same 3.5s budget
+    await page.waitForFunction(([s, i]) => document.querySelector(s + " blockquote").getAttribute("data-index") !== i, ['section[data-lab="testimonial-card"]', i0], { timeout: 3500 }).catch(() => {});
     const i1 = await q.getAttribute("data-index");
     ok(i1 !== i0, `rotates after 3s (quote ${i0} -> ${i1})`);
     // keyboard: focus a different dot and press Enter
@@ -30,6 +31,7 @@ module.exports = {
     ok(outline !== "none", `visible focus (outline ${outline})`);
     ok((await dot.getAttribute("aria-current")) === "true", "clicked dot is aria-current");
     // timer restarted: still on target ~2s after the click, moved on by ~3.5s
+    // 2s / 1.5s / 3.5s below are timer-window assertions (must NOT have / must have rotated by then): fixed waits are the test
     await page.waitForTimeout(2000);
     ok((await q.getAttribute("data-index")) === String(target), "dot click restarts the 3s timer");
     await page.waitForTimeout(1500);

@@ -1,6 +1,7 @@
 // Browser check: each language button switches the visible heading and paragraphs live.
 // Run against a running build: BASE=http://localhost:3000 node scripts/v2/lab-locales.e2e.js [shotDir]
 const { chromium } = require("playwright");
+const { settle } = require("./settle");
 const BASE = process.env.BASE || "http://localhost:3000", SHOTS = process.argv[2];
 const LOCALES = ["en-US", "es-ES", "pt-BR", "de-DE", "he-IL", "ja-JP"]; // 10/25: the six languages the live page shipped before #318 (en, es, pt, de, he, ja)
 (async () => {
@@ -20,7 +21,7 @@ const LOCALES = ["en-US", "es-ES", "pt-BR", "de-DE", "he-IL", "ja-JP"]; // 10/25
   const read = () => sec.evaluate((s) => [...s.querySelectorAll("[data-i18n]")].map((e) => e.textContent.trim()).join("|"));
   const seen = new Map(); let fail = 0;
   for (const l of LOCALES) {
-    await sec.locator(owned(l)).click(); await page.waitForTimeout(200);
+    await sec.locator(owned(l)).click(); await sec.locator(owned(l) + '[@aria-pressed="true"]').waitFor({ timeout: 3000 }).catch(() => {}); await settle(page, null, { label: `locale ${l}` });
     const t = await read(), pressed = await sec.locator(owned(l)).getAttribute("aria-pressed");
     const dup = [...seen].find(([, v]) => v === t);
     const ok = pressed === "true" && !dup && t.length > 20; if (!ok) fail++;

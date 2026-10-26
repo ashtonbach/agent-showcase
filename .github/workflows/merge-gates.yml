@@ -10,6 +10,16 @@ permissions:
   pull-requests: read
 
 jobs:
+  pr-body-check:
+    name: PR body check (no email)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail on any email address in the PR body
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: printf '%s' "$PR_BODY" | node scripts/v2/pr-body-check.js
+
   check-if-feature:
     name: Check if feature PR
     runs-on: ubuntu-latest

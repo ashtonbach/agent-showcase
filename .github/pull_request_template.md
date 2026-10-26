@@ -12,7 +12,9 @@ Coordinator: the coordinator (AI coordinator)
 Code: the builder (AI coder)
 Review: the reviewer (AI reviewer)
 QA: QA (AI QA)
-Merged by: <actual merger, e.g. the reviewer (AI reviewer)>
+Author: AshtonBach Coder - <Agent>
+Merged by: pending, @ashtonbach (https://github.com/ashtonbach)
+<!-- Never put an email address in a PR body; the PR body check fails on one. -->
 
 ## What changed
 

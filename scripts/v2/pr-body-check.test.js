@@ -102,7 +102,7 @@ test("spelled-out and spaced emails are caught; ordinary prose is not", () => {
   assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - Alder\nMerged by: pending, @ashtonbach (https://github.com/ashtonbach)", { author: true }).code, 0, "footer handle unaffected");
 });
 
-// Owner first name (companion kit change): built at runtime so this public file never contains it.
+// Owner first name (with the companion kit change): built at runtime so this public file never contains it.
 const NM = ["D", "a", "v", "i", "d"].join("");
 test("the owner's first name is refused as a whole word, any case, with or without --author (exit 8)", () => {
   for (const b of [NM + " asked for this", "per " + NM.toLowerCase() + "'s rule", NM.toUpperCase(), "x\n(" + NM + ")\n"]) {
@@ -136,11 +136,31 @@ const BYPASS = {
   "hex entity, no semicolon": NM.slice(0, 2) + "&#x" + NM.charCodeAt(2).toString(16) + NM.slice(3),
   "soft hyphen entity": ins(NM, 2, "&shy;"),
   "underscore suffix": NM + "_x",
-  "markdown bold around it": "**" + NM + "**",
+  "markdown bold around it": "**" + NM + "**",  // round 3: format chars, HTML tags, markdown links, more look-alikes
+  "bidi override inside the word": ins(ins(NM, 3, "\u202C"), 1, "\u202E"),
+  "bidi isolate inside the word": ins(ins(NM, 4, "\u2069"), 2, "\u2066"),
+  "tag characters": ins(ins(NM, 3, "\u{E0020}"), 1, "\u{E0061}"),
+  "Hangul filler U+3164": ins(NM, 1, "\u3164"),
+  "Hangul filler U+115F": ins(NM, 3, "\u115F"),
+  "halfwidth Hangul filler U+FFA0": ins(NM, 4, "\uFFA0"),
+  "HTML tags inside the word": ins(ins(NM, 3, "</b>"), 2, "<b>"),
+  "entity-encoded tag inside the word": ins(NM, 2, "&lt;i&gt;"),
+  "markdown link text": "[" + NM.slice(0, 2) + "](https://x.example/a)" + NM.slice(2),
+  "small capital d": "\u1D05" + NM.slice(1),
+  "small capitals a, v, i": NM[0] + "\u1D00\u1D20\u026A" + NM[4],
+  "Latin alpha": NM.replace("a", "\u0251"),
+  "Cherokee D": "\u13A0" + NM.slice(1),
+  "Cherokee lowercase d": "\uAB70" + NM.slice(1),
+  "Cherokee a, v, i": NM[0] + "\u13AA\u13D9\u13A5" + NM[4],
+  "IPA d with tail, v with hook, dotless i": "\u0256" + NM[1] + "\u028B\u0131" + NM[4],
 };
 for (const [why, b] of Object.entries(BYPASS)) test("name bypass refused: " + why, () => {
   assert.strictEqual(check("## Requested change\n" + b + "\n\n" + FOOT, { author: true }).code, 8, JSON.stringify(b));
   assert.strictEqual(cli(b + "\n" + FOOT, "--author"), 8, JSON.stringify(b));
+});
+test("tags and links that do not hide the name still pass", () => {
+  for (const ok of ["a <b>bold</b> word", "[docs](https://x.example/" + NM + ")", "<" + NM + "son>", "\u1D05ata", NM + "\u3164son"])
+    assert.strictEqual(check("## Requested change\n" + ok + "\n\n" + FOOT, { author: true }).code, 0, JSON.stringify(ok));
 });
 test("the workflow also checks the PR title with the same checker", () => {
   const y = fs.readFileSync(path.join(__dirname, "../../.github/workflows/pr-body-check.yml"), "utf8");

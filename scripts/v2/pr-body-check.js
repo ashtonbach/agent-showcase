@@ -10,10 +10,11 @@
 // where <Agent> is a team agent (allowlist below; same list as agents-live kit/bin/pr-body-check.py).
 // --reset: the one allowed exception. Reset PRs (scripts/v2/reset.sh, run by the Lab reset workflow with no agent) may use
 // "Author: AshtonBach Coder" with no agent name; the footer must still be last and the email check still applies.
-// Always (every mode, no flag; 10/26, companion kit change): the owner's first name as a whole word, any case, is refused
+// Always (every mode, no flag; 10/26, with the companion kit change): the owner's first name as a whole word, any case, is refused
 // (exit 8, PR_BODY_NAME_REFUSED). Credit goes to the requester handle in the footer. A longer word that contains it passes.
 // The name is built from parts so this public file never spells it. Before matching (same steps as the kit pr-body-check.py):
-// decode HTML entities, strip HTML comments, NFKC, drop combining marks, zero-width chars and soft hyphens, fold Cyrillic/Greek
+// decode HTML entities, strip HTML comments and tags, collapse markdown links to their text, NFKC, drop combining marks, all format
+// (Cf) chars incl. zero-width, bidi and tag chars, Hangul fillers and soft hyphens, fold Cyrillic/Greek/small-cap/IPA/Cherokee
 // look-alikes to Latin; then match twice with non-alphanumeric boundaries: once with * _ ` ~ inside words removed (bold or code marks inside the name) and
 // once with them as separators (name_x).
 // CLI: node scripts/v2/pr-body-check.js [--author [--reset]] < body   exit 4 = email, 8 = owner name, 5 = bad/missing footer
@@ -33,13 +34,18 @@ const NAME = new RegExp("(?:^|[^a-z0-9])" + ["d", "a", "v", "i", "d"].join("") +
 const NAMED_ENT = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\u00A0", shy: "\u00AD", zwj: "\u200D", zwnj: "\u200C" };
 // Cyrillic and Greek letters that look like Latin ones (lowercase after folding case).
 const HOMO = { "\u0430": "a", "\u0435": "e", "\u043E": "o", "\u0440": "p", "\u0441": "c", "\u0443": "y", "\u0445": "x", "\u0456": "i", "\u0458": "j",
-  "\u0501": "d", "\u0475": "v", "\u03B1": "a", "\u03B5": "e", "\u03BF": "o", "\u03C1": "p", "\u03BD": "v", "\u03B9": "i", "\u03C7": "x", "\u03BA": "k" };
+  "\u0501": "d", "\u0475": "v", "\u03B1": "a", "\u03B5": "e", "\u03BF": "o", "\u03C1": "p", "\u03BD": "v", "\u03B9": "i", "\u03C7": "x", "\u03BA": "k",
+  // small capitals, IPA and Cherokee letters that look like d, a, v, i (Cherokee capitals lowercase into U+AB70-ABBF)
+  "\u1D05": "d", "\u1D00": "a", "\u1D20": "v", "\u026A": "i", "\u0131": "i", "\u0251": "a", "\u0250": "a", "\u0256": "d", "\u0257": "d", "\u028B": "v", "\u028C": "v",
+  "\u13A0": "d", "\uAB70": "d", "\u13AA": "a", "\uAB7A": "a", "\u13D9": "v", "\uABA9": "v", "\u13A5": "i", "\uAB75": "i" };
 function nameFold(t) {
   t = String(t || "");
   for (let i = 0; i < 2; i++) t = t.replace(/&#(\d{1,7});?|&#x([0-9a-f]{1,6});?|&([a-z]{2,6});/gi, (m, d, h, n) => {
     const c = d ? +d : h ? parseInt(h, 16) : null; if (c != null) return c <= 0x10ffff ? String.fromCodePoint(c) : "";
     return NAMED_ENT[n.toLowerCase()] ?? m; });
-  t = t.replace(/<!--[\s\S]*?-->/g, "").normalize("NFKC").normalize("NFD").replace(/\p{M}/gu, "").replace(/[\u00AD\u180E\u200B-\u200F\u2060-\u2064\uFEFF]/g, "");
+  t = t.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]*>/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
+  t = t.normalize("NFKC").normalize("NFD").replace(/\p{M}/gu, "").replace(/\p{Cf}/gu, "")
+    .replace(/[\u00AD\u115F\u1160\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2069\u3164\uFEFF\uFFA0]|[\u{E0000}-\u{E007F}]/gu, "");
   return [...t.toLowerCase()].map((c) => HOMO[c] || c).join("");
 }
 const hasOwnerName = (t) => { const f = nameFold(t);

@@ -20,7 +20,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
-      - name: Fail on any email address, or a footer that is not the agent-named Author + Merged-by lines last
+      - name: Fail on any email address, the owner's first name, or a footer that is not the agent-named Author + Merged-by lines last
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
           # reset PRs (scripts/v2/reset.sh) are the one allowed exception: Author line may omit the agent name

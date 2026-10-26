@@ -101,3 +101,27 @@ test("spelled-out and spaced emails are caught; ordinary prose is not", () => {
     assert.strictEqual(emailsIn(t), 0, t);
   assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - Alder\nMerged by: pending, @ashtonbach (https://github.com/ashtonbach)", { author: true }).code, 0, "footer handle unaffected");
 });
+
+// Owner first name (companion kit change): built at runtime so this public file never contains it.
+const NM = ["D", "a", "v", "i", "d"].join("");
+test("the owner's first name is refused as a whole word, any case, with or without --author (exit 8)", () => {
+  for (const b of [NM + " asked for this", "per " + NM.toLowerCase() + "'s rule", NM.toUpperCase(), "x\n(" + NM + ")\n"]) {
+    assert.strictEqual(check("## Requested change\n" + b + "\n\n" + FOOT, { author: true }).code, 8, b);
+    assert.strictEqual(check(b).code, 8, b);
+    assert.strictEqual(cli(b + "\n" + FOOT, "--author"), 8, b);
+    assert.strictEqual(cli(b + "\n" + FOOT.replace(" - Alder", ""), "--author", "--reset"), 8, "reset PRs too: " + b);
+  }
+  assert.match(check(NM).msg, /^PR_BODY_NAME_REFUSED/);
+});
+test("only the whole word: a longer surname and the worker host pass", () => {
+  assert.strictEqual(check("## Requested change\n" + NM + "son and example." + NM.toLowerCase() + "site.example.com\n\n" + FOOT, { author: true }).code, 0);
+});
+test("the email check runs before the name check", () => {
+  assert.strictEqual(check(NM + " " + em("a", "b.co")).code, 4);
+});
+test("the name refusal runs before the footer check", () => {
+  assert.strictEqual(check(NM + "\n", { author: true }).code, 8);
+});
+test("this test file and the checker never spell the name", () => {
+  for (const f of [__filename, path.join(__dirname, "pr-body-check.js")]) assert.strictEqual(check(fs.readFileSync(f, "utf8")).code === 8, false, f);
+});

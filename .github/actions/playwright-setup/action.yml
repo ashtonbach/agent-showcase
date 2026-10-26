@@ -1,0 +1,44 @@
+name: Playwright setup
+description: Install pinned Playwright, chromium and its system deps, caching the downloads.
+inputs:
+  image-os:
+    description: Runner image OS ($ImageOS), part of the cache key.
+    required: true
+  image-version:
+    description: Runner image version ($ImageVersion), part of the cache key.
+    required: true
+runs:
+  using: composite
+  steps:
+    # Playwright is pinned so the browser and apt caches below stay valid. Cold runs used to spend ~4 min
+    # in "install --with-deps" downloading fonts from a slow apt mirror (#329: 25.9 MB at 106 kB/s).
+    # The same browsers and system deps are still installed every run; only the downloads are cached.
+    - name: Install Playwright package
+      shell: bash
+      run: npm install --no-save --no-audit --no-fund playwright@1.64.1
+
+    - name: Cache Playwright browsers and apt packages
+      id: pw-cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/ms-playwright
+          ~/pw-apt-debs
+        key: pw-1.64.1-chromium-${{ runner.os }}-${{ runner.arch }}-${{ inputs.image-os }}-${{ inputs.image-version }}
+        restore-keys: pw-1.64.1-chromium-${{ runner.os }}-${{ runner.arch }}-${{ inputs.image-os }}-
+
+    - name: Install Playwright system deps
+      shell: bash
+      run: |
+        # Keep the .debs apt downloads so they can be cached, and seed apt with any cached ones.
+        echo 'APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99keep-debs >/dev/null
+        sudo rm -f /etc/apt/apt.conf.d/docker-clean
+        mkdir -p ~/pw-apt-debs
+        if ls ~/pw-apt-debs/*.deb >/dev/null 2>&1; then sudo cp ~/pw-apt-debs/*.deb /var/cache/apt/archives/; fi
+        npx playwright install-deps chromium
+        cp /var/cache/apt/archives/*.deb ~/pw-apt-debs/ 2>/dev/null || true
+
+    - name: Install Playwright browser
+      shell: bash
+      run: npx playwright install chromium
+

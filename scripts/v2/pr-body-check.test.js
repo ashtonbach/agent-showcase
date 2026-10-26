@@ -76,7 +76,7 @@ test("Merged-by line must be exactly the pending @ashtonbach line", () => {
 test("only the GitHub SSH form is an SSH remote; obfuscated @ forms are caught; asset names are not emails", () => {
   for (const t of [em("git", "gmail.com") + ":x", em("git", "gitlab.com") + ":o/r", "a&#" + "64;b.com", "a&#" + "x40;b.com", "a&" + "commat;b.com", "a" + "\uFF20" + "b.com", "mailto:a" + "%40b.com", "<a href=\"mailto:a" + "%40b.com\">x</a>"])
     assert.strictEqual(emailsIn(t), 1, t);
-  for (const t of ["logo" + AT + "2x.png", "icon" + AT + "3x.webp", "hero" + AT + "2x.JPG", em("git", "github.com") + ":ashtonbach/agent-showcase.git", "https://x.io/a" + "%40b.com"])
+  for (const t of ["logo" + AT + "2x.png", "icon" + AT + "3x.webp", "hero" + AT + "2x.JPG", em("git", "github.com") + ":ashtonbach/agent-showcase.git"])
     assert.strictEqual(emailsIn(t), 0, t);
 });
 test("the PR template, filled in, passes: footer is last", () => {
@@ -91,4 +91,13 @@ test("workflow runs main's checker: checks out the base sha, not the PR head", (
 });
 test("this test file has no literal email address", () => {
   assert.strictEqual(emailsIn(fs.readFileSync(__filename, "utf8")), 0);
+});
+test("spelled-out and spaced emails are caught; ordinary prose is not", () => {
+  // glue pieces at runtime so this file itself holds no spelled-out address
+  const g = (...p) => p.join("");
+  for (const t of [g("a [", "at] b [", "dot] com"), g("a(", "at)b.com"), g("a (", "at) b (", "dot) io"), g("a {", "AT} b {", "DOT} org"), g("a ", AT, " b.com"), g("a", AT, " b.com"), "a" + "&#" + "64b.com", "a" + "&#" + "x40b.com", "https://x.io/a" + "%40b.com", "a" + "%40" + "b.com"])
+    assert.strictEqual(emailsIn(t), 1, t);
+  for (const t of ["look at the dot", "meet at noon", "we met at the park. Then left", g("look (", "at) the dot"), "price @ 5.00 each", "thanks @ashtonbach.", "ping @Rowan at noon", "logo" + AT + "2x.png", em("git", "github.com") + ":o/r"])
+    assert.strictEqual(emailsIn(t), 0, t);
+  assert.strictEqual(check("x\n\nAuthor: AshtonBach Coder - Alder\nMerged by: pending, @ashtonbach (https://github.com/ashtonbach)", { author: true }).code, 0, "footer handle unaffected");
 });

@@ -1,7 +1,10 @@
 // PR body rules (10/25, @ashtonbach): no email address anywhere in a PR body (the GitHub noreply commit address included; it
 // belongs in commit trailers, never in bodies). SSH remotes ("git@github.com:owner/repo") are not emails.
-// Obfuscated "@" forms are decoded first: &#64; / &#x40; / &commat;, fullwidth U+FF20, and %40 inside a mailto: link.
-// Image/asset names like logo@2x.png are not emails. Spelled-out [at]/(at) is out of scope. Only "git@github.com:owner/repo" is an SSH remote.
+// Obfuscated forms are decoded first, then the normal email shape (local @ domain . tld) must still match, so prose such as
+// "look at the dot" or "meet at noon" is never flagged: &#64 / &#x40 (semicolon optional), &commat;, fullwidth U+FF20, %40 anywhere,
+// the words at / dot inside [] () {} become the at sign / a dot, and a lone at sign with spaces around it is joined up
+// (@handles have no space after the at sign, so they are untouched).
+// Image/asset names like logo@2x.png are not emails. Only "git@github.com:owner/repo" is an SSH remote.
 // --author: the body must END with the two footer lines, adjacent: "Author: AshtonBach Coder - <Agent>" then exactly
 // "Merged by: pending, @ashtonbach (https://github.com/ashtonbach)",
 // where <Agent> is a team agent (allowlist below; same list as agents-live kit/bin/pr-body-check.py).
@@ -17,7 +20,8 @@ const MERGED = "Merged by: pending, @ashtonbach (https://github.com/ashtonbach)"
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const FOOT = (reset) => new RegExp(`\\nAuthor: AshtonBach Coder(?: - (?:${TEAM.join("|")}))${reset ? "?" : ""}\\n${esc(MERGED)}[ \\t]*\\n*$`);
 const norm = (t) => "\n" + String(t || "").replace(/\r/g, "");
-const deob = (t) => t.replace(/&#0*64;|&#x0*40;|&commat;|\uFF20/gi, "@").replace(/mailto:[^\s<>()"']*/gi, (m) => m.replace(/%40/gi, "@"));
+const deob = (t) => t.replace(/&#0*64;?|&#x0*40;?|&commat;|\uFF20|%40/gi, "@").replace(/\s*[[({]\s*at\s*[\])}]\s*/gi, "@")
+  .replace(/\s*[[({]\s*dot\s*[\])}]\s*/gi, ".").replace(/[ \t]*@[ \t]+/g, "@");
 const emailsIn = (t) => (deob(norm(t)).replace(SSH, "").match(EMAIL) || []).filter((m) => !ASSET.test(m)).length;
 const isAgent = (n) => TEAM.includes(n);
 // CodeRabbit appends its release-notes block after the author's text; the footer check ignores that block (emails are still checked in it).

@@ -201,3 +201,46 @@ test("the name refusal runs before the footer check", () => {
 test("this test file and the checker never spell the name", () => {
   for (const f of [__filename, path.join(__dirname, "pr-body-check.js")]) assert.strictEqual(check(fs.readFileSync(f, "utf8")).code === 8, false, f);
 });
+// Round 5 (10/26): linear passes, limits, fail closed. Each worst case is exactly MAX_BODY characters.
+const { MAX_BODY, MAX_DEPTH } = require("./pr-body-check");
+const fill = (unit) => unit.repeat(Math.ceil(MAX_BODY / unit.length)).slice(0, MAX_BODY);
+const WORST = {
+  "unclosed [": fill("["), "unclosed (": fill("("), "unclosed ](": fill("]("), "[x]( runs": fill("[x]("),
+  "nested to the cap, repeated": fill("[".repeat(MAX_DEPTH) + "a" + "]".repeat(MAX_DEPTH)),
+  "many links": fill("[a](b) "), "many reference links": fill("[a][b] "), "many ref definitions": fill("\n[a]: b"),
+  "unclosed <": fill("<"), "unclosed comment": fill("<!--"), "many tags": fill("<b>"),
+  "letters": fill("a"), "a. runs": fill("a."), "spaces": fill(" "), "newlines": fill("\n"), "tabs then at signs": fill("\t@"),
+  "at sign space runs": fill("@ "), "bracketed at runs": fill(" (at"), "entities": fill("&#97;"), "markers in a word": fill("a*"),
+  "marker run": fill("*"), "combining marks": fill("a\u0301"), "zero width": fill("a\u200B"),
+  "unclosed bot blocks": fill("<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n"),
+};
+for (const [why, b] of Object.entries(WORST)) test("worst case under 1s at " + MAX_BODY + " chars: " + why, () => {
+  assert.strictEqual(b.length, MAX_BODY);
+  const t0 = process.hrtime.bigint(), r = check(b, { author: true }), ms = Number(process.hrtime.bigint() - t0) / 1e6;
+  assert.ok(ms < 1000, why + " took " + ms + "ms");
+  assert.ok([5, 8].includes(r.code), why + ": " + r.msg);
+  if (r.code === 8) assert.match(r.msg, /^PR_BODY_TOO_DEEP: /);
+});
+test("bodies over 65,536 characters are refused: exit 8 PR_BODY_TOO_LARGE (code points, not UTF-16 units)", () => {
+  assert.strictEqual(MAX_BODY, 65536);
+  const r = check("a".repeat(MAX_BODY + 1));
+  assert.strictEqual(r.code, 8); assert.match(r.msg, /^PR_BODY_TOO_LARGE: /);
+  assert.notStrictEqual(check("\u{1F600}".repeat(MAX_BODY)).msg.startsWith("PR_BODY_TOO_LARGE"), true);
+  const c = spawnSync(process.execPath, [path.join(__dirname, "pr-body-check.js")], { input: "a".repeat(MAX_BODY + 1), encoding: "utf8" });
+  assert.strictEqual(c.status, 8); assert.match(c.stderr, /PR_BODY_TOO_LARGE/);
+});
+test("markdown bracket nesting is capped at 32: 32 passes, 33 is exit 8 PR_BODY_TOO_DEEP", () => {
+  assert.strictEqual(MAX_DEPTH, 32);
+  assert.strictEqual(check("[".repeat(32) + "a" + "]".repeat(32)).code, 0);
+  const r = check("[".repeat(33) + "a" + "]".repeat(33));
+  assert.strictEqual(r.code, 8); assert.match(r.msg, /^PR_BODY_TOO_DEEP: /);
+  assert.strictEqual(check("[".repeat(33) + "a").code, 0, "unmatched brackets do not nest");
+});
+test("an unexpected internal error fails closed: exit 9 PR_BODY_CHECK_ERROR", () => {
+  const r = check({ toString() { throw new TypeError("boom"); } });
+  assert.strictEqual(r.code, 9); assert.match(r.msg, /^PR_BODY_CHECK_ERROR: /);
+});
+test("the workflow job has a 2-minute timeout", () => {
+  const y = fs.readFileSync(path.join(__dirname, "../../.github/workflows/pr-body-check.yml"), "utf8");
+  assert.match(y, /\n  pr-body-check:\n(?:    .*\n)*?    timeout-minutes: 2\n/);
+});

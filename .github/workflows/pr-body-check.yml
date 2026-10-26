@@ -14,15 +14,21 @@ jobs:
   pr-body-check:
     name: PR body check (no email)
     runs-on: ubuntu-latest
+    # 10/26 (review round 5): a hung or slow check fails in 2 minutes instead of holding the PR for the 6-hour default.
+    timeout-minutes: 2
     steps:
       # Run main's copy of the checker, never the PR's: a PR that edits the checker must not be able to pass itself.
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
-      - name: Fail on any email address, or a footer that is not the agent-named Author + Merged-by lines last
+      - name: Fail on any email address or the owner's first name (body and title), or a footer that is not the agent-named Author + Merged-by lines last
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
           # reset PRs (scripts/v2/reset.sh) are the one allowed exception: Author line may omit the agent name
           RESET_FLAG: "${{ startsWith(github.event.pull_request.title, 'Reset: ') && '--reset' || '' }}"
-        run: printf '%s' "$PR_BODY" | node scripts/v2/pr-body-check.js --author $RESET_FLAG
+        run: |
+          printf '%s' "$PR_BODY" | node scripts/v2/pr-body-check.js --author $RESET_FLAG
+          # the title gets the email and owner-name checks (no footer or heading rules)
+          printf '%s' "$PR_TITLE" | node scripts/v2/pr-body-check.js

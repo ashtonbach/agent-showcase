@@ -31,6 +31,7 @@ const pw = require("playwright");
 const log = (m) => console.log(`[${who}] ${m}`);
 const fails = [], ok = (c, m) => { log((c ? "PASS " : "FAIL ") + m); if (!c) fails.push(m); return !!c; };
 const visual = [];
+const { settle } = require("./settle");
 const { verdict: visualVerdict, noRefNote } = require("./visual-verdict");
 const { allowedOffsite, refSource, refMeta, exitCodeFor } = require("./offsite-allow");
 const skipped = [];
@@ -79,6 +80,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     const sec = page.locator(`section[data-lab="${slug}"]`);
     // Feature grid #117 (10/14): one width's first load on a fresh Vercel preview briefly served the page without the feature
     // (the next width and production both had it). Retry the load once after 5s before calling it missing; a real miss still fails.
+    // fixed 5s is a deliberate retry backoff for preview propagation (network), not a transition wait; kept as is
     if ((await sec.count()) === 0) { log("feature section not found on first load; retrying once in 5s"); await page.waitForTimeout(5000); await page.goto(url + (url.includes("?") ? "&" : "?") + "v=" + Date.now(), { waitUntil: "networkidle" }); }
     if (!ok((await sec.count()) === 1, `feature section [data-lab="${slug}"] present on first load`)) { await ctx.close(); continue; }
     await sec.scrollIntoViewIfNeeded();
@@ -123,7 +125,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
       await page.addStyleTag({ content: ".site-header{position:static !important}" }); // fixed header must not overlap the measured slot
       for (let k = 0; k < n; k++) {
         const a = arts.nth(k); if (!(await a.isVisible())) continue;
-        await a.scrollIntoViewIfNeeded(); await page.waitForTimeout(150);
+        await a.scrollIntoViewIfNeeded(); await a.evaluate((e) => e.tagName !== "IMG" || e.complete || new Promise((r) => { e.onload = e.onerror = r; })); await settle(page, null, { label: `artwork slot ${k + 1}` });
         const png = await a.screenshot({ animations: "disabled" });
         const st = await page.evaluate(ART_STATS, png.toString("base64"));
         ok(artVerdict(st), `artwork slot ${k + 1} shows real drawn art, not a blank box or flat colour (${(st.content * 100).toFixed(1)}% drawn pixels, min 3%; ${st.colors} main colours, min 2; luminance stddev ${st.sd.toFixed(1)}, min 4)`);
@@ -131,7 +133,7 @@ if (args[0] === "--compare") { // node check-feature.js --compare a.png b.png : 
     }
     if (spec.beforeShot) await spec.beforeShot({ page, sec, w });
     await page.addStyleTag({ content: ".site-header{position:static !important} vercel-live-feedback,#vercel-live-feedback-container{display:none !important}" }); // sticky header must not cover tall features in the shot
-    await page.waitForTimeout(300);
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))); await settle(page, `section[data-lab="${slug}"]`, { label: "feature before screenshot" });
     const shot = await sec.screenshot({ animations: "disabled", ...(spec.art ? { mask: [sec.locator("[data-art]")], maskColor: "#FF00FF" } : {}) });
     const name = `${slug}-${engine}-${w}.png`;
     fs.mkdirSync(outdir, { recursive: true });

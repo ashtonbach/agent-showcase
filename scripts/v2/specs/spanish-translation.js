@@ -6,7 +6,12 @@ const MSG = path.join(__dirname, "..", "..", "..", "messages");
 const S = 'section[data-lab="spanish-translation"]';
 const SPANISH = /[áéíóúñ¿¡]|\b(el|la|los|las|del|que|y|en|un|una|es|para|con|por|su|al|de)\b/i;
 const load = (f) => { try { return JSON.parse(fs.readFileSync(path.join(MSG, f), "utf8")); } catch (e) { return null; } };
-const read = (page) => page.evaluate((s) => {
+const { settle: settleIn } = require("../settle");
+// Read computed colors only after the toggle's CSS transitions have finished (run spanish-translation-1792995162: a .15s
+// background-color transition sampled after a 150ms wait read rgba(176,203,188,0.008)). Throws if it never settles.
+const settle = (page, timeoutMs = 3000) => settleIn(page, S, { label: "toggle", timeoutMs });
+const read = async (page) => { await settle(page); return readNow(page); };
+const readNow = (page) => page.evaluate((s) => {
   const sec = document.querySelector(s), t = (e) => (e ? e.textContent.trim() : null);
   const seg = (loc) => { const b = sec && sec.querySelector(`button[data-locale="${loc}"]`); if (!b) return null;
     const cs = getComputedStyle(b); return { text: t(b), pressed: b.getAttribute("aria-pressed"), bg: cs.backgroundColor, border: cs.borderTopWidth }; };
@@ -27,6 +32,7 @@ const segs = (ok, st, active, tag) => {
 };
 const label = (it) => (it.inSec ? (it.cta ? "call to action" : it.tag === "h2" ? "heading" : it.tag === "p" ? "paragraph" : it.tag) : "page") + ` [${it.key}]`;
 module.exports = {
+  _test: { settle, read, readNow, segs },
   async check({ page, ok }) {
     const en = load("en-US.json"), es = load("es-ES.json");
     ok(!!en, "messages/en-US.json present (base text)");
@@ -53,7 +59,7 @@ module.exports = {
   async after({ page, sec, ok }) {
     const en = load("en-US.json") || {}, es = load("es-ES.json") || {};
     const before = await read(page);
-    await sec.locator('button[data-locale="es-ES"]').click(); await page.waitForTimeout(150);
+    await sec.locator('button[data-locale="es-ES"]').click();
     const st = await read(page);
     segs(ok, st, "es-ES", "Español");
     for (const it of st.items) {
@@ -64,7 +70,7 @@ module.exports = {
       if (it.tag === "h1" || it.tag === "h2" || (it.text || "").length >= 30)
         ok(SPANISH.test(it.text || ""), `Español: ${n} reads as Spanish ("${(it.text || "").slice(0, 50)}")`);
     }
-    await sec.locator('button[data-locale="en-US"]').click(); await page.waitForTimeout(150);
+    await sec.locator('button[data-locale="en-US"]').click();
     const back = await read(page);
     segs(ok, back, "en-US", "English after switching back");
     for (const it of back.items) ok(it.text === en[it.key] && it.text === (before.items.find((x) => x.key === it.key) || {}).text, `English after switching back: ${label(it)} restored exactly`);

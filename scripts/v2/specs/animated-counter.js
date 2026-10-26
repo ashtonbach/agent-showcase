@@ -3,7 +3,8 @@ const vals = (sec) => sec.locator("strong[data-final]").evaluateAll((n) => n.map
 module.exports = {
   async check({ page, sec, ok }) {
     ok((await sec.locator("strong[data-final]").count()) === 3, "3 stats");
-    await page.waitForTimeout(1800);
+    // JS count-up (requestAnimationFrame), not a CSS transition: poll for the final values within the same 1.8s budget
+    await sec.evaluate((s) => new Promise((res) => { const t0 = performance.now(); const tick = () => [...s.querySelectorAll("strong[data-final]")].every((x) => x.textContent.trim() === x.dataset.final) || performance.now() - t0 > 1800 ? res() : requestAnimationFrame(tick); tick(); }));
     const v = await vals(sec);
     ok(v.every(([a, b]) => a === b), `stopped at exact values (${v.map((x) => x[0]).join(", ")})`);
   },

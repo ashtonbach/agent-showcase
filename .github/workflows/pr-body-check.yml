@@ -1,0 +1,28 @@
+name: PR body check
+
+# Own workflow so body edits (gh pr edit, the kits' gh api PATCH rewrites) re-run only this check, never Merge Gates:
+# an `edited` run of merge-gates.yml would report its gate jobs as skipped on the same head SHA.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pr-body-check:
+    name: PR body check (no email)
+    runs-on: ubuntu-latest
+    steps:
+      # Run main's copy of the checker, never the PR's: a PR that edits the checker must not be able to pass itself.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: Fail on any email address, or a footer that is not the agent-named Author + Merged-by lines last
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          # reset PRs (scripts/v2/reset.sh) are the one allowed exception: Author line may omit the agent name
+          RESET_FLAG: "${{ startsWith(github.event.pull_request.title, 'Reset: ') && '--reset' || '' }}"
+        run: printf '%s' "$PR_BODY" | node scripts/v2/pr-body-check.js --author $RESET_FLAG

@@ -52,11 +52,20 @@ git diff --cached --name-only | grep -vE '^(app/page\.tsx|app/lab/[a-z0-9-]+/.*|
 git diff --cached --name-only | grep -qx 'messages/en-US.json' && { echo "RESET_FAIL messages/en-US.json is base text"; exit 1; }
 git -c user.name=ashtonbach-coder -c user.email=334832153+ashtonbach-coder@users.noreply.github.com commit -qm "Reset: showcase back to base (Author: AshtonBach Coder)"
 BR=$(git rev-parse --abbrev-ref HEAD); git push -q origin "HEAD:$BR"
-URL=$(gh pr create -R "$R" -H "$BR" -B main -t "Reset: showcase back to base" -b "Author: AshtonBach Coder
-Merged by: (pending; automated reset), only after the reset gate passes (deletes under app/lab/ and reverts the two app/page.tsx lines only)
+# 10/25 8:39 PM CT: Author lines name the agent that did the work. ALLOWED EXCEPTION (10/25 9:13 PM CT): the reset runs from the
+# Lab reset workflow with no agent, so failing closed would block every reset; it logs a warning and uses "AshtonBach Coder"
+# alone unless RESET_AGENT is set. A set RESET_AGENT must be a team agent (pr-body-check.js --agent), or the reset stops.
+# The CI body check knows this exception by the "Reset: " title (--reset). The footer lines are still adjacent and last.
+if [ -n "${RESET_AGENT:-}" ]; then node "$(dirname "$0")/pr-body-check.js" --agent "$RESET_AGENT" || { echo "RESET_FAIL RESET_AGENT is not a team agent name"; exit 1; }
+else echo "::warning::RESET_NO_AGENT reset PR Author line has no agent name (automated reset)"; fi
+BODY="Removes the v2 feature(s) $(echo $FEAT | tr '\n' ' ')and restores the lab slot. The classic heading and image are unchanged.
 
-Removes the v2 feature(s) $(echo $FEAT | tr '\n' ' ')and restores the lab slot. The classic heading and image are unchanged.
+All named contributors are AI agents. A human designed the system and oversees it.
+Automated reset: merged only after the reset gate passes (deletes under app/lab/ and reverts the two app/page.tsx lines only).
 
-All named contributors are AI agents. A human designed the system and oversees it.")
+Author: AshtonBach Coder${RESET_AGENT:+ - $RESET_AGENT}
+Merged by: pending, @ashtonbach (https://github.com/ashtonbach)"
+printf '%s' "$BODY" | node "$(dirname "$0")/pr-body-check.js" --author --reset || { echo "RESET_FAIL PR body refused"; exit 1; }
+URL=$(gh pr create -R "$R" -H "$BR" -B main -t "Reset: showcase back to base" -b "$BODY")
 gh pr merge "$URL" -R "$R" --squash --delete-branch
 echo "RESET_MERGED $URL"

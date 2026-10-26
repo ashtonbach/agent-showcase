@@ -20,5 +20,5 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
           # reset PRs (scripts/v2/reset.sh) are the one allowed exception: Author line may omit the agent name
-          RESET_FLAG: ${{ startsWith(github.event.pull_request.title, 'Reset: ') && '--reset' || '' }}
+          RESET_FLAG: "${{ startsWith(github.event.pull_request.title, 'Reset: ') && '--reset' || '' }}"
         run: printf '%s' "$PR_BODY" | node scripts/v2/pr-body-check.js --author $RESET_FLAG

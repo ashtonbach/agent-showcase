@@ -23,6 +23,7 @@ const WIDTHS = [1280, 390];
       n++;
       await sec.locator(`xpath=.//button[@data-locale="${l}"][count(ancestor::section[@data-lab]) = ${depth}]`).click(); await page.waitForFunction((l) => document.documentElement.lang === l, l, { timeout: 3000 }).catch(() => {}); await settle(page, null, { label: `${w}px ${l}` });
       const r = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: window.innerWidth, lang: document.documentElement.lang, dir: document.documentElement.dir }));
+      const langOk = r.lang === l; if (!langOk) { fail++; console.log(`FAIL ${w}px ${l}: locale did not switch (html lang="${r.lang}", expected "${l}"); overflow below was measured on the wrong layout`); }
       const ok = r.sw <= r.iw; if (!ok) fail++;
       console.log(`${ok ? "PASS" : "FAIL"} ${w}px ${l} lang=${r.lang} dir=${r.dir || "ltr"} scrollWidth=${r.sw} innerWidth=${r.iw}`);
       if (SHOTS && l === "he-IL") await page.screenshot({ path: `${SHOTS}/he-${w}.png` });

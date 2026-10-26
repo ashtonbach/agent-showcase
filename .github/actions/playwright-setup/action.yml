@@ -1,5 +1,12 @@
 name: Playwright setup
 description: Install pinned Playwright, chromium and its system deps, caching the downloads.
+inputs:
+  image-os:
+    description: Runner image OS ($ImageOS), part of the cache key.
+    required: true
+  image-version:
+    description: Runner image version ($ImageVersion), part of the cache key.
+    required: true
 runs:
   using: composite
   steps:
@@ -17,8 +24,8 @@ runs:
         path: |
           ~/.cache/ms-playwright
           ~/pw-apt-debs
-        key: pw-1.64.1-chromium-${{ runner.os }}-${{ runner.arch }}-${{ env.ImageOS }}-${{ env.ImageVersion }}
-        restore-keys: pw-1.64.1-chromium-${{ runner.os }}-${{ runner.arch }}-${{ env.ImageOS }}-
+        key: pw-1.64.1-chromium-${{ runner.os }}-${{ runner.arch }}-${{ inputs.image-os }}-${{ inputs.image-version }}
+        restore-keys: pw-1.64.1-chromium-${{ runner.os }}-${{ runner.arch }}-${{ inputs.image-os }}-
 
     - name: Install Playwright system deps
       shell: bash

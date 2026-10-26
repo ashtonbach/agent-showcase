@@ -21,4 +21,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Read runner image
+        id: runner-image
+        run: |
+          echo "os=$ImageOS" >> "$GITHUB_OUTPUT"
+          echo "version=$ImageVersion" >> "$GITHUB_OUTPUT"
+
       - uses: ./.github/actions/playwright-setup
+        with:
+          image-os: ${{ steps.runner-image.outputs.os }}
+          image-version: ${{ steps.runner-image.outputs.version }}

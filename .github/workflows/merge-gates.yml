@@ -91,9 +91,19 @@ jobs:
         run: npm install --no-audit --no-fund
 
       # Pinned Playwright, chromium and its system deps, with downloads cached (see the action for why).
+      - name: Read runner image
+        id: runner-image
+        if: env.IS_FEATURE == 'true'
+        run: |
+          echo "os=$ImageOS" >> "$GITHUB_OUTPUT"
+          echo "version=$ImageVersion" >> "$GITHUB_OUTPUT"
+
       - name: Install Playwright
         if: env.IS_FEATURE == 'true'
         uses: ./.github/actions/playwright-setup
+        with:
+          image-os: ${{ steps.runner-image.outputs.os }}
+          image-version: ${{ steps.runner-image.outputs.version }}
 
       - name: Build site
         if: env.IS_FEATURE == 'true'
@@ -109,6 +119,7 @@ jobs:
               echo "Server is ready"
               exit 0
             fi
+            echo "Waiting for server... ($i/120)"
             sleep 0.5
           done
           echo "Server failed to start"

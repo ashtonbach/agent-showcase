@@ -58,3 +58,9 @@ test("reset PR body: checked before gh pr create, footer last, RESET_AGENT allow
   assert.ok(/--agent "\$RESET_AGENT" \|\| \{ echo "RESET_FAIL/.test(s), "invalid RESET_AGENT stops the reset");
   assert.ok(/ALLOWED EXCEPTION/.test(s), "exception documented");
 });
+test("CodeRabbit's appended release-notes block does not break footer-last, but emails in it still fail", () => {
+  const cr = (x) => "\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n## Summary\n* " + x + "\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->\n";
+  assert.strictEqual(check("x\n\n" + FOOT + cr("ok"), { author: true }).code, 0);
+  assert.strictEqual(check("x\n\n" + FOOT + cr("a@b.io"), { author: true }).code, 4);
+  assert.strictEqual(check("x\n\n" + FOOT + cr("ok") + "trailing\n", { author: true }).code, 5);
+});

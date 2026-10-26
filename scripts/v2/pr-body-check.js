@@ -13,7 +13,9 @@ const FOOT = (reset) => new RegExp(`\\nAuthor: AshtonBach Coder(?: - (?:${TEAM.j
 const norm = (t) => "\n" + String(t || "").replace(/\r/g, "");
 const emailsIn = (t) => (norm(t).replace(SSH, "").match(EMAIL) || []).length;
 const isAgent = (n) => TEAM.includes(n);
-const hasAgentAuthor = (t, reset = false) => FOOT(reset).test(norm(t));
+// CodeRabbit appends its release-notes block after the author's text; the footer check ignores that block (emails are still checked in it).
+const BOT_BLOCK = /\n?<!-- This is an auto-generated comment: release notes by coderabbit\.ai -->[\s\S]*?<!-- end of auto-generated comment: release notes by coderabbit\.ai -->\s*/g;
+const hasAgentAuthor = (t, reset = false) => FOOT(reset).test(norm(t).replace(BOT_BLOCK, "\n"));
 function check(body, { author = false, reset = false } = {}) {
   if (emailsIn(body)) return { code: 4, msg: `PR_BODY_EMAIL_REFUSED: body contains ${emailsIn(body)} email address(es); remove them` };
   if (author && !hasAgentAuthor(body, reset)) return { code: 5, msg: "PR_BODY_AUTHOR_REFUSED: body must end with 'Author: AshtonBach Coder - <Agent>' then 'Merged by: ...' (team agents: " + TEAM.join(", ") + ")" };

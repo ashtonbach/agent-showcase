@@ -11,8 +11,11 @@
 // --reset: the one allowed exception. Reset PRs (scripts/v2/reset.sh, run by the Lab reset workflow with no agent) may use
 // "Author: AshtonBach Coder" with no agent name; the footer must still be last and the email check still applies.
 // Always (every mode, no flag; 10/26, companion kit change): the owner's first name as a whole word, any case, is refused
-// (exit 8, PR_BODY_NAME_REFUSED). Credit goes to the requester handle in the footer. Substrings (a longer surname, the worker host) pass.
-// The name is built from parts so this public file never spells it.
+// (exit 8, PR_BODY_NAME_REFUSED). Credit goes to the requester handle in the footer. A longer word that contains it passes.
+// The name is built from parts so this public file never spells it. Before matching (same steps as the kit pr-body-check.py):
+// decode HTML entities, strip HTML comments, NFKC, drop combining marks, zero-width chars and soft hyphens, fold Cyrillic/Greek
+// look-alikes to Latin; then match twice with non-alphanumeric boundaries: once with * _ ` ~ inside words removed (bold or code marks inside the name) and
+// once with them as separators (name_x).
 // CLI: node scripts/v2/pr-body-check.js [--author [--reset]] < body   exit 4 = email, 8 = owner name, 5 = bad/missing footer
 //      node scripts/v2/pr-body-check.js --agent NAME                  exit 6 unless NAME is a team agent
 const TEAM = ["Ash", "Hazel", "Alder", "Rowan", "Cedar", "Linden"];
@@ -26,8 +29,21 @@ const norm = (t) => "\n" + String(t || "").replace(/\r/g, "");
 const deob = (t) => t.replace(/&#0*64;?|&#x0*40;?|&commat;|\uFF20|%40/gi, "@").replace(/\s*[[({]\s*at\s*[\])}]\s*/gi, "@")
   .replace(/\s*[[({]\s*dot\s*[\])}]\s*/gi, ".").replace(/[ \t]*@[ \t]+/g, "@");
 const emailsIn = (t) => (deob(norm(t)).replace(SSH, "").match(EMAIL) || []).filter((m) => !ASSET.test(m)).length;
-const NAME = new RegExp("\\b" + ["d", "a", "v", "i", "d"].join("") + "\\b", "i");
-const hasOwnerName = (t) => NAME.test(String(t || ""));
+const NAME = new RegExp("(?:^|[^a-z0-9])" + ["d", "a", "v", "i", "d"].join("") + "(?:[^a-z0-9]|$)");
+const NAMED_ENT = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\u00A0", shy: "\u00AD", zwj: "\u200D", zwnj: "\u200C" };
+// Cyrillic and Greek letters that look like Latin ones (lowercase after folding case).
+const HOMO = { "\u0430": "a", "\u0435": "e", "\u043E": "o", "\u0440": "p", "\u0441": "c", "\u0443": "y", "\u0445": "x", "\u0456": "i", "\u0458": "j",
+  "\u0501": "d", "\u0475": "v", "\u03B1": "a", "\u03B5": "e", "\u03BF": "o", "\u03C1": "p", "\u03BD": "v", "\u03B9": "i", "\u03C7": "x", "\u03BA": "k" };
+function nameFold(t) {
+  t = String(t || "");
+  for (let i = 0; i < 2; i++) t = t.replace(/&#(\d{1,7});?|&#x([0-9a-f]{1,6});?|&([a-z]{2,6});/gi, (m, d, h, n) => {
+    const c = d ? +d : h ? parseInt(h, 16) : null; if (c != null) return c <= 0x10ffff ? String.fromCodePoint(c) : "";
+    return NAMED_ENT[n.toLowerCase()] ?? m; });
+  t = t.replace(/<!--[\s\S]*?-->/g, "").normalize("NFKC").normalize("NFD").replace(/\p{M}/gu, "").replace(/[\u00AD\u180E\u200B-\u200F\u2060-\u2064\uFEFF]/g, "");
+  return [...t.toLowerCase()].map((c) => HOMO[c] || c).join("");
+}
+const hasOwnerName = (t) => { const f = nameFold(t);
+  return NAME.test(f.replace(/(?<=[a-z0-9])[*_`~]+(?=[a-z0-9])/g, "")) || NAME.test(f.replace(/[*_`~]/g, " ")); };
 const isAgent = (n) => TEAM.includes(n);
 // CodeRabbit appends its release-notes block after the author's text; the footer check ignores that block (emails are still checked in it).
 const BOT_BLOCK = /\n?<!-- This is an auto-generated comment: release notes by coderabbit\.ai -->[\s\S]*?<!-- end of auto-generated comment: release notes by coderabbit\.ai -->\s*/g;
@@ -38,7 +54,7 @@ function check(body, { author = false, reset = false } = {}) {
   if (author && !hasAgentAuthor(body, reset)) return { code: 5, msg: "PR_BODY_AUTHOR_REFUSED: body must end with 'Author: AshtonBach Coder - <Agent>' then '" + MERGED + "' (team agents: " + TEAM.join(", ") + ")" };
   return { code: 0, msg: "PR_BODY_OK" };
 }
-module.exports = { TEAM, MERGED, emailsIn, hasOwnerName, isAgent, hasAgentAuthor, check };
+module.exports = { TEAM, MERGED, emailsIn, hasOwnerName, nameFold, isAgent, hasAgentAuthor, check };
 if (require.main === module) {
   const a = process.argv.slice(2);
   if (a.includes("--agent")) { const n = a[a.indexOf("--agent") + 1] || ""; if (isAgent(n)) process.exit(0); console.error(`PR_AGENT_REFUSED: ${JSON.stringify(n)} is not a team agent name`); process.exit(6); }

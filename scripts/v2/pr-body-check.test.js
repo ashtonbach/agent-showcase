@@ -113,8 +113,41 @@ test("the owner's first name is refused as a whole word, any case, with or witho
   }
   assert.match(check(NM).msg, /^PR_BODY_NAME_REFUSED/);
 });
-test("only the whole word: a longer surname and the worker host pass", () => {
-  assert.strictEqual(check("## Requested change\n" + NM + "son and example." + NM.toLowerCase() + "site.example.com\n\n" + FOOT, { author: true }).code, 0);
+test("only the whole word: longer words that contain it pass", () => {
+  for (const ok of [NM + "son", "x" + NM.toLowerCase() + "y.example", NM.toLowerCase() + "2", "**" + NM + "son**"])
+    assert.strictEqual(check("## Requested change\n" + ok + "\n\n" + FOOT, { author: true }).code, 0, ok);
+});
+// Bypasses from review: every variant is built from NM at runtime.
+const ins = (s, i, x) => s.slice(0, i) + x + s.slice(i);
+const BYPASS = {
+  "Cyrillic a": NM.replace("a", "\u0430"),
+  "Cyrillic d and Greek v": NM.slice(0, 2) + "\u03BDi\u0501",
+  "zero-width space": ins(NM, 2, "\u200B"),
+  "zero-width joiner and BOM": ins(ins(NM, 1, "\u200D"), 4, "\uFEFF"),
+  "soft hyphen": ins(NM, 3, "\u00AD"),
+  "fullwidth D": "\uFF24" + NM.slice(1),
+  "math bold D": "\u{1D403}" + NM.slice(1),
+  "combining marks": [...NM].map((c) => c + "\u0301").join(""),
+  "bold inside the word": ins(ins(NM, 2, "**"), 1, "**"),
+  "code ticks inside the word": ins(ins(NM, 3, "`"), 2, "`"),
+  "strike and underscore inside the word": ins(ins(NM, 3, "~~"), 2, "_"),
+  "HTML comment inside the word": ins(NM, 3, "<!-- -->"),
+  "decimal entity": NM[0] + "&#" + NM.charCodeAt(1) + ";" + NM.slice(2),
+  "hex entity, no semicolon": NM.slice(0, 2) + "&#x" + NM.charCodeAt(2).toString(16) + NM.slice(3),
+  "soft hyphen entity": ins(NM, 2, "&shy;"),
+  "underscore suffix": NM + "_x",
+  "markdown bold around it": "**" + NM + "**",
+};
+for (const [why, b] of Object.entries(BYPASS)) test("name bypass refused: " + why, () => {
+  assert.strictEqual(check("## Requested change\n" + b + "\n\n" + FOOT, { author: true }).code, 8, JSON.stringify(b));
+  assert.strictEqual(cli(b + "\n" + FOOT, "--author"), 8, JSON.stringify(b));
+});
+test("the workflow also checks the PR title with the same checker", () => {
+  const y = fs.readFileSync(path.join(__dirname, "../../.github/workflows/pr-body-check.yml"), "utf8");
+  assert.match(y, /PR_TITLE: \$\{\{ github\.event\.pull_request\.title \}\}/);
+  assert.match(y, /printf '%s' "\$PR_TITLE" \| node scripts\/v2\/pr-body-check\.js\s*(\|\||$)/m);
+  assert.strictEqual(cli("Coder: " + NM + "'s feature"), 8);
+  assert.strictEqual(cli("Coder: feature grid (showcase v2)"), 0);
 });
 test("the email check runs before the name check", () => {
   assert.strictEqual(check(NM + " " + em("a", "b.co")).code, 4);

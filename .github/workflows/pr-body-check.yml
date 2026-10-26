@@ -20,9 +20,13 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
-      - name: Fail on any email address, the owner's first name, or a footer that is not the agent-named Author + Merged-by lines last
+      - name: Fail on any email address or the owner's first name (body and title), or a footer that is not the agent-named Author + Merged-by lines last
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
           # reset PRs (scripts/v2/reset.sh) are the one allowed exception: Author line may omit the agent name
           RESET_FLAG: "${{ startsWith(github.event.pull_request.title, 'Reset: ') && '--reset' || '' }}"
-        run: printf '%s' "$PR_BODY" | node scripts/v2/pr-body-check.js --author $RESET_FLAG
+        run: |
+          printf '%s' "$PR_BODY" | node scripts/v2/pr-body-check.js --author $RESET_FLAG
+          # the title gets the email and owner-name checks (no footer or heading rules)
+          printf '%s' "$PR_TITLE" | node scripts/v2/pr-body-check.js

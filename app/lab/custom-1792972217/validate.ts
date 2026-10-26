@@ -1,4 +1,4 @@
-// Shared by the form (client) and the submit route (server) so both apply the same rules.
+// Validation rules for the client-only Ask a Question form.
 export const QUESTION_MAX = 2000;
 export type Field = "name" | "email" | "question";
 export type Values = Record<Field, string>;

@@ -1,67 +1,45 @@
 "use client";
-
 import { useRef, useState } from "react";
 
-const FLOW = [
-  { id: "align", label: "Align", head: "Everyone reads the same brief", body: "A written spec lands before coding so review and QA judge one target." },
-  { id: "build", label: "Build", head: "Work stays inside the lab slot", body: "The coder changes only their lab folder and the shared import line on the page." },
-  { id: "verify", label: "Verify", head: "Checks run before merge", body: "Layout, gate, reviewer, and QA on the preview must pass before the branch ships." },
-];
+const STEPS = [
+  ["tab-plan", "panel-plan", "Plan", "Coordinator sets the run", "The coordinator assigns roles, shares the spec, and keeps handoffs on schedule."],
+  ["tab-build", "panel-build", "Build", "Coder ships in the lab slot", "The coder implements the scoped lab component, runs gate checks, and pushes for review."],
+  ["tab-verify", "panel-verify", "Verify", "Review and QA sign off", "Review checks accessibility and copy; QA validates layout and console behavior before merge."],
+] as const;
 
-export default function ShowcaseTabs() {
-  const [idx, setIdx] = useState(0);
-  const refs = useRef<HTMLButtonElement[]>([]);
-
-  function pick(n: number) {
-    const i = (n + FLOW.length) % FLOW.length;
-    setIdx(i);
-    refs.current[i]?.focus();
-  }
-
-  function onKey(event: React.KeyboardEvent) {
-    if (event.key === "ArrowRight") { event.preventDefault(); pick(idx + 1); }
-    else if (event.key === "ArrowLeft") { event.preventDefault(); pick(idx - 1); }
-  }
+export default function TabsLab() {
+  const [active, setActive] = useState(0);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const pick = (i: number) => {
+    setActive(i);
+    tabRefs.current[i]?.focus();
+  };
+  const onKey = (i: number, e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    pick(e.key === "ArrowRight" ? (i + 1) % 3 : (i + 2) % 3);
+  };
+  const css = `.lab-tabs{width:min(720px,100%);margin:8px auto 56px}.lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}.lab-tablist{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}.lab-tab{font:500 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mist);background:transparent;border:1px solid rgba(176,203,188,.28);border-radius:999px;padding:10px 16px;cursor:pointer}.lab-tab[aria-selected=true]{color:#121a16;background:var(--sage);border-color:var(--sage)}.lab-tab:focus-visible{outline:2px solid var(--sage);outline-offset:2px}.lab-pt{font:400 22px var(--serif);color:var(--mist);margin:0 0 12px}.lab-pb{margin:0;color:#f2efe6;line-height:1.55}@media(prefers-reduced-motion:reduce){.lab-tab{transition:none}}`;
 
   return (
-    <section data-lab="tabs" aria-labelledby="showcase-tabs-h2">
-      <h2 id="showcase-tabs-h2" className="lab-st-h2">How the showcase team works</h2>
-      <div className="lab-st-card">
-        <div role="tablist" aria-label="Team workflow" className="lab-st-list" onKeyDown={onKey}>
-          {FLOW.map((t, i) => (
-            <button
-              key={t.id}
-              type="button"
-              ref={(el) => { if (el) refs.current[i] = el; }}
-              role="tab"
-              id={`showcase-tab-${t.id}`}
-              aria-selected={i === idx}
-              aria-controls={`showcase-panel-${t.id}`}
-              tabIndex={i === idx ? 0 : -1}
-              className={i === idx ? "lab-st-tab on" : "lab-st-tab"}
-              onClick={() => pick(i)}
-            >
-              {t.label}
-            </button>
+    <section data-lab="tabs" aria-labelledby="lab-tabs-h" className="lab-tabs">
+      <style>{css}</style>
+      <h2 id="lab-tabs-h">How the showcase team works</h2>
+      <div className="lab-card">
+        <div role="tablist" aria-label="Showcase workflow steps" className="lab-tablist">
+          {STEPS.map(([tid, , label], i) => (
+            <button key={tid} ref={(el) => { tabRefs.current[i] = el; }} type="button" role="tab" id={tid}
+              aria-selected={active === i} aria-controls={STEPS[i][1]} tabIndex={active === i ? 0 : -1}
+              className="lab-tab" onClick={() => pick(i)} onKeyDown={(e) => onKey(i, e)}>{label}</button>
           ))}
         </div>
-        {FLOW.map((t, i) => (
-          <div key={t.id} role="tabpanel" id={`showcase-panel-${t.id}`} aria-labelledby={`showcase-tab-${t.id}`} hidden={i !== idx} className="lab-st-panel">
-            <h3 className="lab-st-h3">{t.head}</h3>
-            <p className="lab-st-p">{t.body}</p>
+        {STEPS.map(([tid, pid, , title, body], i) => (
+          <div key={pid} role="tabpanel" id={pid} aria-labelledby={tid} hidden={active !== i}>
+            <p className="lab-pt">{title}</p>
+            <p className="lab-pb">{body}</p>
           </div>
         ))}
       </div>
-      <style>{`
-.lab-st-h2{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--mist);margin:0 0 16px}
-.lab-st-card{width:min(720px,100%);margin:8px auto 56px;padding:24px;border:1px solid rgba(176,203,188,.28);border-radius:16px;box-sizing:border-box}
-.lab-st-list{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
-.lab-st-tab{font-family:var(--sans);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#e8eee9;background:transparent;border:1px solid rgba(176,203,188,.28);border-radius:999px;padding:8px 14px;cursor:pointer}
-.lab-st-tab.on{color:#121a16;background:var(--sage);border-color:var(--sage)}
-.lab-st-tab:focus-visible{outline:2px solid var(--sage);outline-offset:2px}
-.lab-st-h3{font-family:var(--serif);font-weight:400;font-size:20px;color:var(--mist);margin:0 0 8px}
-.lab-st-p{font-family:var(--sans);font-size:15px;line-height:1.5;color:#f2efe6;margin:0}
-      `}</style>
     </section>
   );
 }

@@ -2,12 +2,12 @@
 import { useState } from "react";
 
 const CARDS: { t: string; d: string }[] = [
-  { t: "Fresh branch", d: "Every feature starts from a clean branch off main, so changes never collide." },
-  { t: "Allowlist", d: "Only the files a feature is allowed to touch can change, keeping each lab contained." },
-  { t: "Size cap", d: "Every diff is capped in size, so each feature stays small and easy to review." },
-  { t: "No network", d: "Lab code may not fetch, call, or store anything over the network." },
-  { t: "Visual gate", d: "A layout check at phone and desktop widths runs before anything ships." },
-  { t: "Nightly reset", d: "The showcase resets nightly so every demo starts from the same clean slate." },
+  { t: "Fresh branch", d: "Each demo feature cuts a dedicated branch from main so parallel work stays merge-safe." },
+  { t: "Allowlist", d: "The gate only permits edits inside the lab folder and slot files named for that feature." },
+  { t: "Size cap", d: "A hard line limit on the diff forces small, reviewable slices instead of drive-by refactors." },
+  { t: "No network", d: "Render paths must not reach out for data—no HTTP clients, sockets, or beacons in lab code." },
+  { t: "Visual gate", d: "Automated layout snapshots at desktop and phone widths block horizontal scroll before push." },
+  { t: "Nightly reset", d: "Scheduled resets wipe transient state so the next agent run inherits the same starter tree." },
 ];
 
 const fb = (

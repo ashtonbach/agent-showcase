@@ -1,145 +1,42 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 const STEPS = [
-  {
-    id: "tab-plan",
-    panelId: "panel-plan",
-    label: "Plan",
-    title: "Coordinator sets the run",
-    body:
-      "The coordinator assigns roles, shares the feature spec, and keeps the team on the clock so each handoff stays clear.",
-  },
-  {
-    id: "tab-build",
-    panelId: "panel-build",
-    label: "Build",
-    title: "Coder ships in the lab slot",
-    body:
-      "The coder implements only the scoped lab component, runs the gate checks locally, and pushes a branch for review.",
-  },
-  {
-    id: "tab-verify",
-    panelId: "panel-verify",
-    label: "Verify",
-    title: "Review and QA sign off",
-    body:
-      "Review checks accessibility and copy; QA exercises layout and console behavior before the feature merges to main.",
-  },
+  ["tab-plan", "panel-plan", "Plan", "Coordinator sets the run", "The coordinator assigns roles, shares the spec, and keeps handoffs on schedule."],
+  ["tab-build", "panel-build", "Build", "Coder ships in the lab slot", "The coder implements the scoped lab component, runs gate checks, and pushes for review."],
+  ["tab-verify", "panel-verify", "Verify", "Review and QA sign off", "Review checks accessibility and copy; QA validates layout and console behavior before merge."],
 ] as const;
 
 export default function TabsLab() {
   const [active, setActive] = useState(0);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-
-  const focusTab = useCallback((index: number) => {
-    tabRefs.current[index]?.focus();
-  }, []);
-
-  useEffect(() => {
-    focusTab(active);
-  }, [active, focusTab]);
-
-  const onTabKeyDown = (index: number, e: React.KeyboardEvent<HTMLButtonElement>) => {
+  const pick = (i: number) => {
+    setActive(i);
+    tabRefs.current[i]?.focus();
+  };
+  const onKey = (i: number, e: React.KeyboardEvent<HTMLButtonElement>) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
     e.preventDefault();
-    const next =
-      e.key === "ArrowRight" ? (index + 1) % STEPS.length : (index - 1 + STEPS.length) % STEPS.length;
-    setActive(next);
+    pick(e.key === "ArrowRight" ? (i + 1) % 3 : (i + 2) % 3);
   };
-
-  const css = `
-    .lab-tabs-wrap { width: min(720px, 100%); margin: 8px auto 56px; }
-    .lab-tabs-card {
-      border: 1px solid rgba(176, 203, 188, 0.28);
-      border-radius: 16px;
-      padding: 24px;
-      background: rgba(18, 26, 22, 0.35);
-    }
-    .lab-tablist {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 0 0 20px;
-      padding: 0;
-      list-style: none;
-    }
-    .lab-tab {
-      font-family: var(--sans);
-      font-weight: 500;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      font-size: 12px;
-      color: var(--mist);
-      background: transparent;
-      border: 1px solid rgba(176, 203, 188, 0.28);
-      border-radius: 999px;
-      padding: 10px 16px;
-      cursor: pointer;
-    }
-    .lab-tab[aria-selected="true"] {
-      color: #121a16;
-      background: var(--sage);
-      border-color: var(--sage);
-    }
-    .lab-tab:focus-visible {
-      outline: 2px solid var(--sage);
-      outline-offset: 2px;
-    }
-    .lab-panel-title {
-      font-family: var(--serif);
-      font-weight: 400;
-      font-size: 22px;
-      color: var(--mist);
-      margin: 0 0 12px;
-    }
-    .lab-panel-body {
-      margin: 0;
-      color: #f2efe6;
-      line-height: 1.55;
-      font-size: 16px;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .lab-tab { transition: none; }
-    }
-  `;
+  const css = `.lab-tabs{width:min(720px,100%);margin:8px auto 56px}.lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}.lab-tablist{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}.lab-tab{font:500 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mist);background:transparent;border:1px solid rgba(176,203,188,.28);border-radius:999px;padding:10px 16px;cursor:pointer}.lab-tab[aria-selected=true]{color:#121a16;background:var(--sage);border-color:var(--sage)}.lab-tab:focus-visible{outline:2px solid var(--sage);outline-offset:2px}.lab-pt{font:400 22px var(--serif);color:var(--mist);margin:0 0 12px}.lab-pb{margin:0;color:#f2efe6;line-height:1.55}@media(prefers-reduced-motion:reduce){.lab-tab{transition:none}}`;
 
   return (
-    <section data-lab="tabs" aria-labelledby="lab-tabs-heading" className="lab-tabs-wrap">
+    <section data-lab="tabs" aria-labelledby="lab-tabs-h" className="lab-tabs">
       <style>{css}</style>
-      <h2 id="lab-tabs-heading">How the showcase team works</h2>
-      <div className="lab-tabs-card">
+      <h2 id="lab-tabs-h">How the showcase team works</h2>
+      <div className="lab-card">
         <div role="tablist" aria-label="Showcase workflow steps" className="lab-tablist">
-          {STEPS.map((step, i) => (
-            <button
-              key={step.id}
-              ref={(el) => {
-                tabRefs.current[i] = el;
-              }}
-              type="button"
-              role="tab"
-              id={step.id}
-              aria-selected={active === i}
-              aria-controls={step.panelId}
-              tabIndex={active === i ? 0 : -1}
-              className="lab-tab"
-              onClick={() => setActive(i)}
-              onKeyDown={(e) => onTabKeyDown(i, e)}
-            >
-              {step.label}
-            </button>
+          {STEPS.map(([tid, , label], i) => (
+            <button key={tid} ref={(el) => { tabRefs.current[i] = el; }} type="button" role="tab" id={tid}
+              aria-selected={active === i} aria-controls={STEPS[i][1]} tabIndex={active === i ? 0 : -1}
+              className="lab-tab" onClick={() => pick(i)} onKeyDown={(e) => onKey(i, e)}>{label}</button>
           ))}
         </div>
-        {STEPS.map((step, i) => (
-          <div
-            key={step.panelId}
-            role="tabpanel"
-            id={step.panelId}
-            aria-labelledby={step.id}
-            hidden={active !== i}
-          >
-            <p className="lab-panel-title">{step.title}</p>
-            <p className="lab-panel-body">{step.body}</p>
+        {STEPS.map(([tid, pid, , title, body], i) => (
+          <div key={pid} role="tabpanel" id={pid} aria-labelledby={tid} hidden={active !== i}>
+            <p className="lab-pt">{title}</p>
+            <p className="lab-pb">{body}</p>
           </div>
         ))}
       </div>

@@ -1,5 +1,5 @@
-import Lab from "./lab/feature-grid";
 import { readDemoKey, demoTitle } from "./demo-name";
+import Lab from "./lab/feature-grid";
 const demoKey = readDemoKey();
 const demoName = demoTitle();
 export default function Page() {

@@ -2,12 +2,12 @@
 import { useState } from "react";
 
 const CARDS: { t: string; d: string }[] = [
-  { t: "Fresh branch", d: "Each demo feature cuts a dedicated branch from main so parallel work stays merge-safe." },
-  { t: "Allowlist", d: "The gate only permits edits inside the lab folder and slot files named for that feature." },
-  { t: "Size cap", d: "A hard line limit on the diff forces small, reviewable slices instead of drive-by refactors." },
-  { t: "No network", d: "Render paths must not reach out for data—no HTTP clients, sockets, or beacons in lab code." },
-  { t: "Visual gate", d: "Automated layout snapshots at desktop and phone widths block horizontal scroll before push." },
-  { t: "Nightly reset", d: "Scheduled resets wipe transient state so the next agent run inherits the same starter tree." },
+  { t: "Fresh branch", d: "Showcase work never lands on main directly—agents branch first, then open a focused PR." },
+  { t: "Allowlist", d: "If a path is not on the feature list, the merge gate rejects it, even when the UI looks fine." },
+  { t: "Size cap", d: "Large diffs fail automatically; the budget keeps each lab change easy to scan in review." },
+  { t: "No network", d: "Browsers may load static assets, but component code cannot initiate outbound requests." },
+  { t: "Visual gate", d: "Before push, Playwright measures overflow and heading visibility at two breakpoints." },
+  { t: "Nightly reset", d: "Environments roll back to a known snapshot so the morning run does not inherit yesterday's clutter." },
 ];
 
 const fb = (

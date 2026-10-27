@@ -1,10 +1,7 @@
 "use client";
 import { useState } from "react";
 
-type Guardrail = {
-  title: string;
-  text: string;
-};
+type Guardrail = { title: string; text: string };
 
 const GUARDRAILS: Guardrail[] = [
   { title: "Fresh branch", text: "Every feature starts from a clean branch off main, so changes never collide." },
@@ -63,16 +60,13 @@ export default function Lab() {
 
 const css = `
 [data-lab="feature-grid"] { max-width: min(960px, 100%); margin: 8px auto 56px; color: #E8EEE9; }
+[data-lab="feature-grid"] h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; margin: 0 0 24px; color: #F2EFE6; }
 .lab-fg-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.lab-fg-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; background: transparent; display: flex; flex-direction: column; gap: 10px; }
+.lab-fg-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 10px; }
 .lab-fg-icon-wrap { display: inline-flex; width: 32px; height: 32px; color: var(--sage); }
 .lab-fg-fallback { display: inline-flex; width: 32px; height: 32px; color: var(--sage); background: rgba(176,203,188,0.16); border-radius: 8px; align-items: center; justify-content: center; }
 .lab-fg-title { font-family: var(--serif); font-weight: 400; font-size: 20px; margin: 0; color: #F2EFE6; }
 .lab-fg-text { font-size: 14px; line-height: 1.5; margin: 0; color: rgba(232,238,233,0.85); }
-@media (max-width: 900px) {
-  .lab-fg-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 600px) {
-  .lab-fg-grid { grid-template-columns: 1fr; }
-}
+@media (max-width: 900px) { .lab-fg-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .lab-fg-grid { grid-template-columns: 1fr; } }
 `;

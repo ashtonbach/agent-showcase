@@ -1,11 +1,12 @@
 import { readDemoKey, demoTitle } from "./demo-name";
+import Lab from "./lab/faq-accordion";
 const demoKey = readDemoKey();
 const demoName = demoTitle();
 export default function Page() {
   return (
     <div className="page-stack">
       <h1 className="demo-title" data-i18n={demoKey}>{demoName}</h1>
-      {/* lab:slot */}
+      <Lab /> {/* lab:slot */}
     </div>
   );
 }

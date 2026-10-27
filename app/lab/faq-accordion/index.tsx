@@ -54,7 +54,7 @@ export default function FaqAccordion() {
                 aria-controls={panelId}
                 onClick={() => toggle(item.id)}
               >
-                <span className="lab-faq-question">{item.question}</span>
+                {item.question}
                 <span className="lab-faq-icon" aria-hidden="true">{isOpen ? "−" : "+"}</span>
               </button>
               <div id={panelId} role="region" className="lab-faq-panel" hidden={!isOpen}>
@@ -71,7 +71,6 @@ export default function FaqAccordion() {
         .lab-faq-item:last-child { border-bottom: none; }
         .lab-faq-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; background: none; border: none; cursor: pointer; text-align: left; color: var(--mist); font-family: var(--sans); font-size: 16px; line-height: 1.4; }
         .lab-faq-trigger:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; border-radius: 4px; }
-        .lab-faq-question { flex: 1; }
         .lab-faq-icon { flex-shrink: 0; font-size: 22px; line-height: 1; color: var(--sage); width: 1.25em; text-align: center; }
         .lab-faq-panel { padding-bottom: 16px; }
         .lab-faq-answer { margin: 0; font-family: var(--sans); font-size: 15px; line-height: 1.55; color: #e8eee9; }

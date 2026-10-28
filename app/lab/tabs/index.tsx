@@ -1,45 +1,36 @@
 "use client";
-import { useRef, useState } from "react";
-
-const STEPS = [
-  ["tab-plan", "panel-plan", "Plan", "Coordinator sets the run", "The coordinator assigns roles, shares the spec, and keeps handoffs on schedule."],
-  ["tab-build", "panel-build", "Build", "Coder ships in the lab slot", "The coder implements the scoped lab component, runs gate checks, and pushes for review."],
-  ["tab-verify", "panel-verify", "Verify", "Review and QA sign off", "Review checks accessibility and copy; QA validates layout and console behavior before merge."],
-] as const;
-
+import { useState, type KeyboardEvent } from "react";
+const TITLE_ID = "lab-tabs-heading";
+const TABS = [
+  { id: "tab-plan", panel: "panel-plan", label: "Plan", body: "The coordinator scopes each run, assigns roles, and keeps the team on deadline." },
+  { id: "tab-build", panel: "panel-build", label: "Build", body: "Alder codes the lab feature from the spec while Hazel supplies artwork in parallel." },
+  { id: "tab-ship", panel: "panel-ship", label: "Ship", body: "Gates verify layout and build; Rowan reviews and Cedar signs off before merge." },
+];
+const css = `.lab-tabs-wrap{width:min(720px,100%);margin:8px auto 56px}.lab-tabs-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}.lab-tabs-title{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.2;color:var(--mist,#f2efe6);margin:0 0 20px}.lab-tablist{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}.lab-tab{font-family:var(--sans);font-weight:500;letter-spacing:.16em;text-transform:uppercase;font-size:12px;padding:10px 14px;border-radius:999px;border:1px solid rgba(176,203,188,.28);background:transparent;color:var(--mist,#e8eee9);cursor:pointer}.lab-tab[aria-selected="true"]{background:var(--sage);color:#121a16;border-color:var(--sage)}.lab-tab:focus-visible{outline:2px solid var(--sage);outline-offset:2px}.lab-tabpanel{color:var(--mist,#f2efe6);font-size:16px;line-height:1.55;margin:0}.lab-tabpanel[hidden]{display:none}@media (prefers-reduced-motion:reduce){.lab-tab{transition:none}}`;
 export default function TabsLab() {
-  const [active, setActive] = useState(0);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const pick = (i: number) => {
-    setActive(i);
-    tabRefs.current[i]?.focus();
-  };
-  const onKey = (i: number, e: React.KeyboardEvent<HTMLButtonElement>) => {
+  const [selected, setSelected] = useState(0);
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
     e.preventDefault();
-    pick(e.key === "ArrowRight" ? (i + 1) % 3 : (i + 2) % 3);
+    const next = (selected + (e.key === "ArrowRight" ? 1 : -1) + TABS.length) % TABS.length;
+    setSelected(next);
+    document.getElementById(TABS[next].id)?.focus();
   };
-  const css = `.lab-tabs{width:min(720px,100%);margin:8px auto 56px}.lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}.lab-tablist{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}.lab-tab{font:500 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mist);background:transparent;border:1px solid rgba(176,203,188,.28);border-radius:999px;padding:10px 16px;cursor:pointer}.lab-tab[aria-selected=true]{color:#121a16;background:var(--sage);border-color:var(--sage)}.lab-tab:focus-visible{outline:2px solid var(--sage);outline-offset:2px}.lab-pt{font:400 22px var(--serif);color:var(--mist);margin:0 0 12px}.lab-pb{margin:0;color:#f2efe6;line-height:1.55}@media(prefers-reduced-motion:reduce){.lab-tab{transition:none}}`;
-
   return (
-    <section data-lab="tabs" aria-labelledby="lab-tabs-h" className="lab-tabs">
-      <style>{css}</style>
-      <h2 id="lab-tabs-h">How the showcase team works</h2>
-      <div className="lab-card">
-        <div role="tablist" aria-label="Showcase workflow steps" className="lab-tablist">
-          {STEPS.map(([tid, , label], i) => (
-            <button key={tid} ref={(el) => { tabRefs.current[i] = el; }} type="button" role="tab" id={tid}
-              aria-selected={active === i} aria-controls={STEPS[i][1]} tabIndex={active === i ? 0 : -1}
-              className="lab-tab" onClick={() => pick(i)} onKeyDown={(e) => onKey(i, e)}>{label}</button>
+    <section className="lab-tabs-wrap" data-lab="tabs" aria-labelledby={TITLE_ID}>
+      <div className="lab-tabs-card">
+        <h2 id={TITLE_ID} className="lab-tabs-title">How the showcase team works</h2>
+        <div role="tablist" aria-label="Showcase workflow steps" className="lab-tablist" onKeyDown={onKeyDown}>
+          {TABS.map((t, i) => (
+            <button key={t.id} type="button" role="tab" id={t.id} className="lab-tab" aria-selected={selected === i} aria-controls={t.panel} tabIndex={selected === i ? 0 : -1} onClick={() => setSelected(i)}>{t.label}</button>
           ))}
         </div>
-        {STEPS.map(([tid, pid, , title, body], i) => (
-          <div key={pid} role="tabpanel" id={pid} aria-labelledby={tid} hidden={active !== i}>
-            <p className="lab-pt">{title}</p>
-            <p className="lab-pb">{body}</p>
-          </div>
+        {TABS.map((t, i) => (
+          <div key={t.panel} role="tabpanel" id={t.panel} className="lab-tabpanel" aria-labelledby={t.id} hidden={selected !== i}><p>{t.body}</p></div>
         ))}
       </div>
+      <style>{css}</style>
     </section>
   );
 }
+

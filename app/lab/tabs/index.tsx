@@ -1,36 +1,100 @@
 "use client";
-import { useState, type KeyboardEvent } from "react";
-const TITLE_ID = "lab-tabs-heading";
-const TABS = [
-  { id: "tab-plan", panel: "panel-plan", label: "Plan", body: "The coordinator scopes each run, assigns roles, and keeps the team on deadline." },
-  { id: "tab-build", panel: "panel-build", label: "Build", body: "Alder codes the lab feature from the spec while Hazel supplies artwork in parallel." },
-  { id: "tab-ship", panel: "panel-ship", label: "Ship", body: "Gates verify layout and build; Rowan reviews and Cedar signs off before merge." },
+
+import { useRef, useState, type KeyboardEvent } from "react";
+
+type TabDef = { id: string; label: string; heading: string; body: string };
+
+const TABS: TabDef[] = [
+  {
+    id: "pick",
+    label: "Pick",
+    heading: "Pick a feature",
+    body: "A visitor triggers a run; the coordinator hands the team one small, scoped feature to build.",
+  },
+  {
+    id: "build",
+    label: "Build",
+    heading: "Build in the open",
+    body: "The coder writes the component live in its own lab slot while a reviewer and QA wait on deck.",
+  },
+  {
+    id: "check",
+    label: "Check",
+    heading: "Check before merge",
+    body: "Automated gates and a reviewer check the live preview before any change reaches production.",
+  },
 ];
-const css = `.lab-tabs-wrap{width:min(720px,100%);margin:8px auto 56px}.lab-tabs-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}.lab-tabs-title{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.2;color:var(--mist,#f2efe6);margin:0 0 20px}.lab-tablist{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}.lab-tab{font-family:var(--sans);font-weight:500;letter-spacing:.16em;text-transform:uppercase;font-size:12px;padding:10px 14px;border-radius:999px;border:1px solid rgba(176,203,188,.28);background:transparent;color:var(--mist,#e8eee9);cursor:pointer}.lab-tab[aria-selected="true"]{background:var(--sage);color:#121a16;border-color:var(--sage)}.lab-tab:focus-visible{outline:2px solid var(--sage);outline-offset:2px}.lab-tabpanel{color:var(--mist,#f2efe6);font-size:16px;line-height:1.55;margin:0}.lab-tabpanel[hidden]{display:none}@media (prefers-reduced-motion:reduce){.lab-tab{transition:none}}`;
-export default function TabsLab() {
-  const [selected, setSelected] = useState(0);
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-    e.preventDefault();
-    const next = (selected + (e.key === "ArrowRight" ? 1 : -1) + TABS.length) % TABS.length;
-    setSelected(next);
-    document.getElementById(TABS[next].id)?.focus();
-  };
+
+const css = `
+.lab-tabs-section { width: min(720px, 100%); margin: 8px auto 56px; }
+.lab-tabs-title { font-family: var(--serif); font-weight: 400; font-size: 30px; margin: 0 0 20px; color: var(--mist); }
+.lab-tabs-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.lab-tabs-tab { font-family: var(--sans); font-size: 14px; color: var(--muted); background: transparent; border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 999px; padding: 8px 18px; cursor: pointer; }
+.lab-tabs-tab--active { color: var(--forest); background: var(--sage); border-color: var(--sage); }
+.lab-tabs-panel { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; }
+.lab-tabs-panel-heading { font-family: var(--serif); font-weight: 400; font-size: 22px; margin: 0 0 10px; color: var(--mist); }
+.lab-tabs-panel-body { margin: 0; color: var(--mist); line-height: 1.6; }
+@media (prefers-reduced-motion: no-preference) { .lab-tabs-tab { transition: background 0.15s ease, color 0.15s ease; } }
+@media (max-width: 420px) { .lab-tabs-tab { padding: 7px 14px; font-size: 13px; } .lab-tabs-panel { padding: 18px; } }
+`;
+
+export default function Tabs() {
+  const [active, setActive] = useState(0);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  function selectAndFocus(index: number) {
+    setActive(index);
+    tabRefs.current[index]?.focus();
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      selectAndFocus((index + 1) % TABS.length);
+    } else if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      selectAndFocus((index - 1 + TABS.length) % TABS.length);
+    }
+  }
+
   return (
-    <section className="lab-tabs-wrap" data-lab="tabs" aria-labelledby={TITLE_ID}>
-      <div className="lab-tabs-card">
-        <h2 id={TITLE_ID} className="lab-tabs-title">How the showcase team works</h2>
-        <div role="tablist" aria-label="Showcase workflow steps" className="lab-tablist" onKeyDown={onKeyDown}>
-          {TABS.map((t, i) => (
-            <button key={t.id} type="button" role="tab" id={t.id} className="lab-tab" aria-selected={selected === i} aria-controls={t.panel} tabIndex={selected === i ? 0 : -1} onClick={() => setSelected(i)}>{t.label}</button>
-          ))}
-        </div>
-        {TABS.map((t, i) => (
-          <div key={t.panel} role="tabpanel" id={t.panel} className="lab-tabpanel" aria-labelledby={t.id} hidden={selected !== i}><p>{t.body}</p></div>
+    <section data-lab="tabs" aria-labelledby="lab-tabs-heading" className="lab-tabs-section">
+      <h2 id="lab-tabs-heading" className="lab-tabs-title">How the showcase team works</h2>
+      <div role="tablist" aria-label="How the showcase team works" className="lab-tabs-list">
+        {TABS.map((tab, index) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            id={`lab-tabs-tab-${tab.id}`}
+            aria-selected={active === index}
+            aria-controls={`lab-tabs-panel-${tab.id}`}
+            tabIndex={active === index ? 0 : -1}
+            ref={(el) => {
+              tabRefs.current[index] = el;
+            }}
+            className={`lab-tabs-tab${active === index ? " lab-tabs-tab--active" : ""}`}
+            onClick={() => selectAndFocus(index)}
+            onKeyDown={(event) => handleKeyDown(event, index)}
+          >
+            {tab.label}
+          </button>
         ))}
       </div>
+      {TABS.map((tab, index) => (
+        <div
+          key={tab.id}
+          role="tabpanel"
+          id={`lab-tabs-panel-${tab.id}`}
+          aria-labelledby={`lab-tabs-tab-${tab.id}`}
+          hidden={active !== index}
+          className="lab-tabs-panel"
+        >
+          <h3 className="lab-tabs-panel-heading">{tab.heading}</h3>
+          <p className="lab-tabs-panel-body">{tab.body}</p>
+        </div>
+      ))}
       <style>{css}</style>
     </section>
   );
 }
-

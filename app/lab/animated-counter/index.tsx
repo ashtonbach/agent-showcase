@@ -1,108 +1,71 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-type Stat = { id: string; final: string; label: string };
-
-// Example data: illustrative figures, not measured in production.
+// Example data: illustrative counts, not pulled from a live metrics source.
+type Stat = { id: string; label: string; final: number; suffix: string };
 const STATS: Stat[] = [
-  { id: "downloads", final: "12,400", label: "Downloads" },
-  { id: "satisfaction", final: "98%", label: "Satisfaction" },
-  { id: "speed", final: "3.2x", label: "Faster workflows" },
+  { id: "builds", label: "Lab builds shipped", final: 128, suffix: "" },
+  { id: "checks", label: "Automated gate checks", final: 42, suffix: "" },
+  { id: "uptime", label: "Preview uptime", final: 99, suffix: "%" },
 ];
+const DURATION_MS = 1200;
+const fmt = (v: number, s: string) => `${v}${s}`;
 
-function parseFinal(final: string) {
-  const m = final.match(/^([\d,]+(?:\.\d+)?)/);
-  const num = m ? m[1] : "0";
-  const suffix = final.slice(num.length);
-  const useCommas = num.includes(",");
-  const clean = num.replace(/,/g, "");
-  const dot = clean.indexOf(".");
-  const decimals = dot === -1 ? 0 : clean.length - dot - 1;
-  return { value: parseFloat(clean), decimals, suffix, useCommas };
-}
-
-function formatValue(value: number, decimals: number, useCommas: boolean) {
-  const fixed = value.toFixed(decimals);
-  if (!useCommas) return fixed;
-  const [i, d] = fixed.split(".");
-  const grouped = i.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return d ? `${grouped}.${d}` : grouped;
-}
+const css = `
+.lab-counter-section { width: min(960px, 100%); margin: 8px auto 56px; }
+.lab-counter-title { font-family: var(--serif); font-weight: 400; font-size: 30px; margin: 0 0 20px; color: var(--mist); }
+.lab-counter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.lab-counter-card { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; text-align: center; }
+.lab-counter-value { display: block; font-family: var(--serif); font-size: 40px; color: var(--sage); }
+.lab-counter-label { display: block; margin-top: 8px; font-family: var(--sans); font-weight: 500; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--mist); }
+.lab-note { margin: 20px 0 0; color: var(--mist); font-family: var(--sans); font-size: 14px; }
+@media (max-width: 640px) { .lab-counter-grid { grid-template-columns: 1fr; } }
+`;
 
 export default function AnimatedCounter() {
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const valueRefs = useRef<Array<HTMLElement | null>>([]);
+  const ref = useRef<HTMLElement | null>(null);
+  const started = useRef(false);
+  const [counts, setCounts] = useState<number[]>(() => STATS.map(() => 0));
 
   useEffect(() => {
-    const section = sectionRef.current;
+    const section = ref.current;
     if (!section) return;
-    const setFinal = () => {
-      valueRefs.current.forEach((el, i) => el && (el.textContent = STATS[i].final));
-    };
-    const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      setFinal();
-      return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function tick(t0: number, now: number) {
+      const p = Math.min((now - t0) / DURATION_MS, 1);
+      setCounts(STATS.map((s) => Math.round(s.final * p)));
+      if (p < 1) requestAnimationFrame((n) => tick(t0, n));
     }
-    const duration = 1200;
-    const parsed = STATS.map((s) => parseFinal(s.final));
-    let frame = 0;
-    const tick = (startTime: number, now: number) => {
-      const t = Math.min((now - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      valueRefs.current.forEach((el, i) => {
-        if (!el) return;
-        if (t >= 1) {
-          el.textContent = STATS[i].final;
-        } else {
-          const p = parsed[i];
-          el.textContent = formatValue(p.value * eased, p.decimals, p.useCommas) + p.suffix;
-        }
-      });
-      if (t < 1) frame = requestAnimationFrame((n) => tick(startTime, n));
-    };
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          observer.disconnect();
-          frame = requestAnimationFrame((n) => tick(n, n));
-        }
-      }
-    }, { threshold: 0.3 });
-    observer.observe(section);
-    return () => {
-      observer.disconnect();
-      if (frame) cancelAnimationFrame(frame);
-    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting || started.current) return;
+        started.current = true;
+        io.disconnect();
+        if (reduce) setCounts(STATS.map((s) => s.final));
+        else requestAnimationFrame((t0) => tick(t0, t0));
+      },
+      { threshold: 0.3 }
+    );
+    io.observe(section);
+    return () => io.disconnect();
   }, []);
 
   return (
-    <section ref={sectionRef} data-lab="animated-counter" aria-labelledby="animated-counter-heading" className="lab-ac">
-      <style>{css}</style>
-      <h2 id="animated-counter-heading" className="lab-ac-title">Counting what matters</h2>
-      <div className="lab-ac-grid">
-        {STATS.map((stat, i) => (
-          <div className="lab-ac-card" key={stat.id}>
-            <strong className="lab-ac-value" data-final={stat.final} ref={(el) => { valueRefs.current[i] = el; }}>0</strong>
-            <span className="lab-ac-label">{stat.label}</span>
+    <section data-lab="animated-counter" aria-labelledby="lab-counter-heading" className="lab-counter-section" ref={ref}>
+      <h2 id="lab-counter-heading" className="lab-counter-title">By the numbers</h2>
+      <div className="lab-counter-grid">
+        {STATS.map((s, i) => (
+          <div key={s.id} className="lab-counter-card">
+            <strong className="lab-counter-value" data-final={fmt(s.final, s.suffix)}>{fmt(counts[i], s.suffix)}</strong>
+            <span className="lab-counter-label">{s.label}</span>
           </div>
         ))}
       </div>
-      <p className="lab-ac-note">Example data: downloads, satisfaction and workflow speed are illustrative, not measured.</p>
+      <p className="lab-note">Example data: illustrative counts shown for demonstration.</p>
+      <style>{css}</style>
     </section>
   );
 }
-
-const css = `
-.lab-ac { width: min(720px,100%); margin: 8px auto 56px; }
-.lab-ac-title { color: var(--mist); }
-.lab-ac-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
-.lab-ac-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
-.lab-ac-value { font-family: var(--serif); font-weight: 400; font-size: 34px; color: var(--sage); line-height: 1.1; }
-.lab-ac-label { font-family: var(--sans); font-weight: 500; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mist); }
-.lab-ac-note { margin-top: 16px; color: var(--mist); opacity: 0.75; font-family: var(--sans); font-size: 14px; }
-@media (max-width: 480px) { .lab-ac-grid { grid-template-columns: 1fr; } }
-`;

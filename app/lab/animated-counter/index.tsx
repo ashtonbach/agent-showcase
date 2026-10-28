@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 
 // Example data: illustrative counts, not pulled from a live metrics source.
 type Stat = { id: string; label: string; final: number; suffix: string };
-
 const STATS: Stat[] = [
   { id: "builds", label: "Lab builds shipped", final: 128, suffix: "" },
   { id: "checks", label: "Automated gate checks", final: 42, suffix: "" },
@@ -19,7 +18,7 @@ const css = `
 .lab-counter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .lab-counter-card { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; text-align: center; }
 .lab-counter-value { display: block; font-family: var(--serif); font-size: 40px; color: var(--sage); }
-.lab-counter-label { display: block; margin-top: 8px; font-family: var(--sans); font-weight: 500; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mist); }
+.lab-counter-label { display: block; margin-top: 8px; font-family: var(--sans); font-weight: 500; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--mist); }
 .lab-note { margin: 20px 0 0; color: var(--mist); font-family: var(--sans); font-size: 14px; }
 @media (max-width: 640px) { .lab-counter-grid { grid-template-columns: 1fr; } }
 `;
@@ -32,32 +31,21 @@ export default function AnimatedCounter() {
   useEffect(() => {
     const section = ref.current;
     if (!section) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    function start() {
-      if (started.current) return;
-      started.current = true;
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduce) {
-        setCounts(STATS.map((s) => s.final));
-        return;
-      }
-      const t0 = performance.now();
-      function tick(now: number) {
-        const p = Math.min((now - t0) / DURATION_MS, 1);
-        setCounts(STATS.map((s) => Math.round(s.final * p)));
-        if (p < 1) requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
+    function tick(t0: number, now: number) {
+      const p = Math.min((now - t0) / DURATION_MS, 1);
+      setCounts(STATS.map((s) => Math.round(s.final * p)));
+      if (p < 1) requestAnimationFrame((n) => tick(t0, n));
     }
 
     const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            start();
-            io.disconnect();
-          }
-        }
+      ([entry]) => {
+        if (!entry.isIntersecting || started.current) return;
+        started.current = true;
+        io.disconnect();
+        if (reduce) setCounts(STATS.map((s) => s.final));
+        else requestAnimationFrame((t0) => tick(t0, t0));
       },
       { threshold: 0.3 }
     );
@@ -71,9 +59,7 @@ export default function AnimatedCounter() {
       <div className="lab-counter-grid">
         {STATS.map((s, i) => (
           <div key={s.id} className="lab-counter-card">
-            <strong className="lab-counter-value" data-final={fmt(s.final, s.suffix)}>
-              {fmt(counts[i], s.suffix)}
-            </strong>
+            <strong className="lab-counter-value" data-final={fmt(s.final, s.suffix)}>{fmt(counts[i], s.suffix)}</strong>
             <span className="lab-counter-label">{s.label}</span>
           </div>
         ))}

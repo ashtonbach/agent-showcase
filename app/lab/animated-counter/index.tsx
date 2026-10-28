@@ -5,22 +5,22 @@ import { useEffect, useRef, useState } from "react";
 type Stat = { id: string; label: string; final: string };
 
 const STATS: Stat[] = [
-  { id: "stat-projects", label: "Projects shipped", final: "128" },
-  { id: "stat-feedback", label: "Faster feedback", final: "92%" },
-  { id: "stat-rating", label: "Average rating", final: "4.8" },
+  { id: "projects", label: "Projects shipped", final: "128" },
+  { id: "feedback", label: "Faster feedback", final: "92%" },
+  { id: "rating", label: "Average rating", final: "4.8" },
 ];
 
 function parseFinal(final: string) {
-  const match = final.match(/^(\D*)([\d.]+)(\D*)$/);
-  if (!match) return { prefix: "", target: 0, decimals: 0, suffix: final };
-  const [, prefix, numStr, suffix] = match;
-  const decimals = numStr.includes(".") ? numStr.split(".")[1].length : 0;
-  return { prefix, target: parseFloat(numStr), decimals, suffix };
+  const m = final.match(/^(\D*)([\d.]+)(\D*)$/);
+  if (!m) return { prefix: "", target: 0, decimals: 0, suffix: final };
+  const decimals = m[2].includes(".") ? m[2].split(".")[1].length : 0;
+  return { prefix: m[1], target: parseFloat(m[2]), decimals, suffix: m[3] };
 }
 
-function easeOutCubic(t: number) {
-  return Math.max(0, 1 - Math.pow(1 - t, 3));
-}
+const ease = (t: number) => Math.max(0, 1 - Math.pow(1 - t, 3));
+const prefersReduce = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export default function AnimatedCounter() {
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -28,48 +28,37 @@ export default function AnimatedCounter() {
   const [started, setStarted] = useState(false);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
+    if (prefersReduce()) {
       setStarted(true);
       return;
     }
-    const observer = new IntersectionObserver(
+    const section = sectionRef.current;
+    if (!section) return;
+    const io = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setStarted(true);
-            observer.disconnect();
-          }
-        });
+        if (entries.some((e) => e.isIntersecting)) {
+          setStarted(true);
+          io.disconnect();
+        }
       },
       { threshold: 0.3 }
     );
-    observer.observe(section);
-    return () => observer.disconnect();
+    io.observe(section);
+    return () => io.disconnect();
   }, []);
 
   useEffect(() => {
     if (!started) return;
-    const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      valueRefs.current.forEach((el, i) => {
-        if (el) el.textContent = STATS[i].final;
-      });
+    if (prefersReduce()) {
+      valueRefs.current.forEach((el, i) => el && (el.textContent = STATS[i].final));
       return;
     }
     const parsed = STATS.map((s) => parseFinal(s.final));
-    const duration = 1200;
-    const startTime = performance.now();
+    const start = performance.now();
     let frame = 0;
     const tick = (now: number) => {
-      const progress = Math.min(1, (now - startTime) / duration);
-      const eased = easeOutCubic(progress);
+      const progress = Math.min(1, (now - start) / 1200);
+      const eased = ease(progress);
       parsed.forEach((p, i) => {
         const el = valueRefs.current[i];
         if (!el) return;
@@ -101,9 +90,7 @@ export default function AnimatedCounter() {
               <strong
                 className="lab-ac-value"
                 data-final={stat.final}
-                ref={(el) => {
-                  valueRefs.current[i] = el;
-                }}
+                ref={(el) => (valueRefs.current[i] = el)}
               >
                 0
               </strong>

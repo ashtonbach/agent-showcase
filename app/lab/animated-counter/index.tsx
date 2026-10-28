@@ -19,7 +19,7 @@ function parseFinal(final: string) {
 }
 
 function easeOutCubic(t: number) {
-  return 1 - Math.pow(1 - t, 3);
+  return Math.max(0, 1 - Math.pow(1 - t, 3));
 }
 
 export default function AnimatedCounter() {
@@ -121,7 +121,7 @@ export default function AnimatedCounter() {
 const css = `
 .lab-animated-counter { width: min(720px, 100%); margin: 8px auto 56px; }
 .lab-ac-title { font-family: var(--serif); font-weight: 400; font-size: 30px; color: var(--mist); margin-bottom: 20px; }
-.lab-ac-card { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; background: rgba(232, 238, 233, 0.03); }
+.lab-ac-card { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; background-color: #182720; }
 .lab-ac-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center; }
 .lab-ac-stat { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .lab-ac-value { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 6vw, 44px); color: var(--sage); line-height: 1; }

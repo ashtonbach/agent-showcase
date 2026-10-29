@@ -60,7 +60,7 @@ const css = `
   .lab-pt-art-fallback { background: rgba(176, 203, 188, 0.14); }
   .lab-pt-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .lab-pt-card { position: relative; border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; background: rgba(18, 26, 22, 0.35); }
-  .lab-pt-card-best { border-color: var(--sage); background: rgba(176, 203, 188, 0.12); }
+  .lab-pt-card-best { border: 2px solid var(--sage); background: rgba(18, 26, 22, 0.6); }
   .lab-pt-badge {
     position: absolute; top: -12px; right: 20px; font-family: var(--sans); font-weight: 500; font-size: 11px;
     letter-spacing: 0.16em; text-transform: uppercase; color: #121A16; background: var(--sage); border-radius: 999px; padding: 4px 12px;

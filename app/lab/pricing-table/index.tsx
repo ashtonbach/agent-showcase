@@ -56,7 +56,7 @@ export default function PricingTable() {
 .lab-pricing-art-fb{background:linear-gradient(135deg,rgba(176,203,188,.35),rgba(20,32,26,.6))}
 .lab-pricing-grid{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:min(960px,100%);margin:8px auto 24px;padding:0}
 .lab-pricing-tier{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px;background:transparent;min-width:0}
-.lab-pricing-best{border-color:var(--sage);background:rgba(176,203,188,.08)}
+.lab-pricing-best{border-color:var(--sage);background:#1a2b23}
 .lab-pricing-badge{align-self:flex-start;background:var(--sage);color:#121A16;font-family:var(--sans);font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
 .lab-pricing-name{font-family:var(--serif);font-weight:400;font-size:22px;color:var(--mist);margin:0}
 .lab-pricing-price{font-family:var(--sans);font-size:28px;color:var(--mist);margin:0;display:flex;align-items:baseline;gap:4px}

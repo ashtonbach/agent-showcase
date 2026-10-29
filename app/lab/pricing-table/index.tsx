@@ -2,20 +2,21 @@
 
 import { useState } from "react";
 
-const PLANS = [
-  { name: "Solo", price: "$12", perks: ["1 seat", "Email support", "Weekly digest"] },
-  { name: "Crew", price: "$34", perks: ["10 seats", "Priority support", "Live reporting"] },
-  { name: "Fleet", price: "$89", perks: ["Unlimited seats", "Dedicated contact", "Custom exports"] },
+type Tier = { name: string; price: string; items: string[]; best?: boolean };
+
+const TIERS: Tier[] = [
+  { name: "Starter", price: "$9", items: ["1 workspace", "Community support", "Core building blocks"] },
+  { name: "Growth", price: "$29", items: ["5 workspaces", "Priority support", "Advanced components"], best: true },
+  { name: "Scale", price: "$79", items: ["Unlimited workspaces", "Dedicated support", "Custom components"] },
 ];
 
-export default function Lab() {
+export default function PricingTable() {
   const [artBroken, setArtBroken] = useState(false);
 
   return (
-    <section data-lab="pricing-table" aria-labelledby="pricing-table-title" className="lab-pt">
-      <h2 id="pricing-table-title" className="lab-pt-title">Pricing table</h2>
+    <section data-lab="pricing-table" aria-labelledby="pricing-table-h2">
       {artBroken ? (
-        <span data-art="fallback" aria-hidden="true" className="lab-pt-art lab-pt-art-fallback" />
+        <span data-art="fallback" aria-hidden="true" className="lab-pricing-art lab-pricing-art-fb" />
       ) : (
         <img
           data-art="image"
@@ -23,55 +24,49 @@ export default function Lab() {
           width={720}
           height={160}
           alt=""
-          className="lab-pt-art"
+          className="lab-pricing-art"
           onError={() => setArtBroken(true)}
         />
       )}
-      <ul className="lab-pt-grid">
-        {PLANS.map((plan, i) => {
-          const popular = i === 1;
-          return (
-            <li
-              key={plan.name}
-              className={popular ? "lab-pt-card lab-pt-card-best" : "lab-pt-card"}
-              data-best={popular ? "true" : undefined}
-            >
-              {popular && <span className="lab-pt-badge">Popular</span>}
-              <h3 className="lab-pt-name">{plan.name}</h3>
-              <p className="lab-pt-price">{plan.price}<span className="lab-pt-period"> per month</span></p>
-              <ul className="lab-pt-perks">
-                {plan.perks.map((perk) => <li key={perk}>{perk}</li>)}
-              </ul>
-            </li>
-          );
-        })}
+      <h2 id="pricing-table-h2">Simple, transparent pricing</h2>
+      <ul className="lab-pricing-grid">
+        {TIERS.map((t) => (
+          <li
+            key={t.name}
+            className={`lab-pricing-tier${t.best ? " lab-pricing-best" : ""}`}
+            data-best={t.best ? "true" : undefined}
+          >
+            {t.best && <span className="lab-pricing-badge">Popular</span>}
+            <h3 className="lab-pricing-name">{t.name}</h3>
+            <p className="lab-pricing-price">
+              {t.price}
+              <span className="lab-pricing-per"> per month</span>
+            </p>
+            <ul className="lab-pricing-items">
+              {t.items.map((it) => (
+                <li key={it}>{it}</li>
+              ))}
+            </ul>
+          </li>
+        ))}
       </ul>
-      <p className="lab-pt-note">Example data: these plans are illustrative; the showcase sells nothing.</p>
-      <style>{css}</style>
+      <p className="lab-note">Example data: these plans are illustrative; the showcase sells nothing.</p>
+      <style>{`
+.lab-pricing-art{display:block;width:100%;max-width:960px;aspect-ratio:9/2;margin:0 auto 24px;border-radius:16px;object-fit:cover}
+.lab-pricing-art-fb{background:linear-gradient(135deg,rgba(176,203,188,.35),rgba(20,32,26,.6))}
+.lab-pricing-grid{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:min(960px,100%);margin:8px auto 24px;padding:0}
+.lab-pricing-tier{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px;background:transparent;min-width:0}
+.lab-pricing-best{border-color:var(--sage);background:#1a2b23}
+.lab-pricing-badge{align-self:flex-start;background:var(--sage);color:#121A16;font-family:var(--sans);font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+.lab-pricing-name{font-family:var(--serif);font-weight:400;font-size:22px;color:var(--mist);margin:0}
+.lab-pricing-price{font-family:var(--sans);font-size:28px;color:var(--mist);margin:0;display:flex;align-items:baseline;gap:4px}
+.lab-pricing-per{font-size:14px;color:rgba(232,238,233,.72);font-weight:400}
+.lab-pricing-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.lab-pricing-items li{font-family:var(--sans);font-size:15px;color:#e8eee9;padding-left:18px;position:relative}
+.lab-pricing-items li::before{content:"✓";position:absolute;left:0;color:var(--sage)}
+.lab-note{width:min(960px,100%);margin:0 auto 56px;font-family:var(--sans);font-size:14px;color:rgba(232,238,233,.72)}
+@media (max-width:760px){.lab-pricing-grid{grid-template-columns:1fr}}
+      `}</style>
     </section>
   );
 }
-
-const css = `
-  .lab-pt { width: min(960px, 100%); margin: 8px auto 56px; color: #F2EFE6; }
-  .lab-pt-title { font-family: var(--serif); font-weight: 400; font-size: 30px; margin: 0 0 16px; }
-  .lab-pt-art, .lab-pt-art-fallback { display: block; width: 100%; aspect-ratio: 9 / 2; border-radius: 16px; margin: 0 0 24px; }
-  .lab-pt-art { height: auto; }
-  .lab-pt-art-fallback { background: rgba(176, 203, 188, 0.14); }
-  .lab-pt-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .lab-pt-card { position: relative; border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; background: rgba(18, 26, 22, 0.35); }
-  .lab-pt-card-best { border: 2px solid var(--sage); background: rgba(18, 26, 22, 0.6); }
-  .lab-pt-badge {
-    position: absolute; top: -12px; right: 20px; font-family: var(--sans); font-weight: 500; font-size: 11px;
-    letter-spacing: 0.16em; text-transform: uppercase; color: #121A16; background: var(--sage); border-radius: 999px; padding: 4px 12px;
-  }
-  .lab-pt-name { font-family: var(--serif); font-weight: 400; font-size: 20px; margin: 0 0 8px; }
-  .lab-pt-price { font-size: 28px; margin: 0 0 16px; }
-  .lab-pt-period { font-size: 14px; color: #E8EEE9; }
-  .lab-pt-perks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 15px; color: #E8EEE9; }
-  .lab-pt-note { margin: 24px 0 0; font-size: 14px; color: #E8EEE9; }
-  @media (max-width: 760px) {
-    .lab-pt-grid { grid-template-columns: 1fr; }
-    .lab-pt-badge { right: auto; left: 20px; }
-  }
-`;

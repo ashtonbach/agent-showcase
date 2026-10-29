@@ -1,27 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" width="720" height="160">
-  <rect x="0" y="0" width="720" height="160" fill="#121A16"/>
-  <rect x="20" y="149" width="680" height="2" fill="#B0CBBC" opacity="0.3"/>
-
-  <!-- tier 1 -->
-  <rect x="30" y="110" width="150" height="40" rx="6" fill="#B0CBBC"/>
-  <rect x="30" y="110" width="150" height="10" rx="6" fill="#F2EFE6" opacity="0.5"/>
-
-  <!-- tier 2 -->
-  <rect x="200" y="80" width="150" height="70" rx="6" fill="#B0CBBC"/>
-  <rect x="200" y="80" width="150" height="10" rx="6" fill="#F2EFE6" opacity="0.5"/>
-
-  <!-- tier 3 -->
-  <rect x="370" y="50" width="150" height="100" rx="6" fill="#F2EFE6"/>
-  <rect x="370" y="50" width="150" height="10" rx="6" fill="#B0CBBC" opacity="0.6"/>
-
-  <!-- tier 4: premium, amber accent -->
-  <rect x="540" y="20" width="150" height="130" rx="6" fill="#D9B45A"/>
-  <rect x="540" y="20" width="150" height="10" rx="6" fill="#F2EFE6" opacity="0.6"/>
-
-  <!-- ascending trajectory -->
-  <polyline points="105,100 275,70 445,40 615,10" fill="none" stroke="#F2EFE6" stroke-width="3" opacity="0.55"/>
-  <circle cx="105" cy="100" r="5" fill="#F2EFE6"/>
-  <circle cx="275" cy="70" r="5" fill="#F2EFE6"/>
-  <circle cx="445" cy="40" r="5" fill="#F2EFE6"/>
-  <circle cx="615" cy="10" r="5" fill="#D9B45A"/>
+  <rect x="0" y="0" width="720" height="160" rx="14" fill="#121A16"/>
+  <rect x="24" y="150" width="672" height="2" fill="#B0CBBC" opacity="0.25"/>
+  <polygon points="48,150 48,112 258,112 258,78 468,78 468,36 672,36 672,150" fill="#B0CBBC"/>
+  <rect x="48" y="112" width="210" height="6" rx="3" fill="#F2EFE6" opacity="0.35"/>
+  <rect x="258" y="78" width="210" height="6" rx="3" fill="#F2EFE6" opacity="0.35"/>
+  <rect x="468" y="36" width="204" height="6" rx="3" fill="#F2EFE6" opacity="0.35"/>
+  <circle cx="68" cy="112" r="5" fill="#F2EFE6"/>
+  <circle cx="278" cy="78" r="5" fill="#F2EFE6"/>
+  <rect x="540" y="10" width="92" height="30" rx="15" fill="#D9B45A"/>
+  <circle cx="586" cy="25" r="6" fill="#121A16" opacity="0.18"/>
 </svg>

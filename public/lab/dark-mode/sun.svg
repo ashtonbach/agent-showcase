@@ -1,11 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#B0CBBC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="12" cy="12" r="4"/>
-  <line x1="12" y1="2" x2="12" y2="4"/>
-  <line x1="12" y1="20" x2="12" y2="22"/>
-  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-  <line x1="2" y1="12" x2="4" y2="12"/>
-  <line x1="20" y1="12" x2="22" y2="12"/>
-  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <circle cx="12" cy="12" r="3.25" stroke="#B0CBBC" stroke-width="1.5"/>
+  <circle cx="12" cy="12" r="1" fill="#D9B45A"/>
+  <path stroke="#B0CBBC" stroke-width="1.5" stroke-linecap="round" d="M12 3.5V5.5M12 18.5V20.5M3.5 12H5.5M18.5 12H20.5M6.05 6.05L7.46 7.46M16.54 16.54L17.95 17.95M6.05 17.95L7.46 16.54M16.54 7.46L17.95 6.05"/>
 </svg>

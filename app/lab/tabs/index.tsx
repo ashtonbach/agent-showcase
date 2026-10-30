@@ -1,5 +1,5 @@
 "use client";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 const STEPS: readonly [string, string][] = [
   ["Design", "Hazel shapes Forest Mist and artwork before code lands."],
@@ -10,15 +10,24 @@ const STEPS: readonly [string, string][] = [
 export default function TabsLab() {
   const baseId = useId().replace(/:/g, "");
   const [selected, setSelected] = useState(0);
-  const pick = (index: number) =>
+  const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const focusNext = useRef(false);
+  const pick = (index: number, moveFocus = false) => {
+    focusNext.current = moveFocus;
     setSelected((index + STEPS.length) % STEPS.length);
+  };
+  useEffect(() => {
+    if (!focusNext.current) return;
+    focusNext.current = false;
+    tabsRef.current[selected]?.focus();
+  }, [selected]);
   const onKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      pick(selected + 1);
+      pick(selected + 1, true);
     } else if (event.key === "ArrowLeft") {
       event.preventDefault();
-      pick(selected - 1);
+      pick(selected - 1, true);
     }
   };
 
@@ -34,6 +43,9 @@ export default function TabsLab() {
             return (
               <button
                 key={tabId}
+                ref={(node) => {
+                  tabsRef.current[index] = node;
+                }}
                 type="button"
                 role="tab"
                 id={tabId}

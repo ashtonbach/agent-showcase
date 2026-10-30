@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "ab-theme";
-const HEADING_ID = "lab-dark-mode-h2";
+const HEADING_ID = "darkmode-heading";
 
 let cachedLightMark: string | null = null;
 
@@ -14,12 +14,7 @@ const themeRules = [
   'html[data-theme="light"] .label,html[data-theme="light"] .nav-list a,html[data-theme="light"] .site-footer,html[data-theme="light"] .site-disclaimer{color:#2F5A46}',
   'html[data-theme="light"] .nav-list a:hover,html[data-theme="light"] .nav-list a:focus-visible{color:#14201A}',
   'html[data-theme="light"] .brand{color:#14201A}',
-  'html[data-theme="light"] .skip-link.label{color:#2F5A46}',
-  'html[data-theme="light"] .skip-link:focus{background:#14201A;color:#E8EEE9}',
-  'html[data-theme="light"] .demo-title,html[data-theme="light"] main.page [data-lab]>h2{color:#14201A!important}',
   'html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}',
-  ".lab-dm-h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:0 0 16px;color:var(--mist,#f2efe6)}",
-  'html[data-theme="light"] .lab-dm-h2{color:#14201A}',
   ".lab-darkmode-shell{width:min(720px,100%);margin:8px auto 56px}",
   ".lab-darkmode-panel{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}",
   'html[data-theme="light"] .lab-darkmode-panel{background:rgba(255,255,255,.55);border-color:rgba(47,90,70,.28)}',
@@ -120,14 +115,12 @@ export default function DarkModeLab() {
   return (
     <section data-lab="dark-mode" aria-labelledby={HEADING_ID}>
       <style>{themeCss}</style>
-      <h2 id={HEADING_ID} className="lab-dm-h2">
-        Dark mode toggle
-      </h2>
+      <h2 id={HEADING_ID}>Dark mode toggle</h2>
       <div className="lab-darkmode-shell">
         <article className="lab-darkmode-panel">
           <p className="lab-darkmode-copy">
-            Switch the whole page between the default forest look and a light mist palette. Your
-            choice is saved in this browser for the next visit.
+            Forest is the default; mist lightens the header, footer, and this card. We remember
+            your pick in this browser only.
           </p>
           <button
             type="button"
@@ -135,7 +128,7 @@ export default function DarkModeLab() {
             aria-pressed={isDark}
             onClick={onFlip}
           >
-            {isDark ? "Switch to light" : "Switch to dark"}
+            {isDark ? "Show light theme" : "Show dark theme"}
           </button>
         </article>
       </div>

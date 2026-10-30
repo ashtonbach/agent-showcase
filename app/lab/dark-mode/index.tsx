@@ -19,8 +19,7 @@ const themeRules = [
   'html[data-theme="light"] .demo-title,html[data-theme="light"] main.page [data-lab]>h2{color:#14201A!important}',
   'html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}',
   ".lab-dm-shell{width:min(720px,100%);margin:8px auto 56px}",
-  ".lab-dm-h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:0 0 16px;color:var(--mist,#f2efe6)}",
-  ".lab-dm-panel{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}",
+  ".lab-dm-panel{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px}",
   'html[data-theme="light"] .lab-dm-panel{background:rgba(255,255,255,.55);border-color:rgba(47,90,70,.28)}',
   ".lab-dm-copy{margin:0 0 18px;line-height:1.55;font-size:16px;color:var(--mist,#e8eee9)}",
   'html[data-theme="light"] .lab-dm-copy{color:#14201A}',
@@ -80,7 +79,7 @@ export default function DarkModeLab() {
       <div className="lab-dm-shell">
         <article className="lab-dm-panel">
           <p className="lab-dm-copy">
-            Toggle the full page between forest dark and mist light. The setting stays on this device after reload.
+            Toggle forest dark or mist light for the whole page; your pick persists on this device.
           </p>
           <button type="button" className="lab-dm-switch" aria-pressed={dark} onClick={() => apply(!dark)}>
             {dark ? "Switch to light" : "Switch to dark"}

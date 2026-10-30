@@ -23,56 +23,55 @@ const ITEMS = [
 
 export default function FaqAccordion() {
   const [open, setOpen] = useState<number | null>(null);
-  const titleId = "faq-showcase-heading";
+  const titleId = "lab-faq-heading";
+
+  function toggle(i: number) {
+    setOpen((prev) => (prev === i ? null : i));
+  }
 
   return (
-    <section data-lab="faq-accordion" aria-labelledby={titleId}>
-      <h2 id={titleId}>How the showcase works</h2>
+    <section data-lab="faq-accordion" aria-labelledby={titleId} className="lab-root">
+      <style>{`
+.lab-root{width:min(720px,100%);margin:8px auto 56px;padding:0 16px;box-sizing:border-box}
+.lab-title{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.25;color:var(--mist);margin:0 0 20px}
+.lab-card{border:1px solid rgba(176,203,188,0.28);border-radius:16px;padding:8px 24px;background:rgba(18,26,22,0.35)}
+.lab-item{border-bottom:1px solid rgba(176,203,188,0.18)}
+.lab-item:last-child{border-bottom:none}
+.lab-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0;background:none;border:none;cursor:pointer;text-align:left;color:var(--mist);font-family:var(--sans);font-size:16px;line-height:1.4}
+.lab-trigger:focus-visible{outline:2px solid var(--sage);outline-offset:2px;border-radius:4px}
+.lab-icon{flex-shrink:0;color:var(--sage);font-size:22px;line-height:1;width:24px;text-align:center}
+.lab-panel{padding:0 0 18px;color:#E8EEE9;font-family:var(--sans);font-size:15px;line-height:1.55}
+.lab-panel p{margin:0}
+@media (prefers-reduced-motion:reduce){.lab-trigger,.lab-panel{transition:none}}
+`}</style>
+      <h2 id={titleId} className="lab-title">
+        How the showcase works
+      </h2>
       <div className="lab-card">
         {ITEMS.map((item, i) => {
-          const panelId = `faq-panel-${i}`;
+          const panelId = `lab-faq-panel-${i}`;
           const expanded = open === i;
           return (
-            <div className="lab-row" key={item.q}>
+            <div key={item.q} className="lab-item">
               <button
                 type="button"
                 className="lab-trigger"
                 aria-expanded={expanded}
                 aria-controls={panelId}
-                onClick={() => setOpen(expanded ? null : i)}
+                onClick={() => toggle(i)}
               >
-                <span className="lab-q">{item.q}</span>
-                <span className="lab-sign" aria-hidden="true">
+                <span>{item.q}</span>
+                <span className="lab-icon" aria-hidden="true">
                   {expanded ? "−" : "+"}
                 </span>
               </button>
-              <div
-                id={panelId}
-                role="region"
-                hidden={!expanded}
-                className="lab-panel"
-              >
+              <div id={panelId} role="region" className="lab-panel" hidden={!expanded}>
                 <p>{item.a}</p>
               </div>
             </div>
           );
         })}
       </div>
-      <style>{`
-        [data-lab="faq-accordion"] { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #F2EFE6); }
-        [data-lab="faq-accordion"] h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.2; margin: 0 0 20px; }
-        [data-lab="faq-accordion"] .lab-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 8px 24px 16px; }
-        [data-lab="faq-accordion"] .lab-row + .lab-row { border-top: 1px solid rgba(176,203,188,0.2); }
-        [data-lab="faq-accordion"] .lab-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-        [data-lab="faq-accordion"] .lab-trigger:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
-        [data-lab="faq-accordion"] .lab-q { flex: 1; font-family: var(--serif); font-size: 18px; line-height: 1.35; }
-        [data-lab="faq-accordion"] .lab-sign { flex-shrink: 0; width: 28px; text-align: center; font-size: 22px; color: var(--sage); line-height: 1; }
-        [data-lab="faq-accordion"] .lab-panel { padding: 0 0 16px; }
-        [data-lab="faq-accordion"] .lab-panel p { margin: 0; font-family: var(--sans); font-size: 15px; line-height: 1.55; color: #E8EEE9; }
-        @media (prefers-reduced-motion: reduce) {
-          [data-lab="faq-accordion"] * { transition: none !important; }
-        }
-      `}</style>
     </section>
   );
 }

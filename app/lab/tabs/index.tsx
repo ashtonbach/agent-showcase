@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
-const PANELS: [string, string, string][] = [
+const PANELS: [string, string][] = [
   ["Design", "Hazel defines Forest Mist layout and any artwork while the run clock is still moving."],
   ["Build", "Alder implements the lab spec, keeps the diff inside the gate cap, and ships on the run branch."],
   ["Review", "Rowan reviews accessibility and copy; Cedar signs off QA before the coordinator merges."],

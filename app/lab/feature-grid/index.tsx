@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-// 150 changed lines: scripts/v2/gate.js MAX. Widths 1280 and 390: scripts/v2/check-feature.js.
-// Nightly 3 AM CT: app/lab/README.md and .github/workflows/lab-reset.yml.
+// 150-line cap: scripts/v2/gate.js. Widths 1280 and 390: scripts/v2/check-feature.js.
+// Cleared at 3 AM CT: app/lab/README.md and .github/workflows/lab-reset.yml.
 const CARDS = [
   ["Fresh branch", "Each run starts on a new branch cut from origin/base, with this lab slot empty."],
   ["Allowlist", "Only this lab folder, the page slot, and current.json are allowed to change."],
@@ -13,26 +13,9 @@ const CARDS = [
   ["Nightly reset", "The lab sandbox is cleared at 3 AM CT so the next run starts empty."],
 ] as const;
 
-const MARK = [
-  "M8 16h16M16 8v16",
-  "M9 17l5 5 10-11",
-  "M8 22V10h16v12",
-  "M8 15h16M12 15V11a4 4 0 018 0v4",
-  "M7 22l6-13 4 8 2-4 6 9",
-  "M16 7v5l4 2M16 7a9 9 0 110 18 9 9 0 010-18",
-];
+const MARK = ["M8 16h16M16 8v16", "M9 17l5 5 10-11", "M8 22V10h16v12", "M8 15h16M12 15V11a4 4 0 018 0v4", "M7 22l6-13 4 8 2-4 6 9", "M16 7v5l4 2M16 7a9 9 0 110 18 9 9 0 010-18"];
 
-const CSS = `
-.lab-fg{color:var(--mist,#E8EEE9)}
-.lab-fg-list{list-style:none;margin:8px auto 56px;padding:0;width:min(960px,100%);display:grid;grid-template-columns:1fr;gap:16px}
-.lab-fg-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;min-width:0}
-.lab-fg-mark{width:32px;height:32px;display:block}
-.lab-fg-card h3{font-family:var(--serif);font-weight:400;font-size:22px;line-height:1.2;margin:14px 0 8px;color:#F2EFE6}
-.lab-fg-card p{margin:0;font-size:15px;line-height:1.55;color:#E8EEE9}
-@media(min-width:601px){.lab-fg-list{grid-template-columns:1fr 1fr}}
-@media(min-width:901px){.lab-fg-list{grid-template-columns:1fr 1fr 1fr}}
-@media(prefers-reduced-motion:reduce){.lab-fg-card{transition:none}}
-`;
+const CSS = ".lab-fg{color:var(--mist,#E8EEE9)}.lab-fg-list{list-style:none;margin:8px auto 56px;padding:0;width:min(960px,100%);display:grid;grid-template-columns:1fr;gap:16px}.lab-fg-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;min-width:0}.lab-fg-mark{width:32px;height:32px;display:block}.lab-fg-card h3{font-family:var(--serif);font-weight:400;font-size:22px;line-height:1.2;margin:14px 0 8px;color:#F2EFE6}.lab-fg-card p{margin:0;font-size:15px;line-height:1.55;color:#E8EEE9}@media(min-width:601px){.lab-fg-list{grid-template-columns:1fr 1fr}}@media(min-width:901px){.lab-fg-list{grid-template-columns:1fr 1fr 1fr}}@media(prefers-reduced-motion:reduce){.lab-fg-card{transition:none}}";
 
 export default function FeatureGrid() {
   const [miss, setMiss] = useState([false, false, false, false, false, false]);
@@ -58,14 +41,7 @@ export default function FeatureGrid() {
                 width={32}
                 height={32}
                 alt=""
-                onError={() =>
-                  setMiss((prev) => {
-                    if (prev[i]) return prev;
-                    const next = prev.slice();
-                    next[i] = true;
-                    return next;
-                  })
-                }
+                onError={() => setMiss((prev) => (prev[i] ? prev : prev.map((v, j) => j === i || v)))}
               />
             )}
             <h3>{title}</h3>

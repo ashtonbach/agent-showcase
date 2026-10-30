@@ -1,5 +1,5 @@
 "use client";
-import { useId, useState } from "react";
+import { useId, useLayoutEffect, useState } from "react";
 const STEPS = [
   { label: "Design", text: "Hazel sets Forest Mist visuals for each lab slot before code starts." },
   { label: "Build", text: "Alder codes the spec in the lab slot and ships through the kit gate." },
@@ -10,11 +10,10 @@ export default function TabsLab() {
   const titleId = `${uid}-title`;
   const [active, setActive] = useState(0);
   const n = STEPS.length;
-  const select = (index: number) => {
-    const next = ((index % n) + n) % n;
-    setActive(next);
-    requestAnimationFrame(() => document.getElementById(`${uid}-tab-${next}`)?.focus());
-  };
+  useLayoutEffect(() => {
+    document.getElementById(`${uid}-tab-${active}`)?.focus();
+  }, [active, uid]);
+  const select = (index: number) => setActive(((index % n) + n) % n);
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "ArrowRight") { event.preventDefault(); select(active + 1); }
     else if (event.key === "ArrowLeft") { event.preventDefault(); select(active - 1); }

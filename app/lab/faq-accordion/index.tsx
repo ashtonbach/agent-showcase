@@ -19,54 +19,56 @@ const FAQ = [
     q: "Where does the feature render on the page?",
     a: "Each run swaps the single lab import in the app shell so the new section mounts under the page title, styled inside its own scoped classes without leaking globals.",
   },
-];
+] as const;
+
+const css = `
+.lab-faq { width: min(720px, 100%); margin: 8px auto 56px; }
+.lab-faq-title { font-family: var(--serif); font-weight: 400; font-size: 30px; margin: 0 0 20px; color: var(--mist); }
+.lab-faq-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; overflow: hidden; }
+.lab-faq-row + .lab-faq-row { border-top: 1px solid rgba(176,203,188,0.28); }
+.lab-faq-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; background: transparent; border: 0; color: var(--mist); font-family: var(--sans); font-size: 15px; font-weight: 500; text-align: left; cursor: pointer; }
+.lab-faq-q { flex: 1; line-height: 1.4; }
+.lab-faq-icon { flex-shrink: 0; font-size: 20px; line-height: 1; color: var(--sage); }
+.lab-faq-panel { padding: 0 24px 20px; }
+.lab-faq-a { margin: 0; color: var(--mist); line-height: 1.6; font-size: 15px; }
+@media (max-width: 420px) { .lab-faq-trigger { padding: 16px 18px; font-size: 14px; } .lab-faq-panel { padding: 0 18px 16px; } }
+`;
 
 export default function FaqAccordion() {
   const [open, setOpen] = useState<number | null>(null);
-
-  function toggle(i: number) {
-    setOpen((prev) => (prev === i ? null : i));
-  }
+  const toggle = (index: number) => setOpen((cur) => (cur === index ? null : index));
 
   return (
-    <section data-lab="faq-accordion" aria-labelledby="faq-accordion-h2">
-      <h2 id="faq-accordion-h2" className="lab-faq-h2">How the showcase works</h2>
+    <section data-lab="faq-accordion" aria-labelledby="lab-faq-heading" className="lab-faq">
+      <style>{css}</style>
+      <h2 id="lab-faq-heading" className="lab-faq-title">
+        How the showcase works
+      </h2>
       <div className="lab-faq-card">
-        {FAQ.map((item, i) => {
-          const isOpen = open === i;
-          const panelId = `faq-accordion-panel-${i}`;
+        {FAQ.map((item, index) => {
+          const expanded = open === index;
+          const panelId = `lab-faq-panel-${index}`;
           return (
-            <div key={i} className="lab-faq-item">
+            <div key={panelId} className="lab-faq-row">
               <button
                 type="button"
                 className="lab-faq-trigger"
-                aria-expanded={isOpen}
+                aria-expanded={expanded}
                 aria-controls={panelId}
-                onClick={() => toggle(i)}
+                onClick={() => toggle(index)}
               >
                 <span className="lab-faq-q">{item.q}</span>
-                <span className="lab-faq-icon" aria-hidden="true">{isOpen ? "−" : "+"}</span>
+                <span className="lab-faq-icon" aria-hidden="true">
+                  {expanded ? "−" : "+"}
+                </span>
               </button>
-              <div id={panelId} role="region" hidden={!isOpen} className="lab-faq-panel">
+              <div id={panelId} role="region" className="lab-faq-panel" hidden={!expanded}>
                 <p className="lab-faq-a">{item.a}</p>
               </div>
             </div>
           );
         })}
       </div>
-      <style>{`
-.lab-faq-h2{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--mist);margin:0 0 16px}
-.lab-faq-card{width:min(720px,100%);margin:8px auto 56px;padding:24px;border:1px solid rgba(176,203,188,.28);border-radius:16px;box-sizing:border-box}
-.lab-faq-item{border-bottom:1px solid rgba(176,203,188,.2)}
-.lab-faq-item:last-child{border-bottom:none}
-.lab-faq-trigger{width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 0;background:transparent;border:none;cursor:pointer;text-align:left;color:#f2efe6;font-family:var(--sans);font-size:15px;line-height:1.4}
-.lab-faq-trigger:focus-visible{outline:2px solid var(--sage);outline-offset:2px;border-radius:4px}
-.lab-faq-q{flex:1}
-.lab-faq-icon{flex-shrink:0;font-size:20px;line-height:1;color:var(--sage);font-family:var(--sans)}
-.lab-faq-panel{padding:0 0 14px}
-.lab-faq-a{margin:0;font-family:var(--sans);font-size:15px;line-height:1.55;color:#e8eee9}
-@media (prefers-reduced-motion:reduce){.lab-faq-panel{transition:none}}
-      `}</style>
     </section>
   );
 }

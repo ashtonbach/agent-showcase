@@ -1,8 +1,7 @@
 "use client";
+import { useState } from "react";
 
-import { useCallback, useState } from "react";
-
-const ITEMS = [
+const FAQ = [
   {
     q: "What is the agent showcase?",
     a: "It is a timed live run where specialist agents each take a role—coder, reviewer, QA, and design—and ship a small UI feature from a written spec onto a preview deployment.",
@@ -19,51 +18,47 @@ const ITEMS = [
     q: "Where does the feature render on the page?",
     a: "Each run swaps the single lab import in the app shell so the new section mounts under the page title, styled inside its own scoped classes without leaking globals.",
   },
-];
+] as const;
 
 export default function FaqAccordion() {
   const [open, setOpen] = useState<number | null>(null);
-  const toggle = useCallback((i: number) => {
-    setOpen((prev) => (prev === i ? null : i));
-  }, []);
+  const titleId = "lab-faq-title";
+
+  const toggle = (i: number) => setOpen((prev) => (prev === i ? null : i));
 
   return (
-    <section data-lab="faq-accordion" aria-labelledby="lab-faq-title">
+    <section data-lab="faq-accordion" aria-labelledby={titleId} className="lab-wrap">
       <style>{`
-        [data-lab="faq-accordion"] { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #f2efe6); }
-        [data-lab="faq-accordion"] h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.25; margin: 0 0 20px; }
-        .lab-card { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 8px 24px; background: rgba(18, 26, 22, 0.35); }
-        .lab-row { border-bottom: 1px solid rgba(176, 203, 188, 0.18); }
-        .lab-row:last-child { border-bottom: none; }
-        .lab-trigger { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 0; background: none; border: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-        .lab-trigger:focus-visible { outline: 2px solid var(--sage, #b0cbbc); outline-offset: 2px; }
-        .lab-q { flex: 1; font-family: var(--serif); font-size: 18px; line-height: 1.35; }
-        .lab-icon { flex-shrink: 0; width: 28px; height: 28px; display: grid; place-items: center; font-size: 22px; line-height: 1; color: var(--sage, #b0cbbc); }
-        .lab-panel { padding: 0 0 16px 0; }
-        .lab-panel p { margin: 0; font-family: var(--sans); font-size: 15px; line-height: 1.55; color: #e8eee9; }
-        @media (prefers-reduced-motion: reduce) { .lab-trigger, .lab-panel { transition: none; } }
+        .lab-wrap { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #F2EFE6); font-family: var(--sans, system-ui, sans-serif); }
+        .lab-wrap h2 { font-family: var(--serif, Georgia, serif); font-weight: 400; font-size: 30px; line-height: 1.25; margin: 0 0 20px; color: var(--mist, #F2EFE6); }
+        .lab-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 8px 24px; background: rgba(18,26,22,0.35); }
+        .lab-item { border-bottom: 1px solid rgba(176,203,188,0.2); }
+        .lab-item:last-child { border-bottom: none; }
+        .lab-q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; margin: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+        .lab-q:focus-visible { outline: 2px solid var(--sage, #B0CBBC); outline-offset: 2px; }
+        .lab-mark { flex-shrink: 0; width: 1.5em; text-align: center; color: var(--sage, #B0CBBC); font-size: 1.25rem; line-height: 1; }
+        .lab-a { margin: 0 0 18px; padding-right: 2em; color: #E8EEE9; line-height: 1.55; font-size: 15px; }
+        @media (prefers-reduced-motion: no-preference) { .lab-mark { transition: transform 0.2s ease; } }
       `}</style>
-      <h2 id="lab-faq-title">How the showcase works</h2>
+      <h2 id={titleId}>How the showcase works</h2>
       <div className="lab-card">
-        {ITEMS.map((item, i) => {
+        {FAQ.map((item, i) => {
           const panelId = `lab-faq-panel-${i}`;
           const expanded = open === i;
           return (
-            <div className="lab-row" key={item.q}>
+            <div key={panelId} className="lab-item">
               <button
                 type="button"
-                className="lab-trigger"
+                className="lab-q"
                 aria-expanded={expanded}
                 aria-controls={panelId}
                 onClick={() => toggle(i)}
               >
-                <span className="lab-q">{item.q}</span>
-                <span className="lab-icon" aria-hidden="true">
-                  {expanded ? "−" : "+"}
-                </span>
+                <span>{item.q}</span>
+                <span className="lab-mark" aria-hidden="true">{expanded ? "−" : "+"}</span>
               </button>
-              <div id={panelId} role="region" className="lab-panel" hidden={!expanded}>
-                <p>{item.a}</p>
+              <div id={panelId} role="region" hidden={!expanded}>
+                <p className="lab-a">{item.a}</p>
               </div>
             </div>
           );

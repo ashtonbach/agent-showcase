@@ -1,103 +1,95 @@
 "use client";
-
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 
 const STEPS = [
   {
-    label: "Design",
-    title: "Hazel sets the visual direction",
-    body: "Hazel picks typography, color, and layout so each lab section matches the Forest Mist brand before code lands.",
+    title: "Design",
+    body:
+      "Hazel shapes the Forest Mist look and any artwork while the run clock is ticking, so the lab slot stays on-brand.",
   },
   {
-    label: "Build",
-    title: "Alder writes the lab feature",
-    body: "Alder implements the spec in the lab slot, keeps the diff small, and ships through the showcase gate on the run branch.",
+    title: "Build",
+    body:
+      "Alder writes this client component from the spec, keeps the diff small, and ships through the gate on branch sc/tabs-tnptu6.",
   },
   {
-    label: "Review",
-    title: "Rowan and Cedar finish the loop",
-    body: "Rowan reviews accessibility and structure; Cedar checks the preview. The operator merges after the gate and checks pass.",
+    title: "Review",
+    body:
+      "Rowan checks accessibility and copy; Cedar runs QA; the coordinator merges only after checks pass on the preview.",
   },
 ];
 
 export default function TabsLab() {
-  const rid = useId().replace(/:/g, "");
-  const h2Id = `${rid}-title`;
+  const uid = useId().replace(/:/g, "");
+  const titleId = `lab-tabs-title-${uid}`;
   const [active, setActive] = useState(0);
-  const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
-
-  const pick = useCallback((i: number) => setActive(i), []);
-
-  useEffect(() => {
-    tabsRef.current[active]?.focus();
-  }, [active]);
-
-  const onKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key === "ArrowRight") {
-      e.preventDefault();
-      setActive((a) => (a + 1) % STEPS.length);
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      setActive((a) => (a + STEPS.length - 1) % STEPS.length);
-    }
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const pick = useCallback((i: number) => {
+    setActive(i);
+    refs.current[i]?.focus();
+  }, []);
+  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    const d = e.key === "ArrowRight" ? 1 : -1;
+    pick((active + d + STEPS.length) % STEPS.length);
   };
-
   return (
-    <section data-lab="tabs" aria-labelledby={h2Id} className="lab-tabs-wrap">
+    <section data-lab="tabs" aria-labelledby={titleId} className="lab-tabs-wrap">
       <style>{`
-        .lab-tabs-wrap { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #E8EEE9); }
-        .lab-tabs-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; background: #121A16; }
-        .lab-tablist { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; padding: 0; list-style: none; }
-        .lab-tab {
-          font-family: var(--sans); font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px;
-          padding: 10px 14px; border-radius: 10px; border: 1px solid #6E8A7C; background: #14201A;
-          color: #E8EEE9; cursor: pointer;
+        .lab-tabs-wrap { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #F2EFE6); }
+        .lab-tabs-wrap h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; margin: 0 0 20px; }
+        .lab-tabs-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; }
+        [role="tablist"] { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; }
+        [role="tab"] {
+          font-family: var(--sans); font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+          font-size: 11px; padding: 10px 14px; border-radius: 999px; border: 1px solid rgba(176,203,188,0.28);
+          background: transparent; color: var(--mist, #E8EEE9); cursor: pointer;
         }
-        .lab-tab[aria-selected="true"] { background: #1C2E26; border-color: #B0CBBC; color: #B0CBBC; }
-        .lab-tab:focus-visible { outline: 2px solid var(--sage, #B0CBBC); outline-offset: 2px; }
-        .lab-panel-title { font-family: var(--serif); font-weight: 400; font-size: 22px; margin: 0 0 12px; color: var(--mist, #F2EFE6); }
-        .lab-panel-body { margin: 0; line-height: 1.55; font-size: 15px; }
-        @media (prefers-reduced-motion: reduce) { .lab-tab { transition: none; } }
+        [role="tab"][aria-selected="true"] { background: var(--sage); color: #121A16; border-color: transparent; }
+        [role="tab"]:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
+        .lab-tab-label { font-family: var(--sans); font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; color: var(--sage); margin: 0 0 8px; }
+        .lab-tab-body { margin: 0; line-height: 1.55; font-size: 15px; }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
       `}</style>
-      <h2 id={h2Id}>How this showcase run works</h2>
+      <h2 id={titleId}>How this showcase run works</h2>
       <div className="lab-tabs-card">
-        <div role="tablist" aria-label="Showcase team steps" className="lab-tablist">
-          {STEPS.map((step, i) => {
-            const tabId = `${rid}-tab-${i}`;
-            const panelId = `${rid}-panel-${i}`;
+        <div role="tablist" aria-label="Showcase team steps" onKeyDown={onKey}>
+          {STEPS.map((s, i) => {
+            const tabId = `${uid}-tab-${i}`;
+            const panelId = `${uid}-panel-${i}`;
             return (
               <button
-                key={step.label}
+                key={tabId}
                 type="button"
                 role="tab"
                 id={tabId}
-                ref={(el) => { tabsRef.current[i] = el; }}
+                ref={(el) => {
+                  refs.current[i] = el;
+                }}
                 aria-selected={active === i}
                 aria-controls={panelId}
                 tabIndex={active === i ? 0 : -1}
-                className="lab-tab"
                 onClick={() => pick(i)}
-                onKeyDown={onKey}
               >
-                {step.label}
+                {s.title}
               </button>
             );
           })}
         </div>
-        {STEPS.map((step, i) => {
-          const tabId = `${rid}-tab-${i}`;
-          const panelId = `${rid}-panel-${i}`;
+        {STEPS.map((s, i) => {
+          const tabId = `${uid}-tab-${i}`;
+          const panelId = `${uid}-panel-${i}`;
           return (
             <div
-              key={step.label}
+              key={panelId}
               role="tabpanel"
               id={panelId}
               aria-labelledby={tabId}
               hidden={active !== i}
-              className="lab-panel"
             >
-              <h3 className="lab-panel-title">{step.title}</h3>
-              <p className="lab-panel-body">{step.body}</p>
+              <p className="lab-tab-label">{s.title}</p>
+              <p className="lab-tab-body">{s.body}</p>
             </div>
           );
         })}

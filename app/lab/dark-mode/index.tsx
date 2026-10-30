@@ -18,7 +18,10 @@ html[data-theme="light"] .demo-title,html[data-theme="light"] main.page [data-la
 html[data-theme="light"] .site-footer{color:#2f5a46;opacity:1}
 html[data-theme="light"] .site-disclaimer{color:#2f5a46;opacity:.88}
 html[data-theme="light"] main.page [data-lab]{border-top-color:rgba(47,90,70,.22)}
-html[data-theme="light"] .brand-mark,html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)}
+html[data-theme="light"] .brand-mark,html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(17%) sepia(28%) saturate(850%) hue-rotate(103deg) brightness(0.55)}
+html[data-theme="light"] .skip-link.label{color:#2f5a46}
+html[data-theme="light"] .skip-link:focus{background:#14201a;color:#e8eee9}
+html[data-theme="light"] .skip-link:focus.label{color:#e8eee9}
 html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}
 html[data-theme="light"] .lab-dm-h2,html[data-theme="light"] .lab-dm-copy{color:#14201a}
 html[data-theme="light"] .lab-dm-card{border-color:rgba(47,90,70,.28)}

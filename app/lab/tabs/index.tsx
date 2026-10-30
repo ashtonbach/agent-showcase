@@ -96,7 +96,7 @@ export default function TabsLab() {
           background: transparent; color: var(--mist); cursor: pointer;
         }
         [data-lab="tabs"] .lab-tab[aria-selected="true"] {
-          background: rgba(176, 203, 188, 0.18); border-color: var(--sage); color: var(--mist);
+          background: var(--sage); border-color: var(--sage); color: #121A16;
         }
         [data-lab="tabs"] .lab-tab:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
         [data-lab="tabs"] .lab-panel-kicker {

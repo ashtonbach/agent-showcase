@@ -18,7 +18,6 @@ html[data-theme="light"] .demo-title,html[data-theme="light"] main.page [data-la
 html[data-theme="light"] .site-footer{color:#2f5a46;opacity:1}
 html[data-theme="light"] .site-disclaimer{color:#2f5a46;opacity:.88}
 html[data-theme="light"] main.page [data-lab]{border-top-color:rgba(47,90,70,.22)}
-html[data-theme="light"] .brand-mark,html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(17%) sepia(28%) saturate(850%) hue-rotate(103deg) brightness(0.55)}
 html[data-theme="light"] .skip-link.label{color:#2f5a46}
 html[data-theme="light"] .skip-link:focus{background:#14201a;color:#e8eee9}
 html[data-theme="light"] .skip-link:focus.label{color:#e8eee9}
@@ -29,6 +28,12 @@ html[data-theme="light"] .lab-dm-btn{background:#2f5a46;color:#e8eee9}
 html[data-theme="light"] .lab-dm-btn:focus-visible{outline-color:#2f5a46}
 @media (prefers-reduced-motion:reduce){.lab-dm-btn{transition:none}}
 `;
+
+const LIGHT_MARK_SRC =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0.5 -6 593.5 420"><path fill="#2F5A46" d="M423.02 390 224 18 24.5 390h200l34.32-64H102.27L223.95 99.12 345.33 326H379.57Z"/></svg>'
+  );
 
 function readStoredDark(): boolean {
   try {
@@ -41,10 +46,19 @@ function readStoredDark(): boolean {
   return true;
 }
 
+function syncMarkSources(isDark: boolean) {
+  document.querySelectorAll<HTMLImageElement>(".brand-mark, .footer-mark-img").forEach((img) => {
+    if (!img.dataset.abDefaultSrc) img.dataset.abDefaultSrc = img.currentSrc || img.src;
+    const next = isDark ? img.dataset.abDefaultSrc : LIGHT_MARK_SRC;
+    if (img.getAttribute("src") !== next) img.setAttribute("src", next);
+  });
+}
+
 function applyTheme(isDark: boolean) {
   const root = document.documentElement;
   if (isDark) root.dataset.theme = "dark";
   else root.dataset.theme = "light";
+  syncMarkSources(isDark);
   try {
     localStorage.setItem("ab-theme", isDark ? "dark" : "light");
   } catch {

@@ -46,14 +46,14 @@ export default function TabsLab() {
     <section data-lab="tabs" aria-labelledby={h2Id} className="lab-tabs-wrap">
       <style>{`
         .lab-tabs-wrap { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #E8EEE9); }
-        .lab-tabs-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; background: rgba(18,26,22,0.35); }
+        .lab-tabs-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; background: #121A16; }
         .lab-tablist { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; padding: 0; list-style: none; }
         .lab-tab {
           font-family: var(--sans); font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px;
-          padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(176,203,188,0.28); background: transparent;
-          color: var(--mist, #E8EEE9); cursor: pointer;
+          padding: 10px 14px; border-radius: 10px; border: 1px solid #6E8A7C; background: #14201A;
+          color: #E8EEE9; cursor: pointer;
         }
-        .lab-tab[aria-selected="true"] { background: rgba(176,203,188,0.14); border-color: var(--sage, #B0CBBC); color: var(--sage, #B0CBBC); }
+        .lab-tab[aria-selected="true"] { background: #1C2E26; border-color: #B0CBBC; color: #B0CBBC; }
         .lab-tab:focus-visible { outline: 2px solid var(--sage, #B0CBBC); outline-offset: 2px; }
         .lab-panel-title { font-family: var(--serif); font-weight: 400; font-size: 22px; margin: 0 0 12px; color: var(--mist, #F2EFE6); }
         .lab-panel-body { margin: 0; line-height: 1.55; font-size: 15px; }

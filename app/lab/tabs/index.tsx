@@ -69,8 +69,8 @@ export default function TabsLab() {
           cursor: pointer;
         }
         [data-lab="tabs"] [role="tab"][aria-selected="true"] {
-          background: rgba(176, 203, 188, 0.18);
-          color: var(--sage);
+          background: var(--sage);
+          color: #121a16;
         }
         [data-lab="tabs"] [role="tab"]:focus-visible {
           outline: 2px solid var(--sage);

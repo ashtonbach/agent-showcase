@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+
+import { useCallback, useState } from "react";
 
 const ITEMS = [
   {
@@ -20,55 +21,53 @@ const ITEMS = [
   },
 ];
 
-export default function Lab() {
+export default function FaqAccordion() {
   const [open, setOpen] = useState<number | null>(null);
-  const titleId = "lab-faq-heading";
+  const toggle = useCallback((i: number) => {
+    setOpen((prev) => (prev === i ? null : i));
+  }, []);
 
   return (
-    <section data-lab="faq-accordion" aria-labelledby={titleId}>
+    <section data-lab="faq-accordion" aria-labelledby="lab-faq-title">
       <style>{`
-.lab-wrap{width:min(720px,100%);margin:8px auto 56px}
-.lab-title{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.2;color:var(--mist);margin:0 0 20px}
-.lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:8px 24px;background:rgba(18,26,22,.35)}
-.lab-item{border-bottom:1px solid rgba(176,203,188,.2)}
-.lab-item:last-child{border-bottom:none}
-.lab-trigger{width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 0;background:none;border:none;color:var(--mist);font-family:var(--sans);font-size:16px;line-height:1.45;text-align:left;cursor:pointer}
-.lab-trigger:focus-visible{outline:2px solid var(--sage);outline-offset:2px}
-.lab-q{flex:1}
-.lab-icon{font-size:22px;line-height:1;color:var(--sage);flex-shrink:0}
-.lab-panel{padding:0 0 18px;color:#E8EEE9;font-family:var(--sans);font-size:15px;line-height:1.55}
-.lab-panel p{margin:0}
-@media (prefers-reduced-motion:reduce){.lab-trigger,.lab-panel{transition:none}}
+        [data-lab="faq-accordion"] { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #f2efe6); }
+        [data-lab="faq-accordion"] h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.25; margin: 0 0 20px; }
+        .lab-card { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 8px 24px; background: rgba(18, 26, 22, 0.35); }
+        .lab-row { border-bottom: 1px solid rgba(176, 203, 188, 0.18); }
+        .lab-row:last-child { border-bottom: none; }
+        .lab-trigger { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 0; background: none; border: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+        .lab-trigger:focus-visible { outline: 2px solid var(--sage, #b0cbbc); outline-offset: 2px; }
+        .lab-q { flex: 1; font-family: var(--serif); font-size: 18px; line-height: 1.35; }
+        .lab-icon { flex-shrink: 0; width: 28px; height: 28px; display: grid; place-items: center; font-size: 22px; line-height: 1; color: var(--sage, #b0cbbc); }
+        .lab-panel { padding: 0 0 16px 0; }
+        .lab-panel p { margin: 0; font-family: var(--sans); font-size: 15px; line-height: 1.55; color: #e8eee9; }
+        @media (prefers-reduced-motion: reduce) { .lab-trigger, .lab-panel { transition: none; } }
       `}</style>
-      <div className="lab-wrap">
-        <h2 id={titleId} className="lab-title">
-          How the showcase works
-        </h2>
-        <div className="lab-card">
-          {ITEMS.map((item, i) => {
-            const panelId = `lab-faq-panel-${i}`;
-            const expanded = open === i;
-            return (
-              <div className="lab-item" key={item.q}>
-                <button
-                  type="button"
-                  className="lab-trigger"
-                  aria-expanded={expanded}
-                  aria-controls={panelId}
-                  onClick={() => setOpen(expanded ? null : i)}
-                >
-                  <span className="lab-q">{item.q}</span>
-                  <span className="lab-icon" aria-hidden="true">
-                    {expanded ? "−" : "+"}
-                  </span>
-                </button>
-                <div id={panelId} role="region" className="lab-panel" hidden={!expanded}>
-                  <p>{item.a}</p>
-                </div>
+      <h2 id="lab-faq-title">How the showcase works</h2>
+      <div className="lab-card">
+        {ITEMS.map((item, i) => {
+          const panelId = `lab-faq-panel-${i}`;
+          const expanded = open === i;
+          return (
+            <div className="lab-row" key={item.q}>
+              <button
+                type="button"
+                className="lab-trigger"
+                aria-expanded={expanded}
+                aria-controls={panelId}
+                onClick={() => toggle(i)}
+              >
+                <span className="lab-q">{item.q}</span>
+                <span className="lab-icon" aria-hidden="true">
+                  {expanded ? "−" : "+"}
+                </span>
+              </button>
+              <div id={panelId} role="region" className="lab-panel" hidden={!expanded}>
+                <p>{item.a}</p>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

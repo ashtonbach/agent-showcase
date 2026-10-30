@@ -1,37 +1,94 @@
 "use client";
-import { useRef, useState } from "react";
-const PANELS: [string, string][] = [
-  ["Design", "Hazel defines Forest Mist layout and any artwork while the run clock is still moving."],
-  ["Build", "Alder implements the lab spec, keeps the diff inside the gate cap, and ships on the run branch."],
-  ["Review", "Rowan reviews accessibility and copy; Cedar signs off QA before the coordinator merges."],
+import { useEffect, useId, useRef, useState } from "react";
+
+const STEPS: readonly [string, string][] = [
+  ["Design", "Hazel shapes Forest Mist and artwork before code lands."],
+  ["Build", "Alder writes the lab feature, runs the gate, and ships."],
+  ["Review & QA", "Rowan reviews the PR; Cedar signs off before merge."],
 ];
+
 export default function TabsLab() {
-  const [idx, setIdx] = useState(0);
-  const btns = useRef<(HTMLButtonElement | null)[]>([]);
-  const pick = (n: number) => { setIdx(n); btns.current[n]?.focus(); };
-  const onKey = (e: React.KeyboardEvent<HTMLButtonElement>, at: number) => {
-    if (e.key === "ArrowRight") { e.preventDefault(); pick((at + 1) % 3); }
-    else if (e.key === "ArrowLeft") { e.preventDefault(); pick((at + 2) % 3); }
+  const baseId = useId().replace(/:/g, "");
+  const [selected, setSelected] = useState(0);
+  const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const focusNext = useRef(false);
+  const pick = (index: number, moveFocus = false) => {
+    focusNext.current = moveFocus;
+    setSelected((index + STEPS.length) % STEPS.length);
   };
+  useEffect(() => {
+    if (!focusNext.current) return;
+    focusNext.current = false;
+    tabsRef.current[selected]?.focus();
+  }, [selected]);
+  const onKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      pick(selected + 1, true);
+    } else if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      pick(selected - 1, true);
+    }
+  };
+
   return (
-    <section data-lab="tabs" aria-labelledby="tabs-h2">
-      <h2 id="tabs-h2">How the showcase team works</h2>
-      <div className="lab-shell">
-        <div role="tablist" aria-label="Showcase team workflow" className="lab-row">
-          {PANELS.map(([label], n) => (
-            <button key={n} type="button" role="tab" id={`tabs-tab-${n}`} ref={(el) => { btns.current[n] = el; }}
-              aria-selected={idx === n} aria-controls={`tabs-panel-${n}`} tabIndex={idx === n ? 0 : -1} className="lab-btn"
-              onClick={() => pick(n)} onKeyDown={(e) => onKey(e, n)}>{label}</button>
-          ))}
+    <section data-lab="tabs" aria-labelledby={`${baseId}-h`} className="lab-wrap">
+      <h2 id={`${baseId}-h`} className="lab-title">How the showcase team works</h2>
+      <div className="lab-card">
+        <div role="tablist" aria-label="Showcase workflow steps" className="lab-tablist">
+          {STEPS.map(([title], index) => {
+            const tabId = `${baseId}-t${index}`;
+            const panelId = `${baseId}-p${index}`;
+            const on = selected === index;
+            return (
+              <button
+                key={tabId}
+                ref={(node) => {
+                  tabsRef.current[index] = node;
+                }}
+                type="button"
+                role="tab"
+                id={tabId}
+                aria-selected={on}
+                aria-controls={panelId}
+                tabIndex={on ? 0 : -1}
+                className={on ? "lab-tab lab-tab-on" : "lab-tab"}
+                onClick={() => pick(index)}
+                onKeyDown={onKeyDown}
+              >
+                {title}
+              </button>
+            );
+          })}
         </div>
-        {PANELS.map(([label, copy], n) => (
-          <div key={n} role="tabpanel" id={`tabs-panel-${n}`} aria-labelledby={`tabs-tab-${n}`} hidden={idx !== n}>
-            <p className="lab-cap">{label}</p>
-            <p className="lab-copy">{copy}</p>
-          </div>
-        ))}
+        {STEPS.map(([, body], index) => {
+          const tabId = `${baseId}-t${index}`;
+          const panelId = `${baseId}-p${index}`;
+          const on = selected === index;
+          return (
+            <div
+              key={panelId}
+              role="tabpanel"
+              id={panelId}
+              aria-labelledby={tabId}
+              hidden={!on}
+              className="lab-panel"
+            >
+              <p className="lab-copy">{body}</p>
+            </div>
+          );
+        })}
       </div>
-      <style>{`[data-lab="tabs"]{width:min(720px,100%);margin:8px auto 56px;color:var(--mist)}[data-lab="tabs"] .lab-shell{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px}[data-lab="tabs"] .lab-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}[data-lab="tabs"] .lab-btn{font:500 11px var(--sans);letter-spacing:.16em;text-transform:uppercase;padding:10px 14px;border-radius:999px;border:1px solid rgba(176,203,188,.35);background:transparent;color:var(--mist);cursor:pointer}[data-lab="tabs"] .lab-btn[aria-selected="true"]{background:var(--sage);border-color:var(--sage);color:#121A16}[data-lab="tabs"] .lab-btn:focus-visible{outline:2px solid var(--sage);outline-offset:2px}[data-lab="tabs"] .lab-cap{font:500 11px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--sage);margin:0 0 8px}[data-lab="tabs"] .lab-copy{margin:0;line-height:1.55;color:#F2EFE6}@media(prefers-reduced-motion:reduce){[data-lab="tabs"] .lab-btn{transition:none}}`}</style>
+      <style>{`
+.lab-wrap{width:min(720px,100%);margin:8px auto 56px;color:var(--mist,#F2EFE6)}
+.lab-title{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.2;margin:0 0 20px}
+.lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}
+.lab-tablist{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.lab-tab{font-family:var(--sans);font-weight:500;letter-spacing:.16em;text-transform:uppercase;font-size:11px;padding:10px 14px;border-radius:999px;border:1px solid rgba(176,203,188,.28);background:transparent;color:var(--mist,#E8EEE9);cursor:pointer}
+.lab-tab-on{background:var(--sage);color:#121A16;border-color:transparent}
+.lab-tab:focus-visible{outline:2px solid var(--sage);outline-offset:2px}
+.lab-copy{margin:0;line-height:1.6;font-size:16px}
+      `}</style>
     </section>
   );
 }

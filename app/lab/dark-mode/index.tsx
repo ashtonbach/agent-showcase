@@ -25,14 +25,30 @@ html[data-theme="light"] main.page [data-lab]{border-top-color:rgba(47,90,70,.22
 html[data-theme="light"] [data-lab="dark-mode"],html[data-theme="light"] [data-lab="dark-mode"]>h2,html[data-theme="light"] [data-lab="dark-mode"] .lab-desc{color:#14201A}
 html[data-theme="light"] [data-lab="dark-mode"] .lab-card{border-color:rgba(47,90,70,.28);background:rgba(255,255,255,.45)}
 html[data-theme="light"] [data-lab="dark-mode"] .lab-toggle{background:#2F5A46;color:#F2EFE6}
-html[data-theme="light"] .brand-mark,html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)}
 html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}
 `;
+
+const lightMarkSrc =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0.5 -6 594 420"><path fill="#2F5A46" fill-rule="evenodd" d="M423 390 224 18 24.5 390H224l34.3-64H102.3L224 99.1l121.4 226.9h34.2z"/></svg>',
+  );
+
+let defaultMarkSrc: string | null = null;
+
+function syncMarks(mode: "dark" | "light") {
+  const imgs = document.querySelectorAll<HTMLImageElement>(".brand-mark, .footer-mark-img");
+  imgs.forEach((img) => {
+    if (!defaultMarkSrc) defaultMarkSrc = img.getAttribute("src") || img.src;
+    img.src = mode === "light" ? lightMarkSrc : defaultMarkSrc;
+  });
+}
 
 function applyTheme(mode: "dark" | "light") {
   const root = document.documentElement;
   if (mode === "light") root.dataset.theme = "light";
   else root.dataset.theme = "dark";
+  syncMarks(mode);
   try {
     localStorage.setItem("ab-theme", mode);
   } catch {

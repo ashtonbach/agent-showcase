@@ -50,9 +50,7 @@ export default function PricingTable() {
         [data-lab="pricing-table"] .lab-art-fb{display:block;width:100%;aspect-ratio:9/2;border-radius:12px;background:linear-gradient(135deg,rgba(176,203,188,.22),rgba(18,26,22,.5));margin:0 0 8px}
         [data-lab="pricing-table"] .lab-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
         [data-lab="pricing-table"] .lab-card{position:relative;margin:0;padding:24px;border:1px solid rgba(176,203,188,.28);border-radius:16px;background:rgba(18,26,22,.35)}
-        [data-lab="pricing-table"] .lab-card-best{border-color:var(--sage,#B0CBBC);background:rgba(176,203,188,.32);box-shadow:0 0 0 1px rgba(176,203,188,.35);color:#121A16}
-        [data-lab="pricing-table"] .lab-card-best .lab-tier-name,[data-lab="pricing-table"] .lab-card-best .lab-tier-price,[data-lab="pricing-table"] .lab-card-best .lab-per{color:#121A16}
-        [data-lab="pricing-table"] .lab-card-best .lab-per{opacity:1}
+        [data-lab="pricing-table"] .lab-card-best{border-color:var(--sage,#B0CBBC);background:rgba(18,26,22,.72);box-shadow:0 0 0 2px rgba(176,203,188,.45),inset 0 1px 0 rgba(176,203,188,.18)}
         [data-lab="pricing-table"] .lab-pop{position:absolute;top:16px;right:16px;font:500 .65rem/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:#121A16;background:var(--sage,#B0CBBC);padding:6px 10px;border-radius:999px}
         [data-lab="pricing-table"] .lab-tier-name{margin:0 0 8px;font-family:var(--serif);font-weight:400;font-size:1.35rem}
         [data-lab="pricing-table"] .lab-tier-price{margin:0 0 16px;font-size:1.75rem;color:var(--mist,#F2EFE6)}

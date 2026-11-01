@@ -59,7 +59,9 @@ export default function PricingTable() {
         .lab-pt > h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.15; margin: 0 0 24px; color: var(--mist, #F2EFE6); }
         .lab-pt-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
         .lab-pt-card { position: relative; border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; background: rgba(18, 26, 22, 0.35); }
-        .lab-pt-card-best { border-color: var(--sage, #B0CBBC); background: rgba(176, 203, 188, 0.12); box-shadow: 0 0 0 1px rgba(176, 203, 188, 0.35); }
+        .lab-pt-card-best { border-color: var(--sage, #B0CBBC); background: rgba(176, 203, 188, 0.22); box-shadow: 0 0 0 1px rgba(176, 203, 188, 0.35); }
+        .lab-pt-card-best .lab-pt-name, .lab-pt-card-best .lab-pt-amt { color: #121A16; }
+        .lab-pt-card-best .lab-pt-price, .lab-pt-card-best .lab-pt-list { color: #14201A; }
         .lab-pt-pop { position: absolute; top: 16px; right: 16px; font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; background: var(--sage, #B0CBBC); color: #121A16; }
         .lab-pt-name { margin: 0 0 8px; font-family: var(--serif); font-weight: 400; font-size: 22px; color: var(--mist, #F2EFE6); }
         .lab-pt-price { margin: 0 0 16px; font-family: var(--sans); font-size: 15px; }

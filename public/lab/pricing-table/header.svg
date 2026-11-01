@@ -1,12 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" width="720" height="160">
-  <rect x="0" y="0" width="720" height="160" rx="14" fill="#121A16"/>
-  <rect x="24" y="150" width="672" height="2" fill="#B0CBBC" opacity="0.25"/>
-  <polygon points="48,150 48,112 258,112 258,78 468,78 468,36 672,36 672,150" fill="#B0CBBC"/>
-  <rect x="48" y="112" width="210" height="6" rx="3" fill="#F2EFE6" opacity="0.35"/>
-  <rect x="258" y="78" width="210" height="6" rx="3" fill="#F2EFE6" opacity="0.35"/>
-  <rect x="468" y="36" width="204" height="6" rx="3" fill="#F2EFE6" opacity="0.35"/>
-  <circle cx="68" cy="112" r="5" fill="#F2EFE6"/>
-  <circle cx="278" cy="78" r="5" fill="#F2EFE6"/>
-  <rect x="540" y="10" width="92" height="30" rx="15" fill="#D9B45A"/>
-  <circle cx="586" cy="25" r="6" fill="#121A16" opacity="0.18"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="160" viewBox="0 0 720 160" fill="none">
+  <rect width="720" height="160" fill="#121A16"/>
+  <rect x="0" y="132" width="720" height="28" fill="#0E1512"/>
+  <!-- tier 1 (lowest, widest) -->
+  <path d="M48 118 L48 92 L200 92 L200 118 Z" fill="#B0CBBC" opacity="0.55"/>
+  <path d="M48 92 L72 72 L224 72 L200 92 Z" fill="#B0CBBC"/>
+  <path d="M72 72 L96 52 L248 52 L224 72 Z" fill="#C5D8CC"/>
+  <rect x="48" y="118" width="152" height="4" fill="#F2EFE6" opacity="0.35"/>
+  <!-- tier 2 -->
+  <path d="M168 118 L168 78 L340 78 L340 118 Z" fill="#B0CBBC" opacity="0.5"/>
+  <path d="M168 78 L196 52 L368 52 L340 78 Z" fill="#A8C4B4"/>
+  <path d="M196 52 L224 28 L396 28 L368 52 Z" fill="#B0CBBC"/>
+  <rect x="168" y="118" width="172" height="4" fill="#F2EFE6" opacity="0.4"/>
+  <!-- tier 3 -->
+  <path d="M308 118 L308 68 L500 68 L500 118 Z" fill="#B0CBBC" opacity="0.45"/>
+  <path d="M308 68 L340 38 L532 38 L500 68 Z" fill="#9FBAA9"/>
+  <path d="M340 38 L372 12 L564 12 L532 38 Z" fill="#B0CBBC"/>
+  <rect x="308" y="118" width="192" height="4" fill="#F2EFE6" opacity="0.45"/>
+  <!-- tier 4 (top, accent) -->
+  <path d="M448 118 L448 58 L620 58 L620 118 Z" fill="#D9B45A" opacity="0.35"/>
+  <path d="M448 58 L484 24 L656 24 L620 58 Z" fill="#D9B45A"/>
+  <path d="M484 24 L520 0 L672 0 L656 24 Z" fill="#E8C878"/>
+  <rect x="448" y="118" width="172" height="4" fill="#F2EFE6" opacity="0.55"/>
+  <!-- depth lines -->
+  <line x1="200" y1="92" x2="224" y2="72" stroke="#121A16" stroke-width="1.5" opacity="0.25"/>
+  <line x1="340" y1="78" x2="368" y2="52" stroke="#121A16" stroke-width="1.5" opacity="0.25"/>
+  <line x1="500" y1="68" x2="532" y2="38" stroke="#121A16" stroke-width="1.5" opacity="0.25"/>
+  <line x1="620" y1="58" x2="656" y2="24" stroke="#121A16" stroke-width="1.5" opacity="0.2"/>
+  <!-- ambient mist -->
+  <ellipse cx="120" cy="140" rx="90" ry="12" fill="#B0CBBC" opacity="0.08"/>
+  <ellipse cx="360" cy="145" rx="140" ry="10" fill="#F2EFE6" opacity="0.06"/>
+  <ellipse cx="580" cy="138" rx="100" ry="14" fill="#D9B45A" opacity="0.07"/>
 </svg>

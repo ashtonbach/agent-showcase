@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const themeStorageKey = "ab-theme";
+const themeKey = "ab-theme";
 const titleId = "lab-dark-mode-title";
-let lightPngCache: string | null = null;
+let pngCache: string | null = null;
 
-const chromeLight = [
+const rules = [
   'html[data-theme="light"]{--mist:#14201A;--sage:#2F5A46;--header-line:rgba(47,90,70,.22);--line:rgba(47,90,70,.18)}',
   'html[data-theme="light"],html[data-theme="light"] body{background:#E8EEE9;color:#14201A}',
   'html[data-theme="light"] body::before{background:linear-gradient(180deg,#E8EEE9,#dfe8e1)}',
@@ -15,8 +15,6 @@ const chromeLight = [
   'html[data-theme="light"] .nav-list a:hover,html[data-theme="light"] .nav-list a:focus-visible{color:#14201A}',
   'html[data-theme="light"] .brand{color:#14201A}',
   'html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}',
-];
-const sectionSkin = [
   ".lab-wrap{width:min(720px,100%);margin:8px auto 56px}",
   ".lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}",
   'html[data-theme="light"] .lab-card{background:rgba(255,255,255,.55);border-color:rgba(47,90,70,.28)}',
@@ -27,75 +25,74 @@ const sectionSkin = [
   ".lab-toggle:focus-visible{outline:2px solid var(--sage);outline-offset:3px}",
   "@media (prefers-reduced-motion:reduce){.lab-toggle{transition:none}}",
 ];
-const stylesBlock = [...chromeLight, ...sectionSkin].join("");
+const cssText = rules.join("");
 
-type ThemeMode = "dark" | "light";
+type Mode = "dark" | "light";
 
-function buildLightMark(src: string, done: (png: string) => void) {
-  if (lightPngCache) {
-    done(lightPngCache);
+function makeLightMark(source: string, ready: (png: string) => void) {
+  if (pngCache) {
+    ready(pngCache);
     return;
   }
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.onload = () => {
-    const width = img.naturalWidth || 48;
-    const height = img.naturalHeight || 35;
-    const surface = document.createElement("canvas");
-    surface.width = width;
-    surface.height = height;
-    const brush = surface.getContext("2d");
-    if (!brush) return;
-    brush.filter =
+  const probe = new Image();
+  probe.crossOrigin = "anonymous";
+  probe.onload = () => {
+    const w = probe.naturalWidth || 48;
+    const h = probe.naturalHeight || 35;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.filter =
       "brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)";
-    brush.drawImage(img, 0, 0, width, height);
-    lightPngCache = surface.toDataURL("image/png");
-    done(lightPngCache);
+    ctx.drawImage(probe, 0, 0, w, h);
+    pngCache = canvas.toDataURL("image/png");
+    ready(pngCache);
   };
-  img.src = src;
+  probe.src = source;
 }
 
-function paintHeaderMarks(mode: ThemeMode) {
-  const marks = document.querySelectorAll<HTMLImageElement>(".brand-mark, .footer-mark-img");
-  for (const mark of marks) {
-    if (!mark.dataset.abOrigSrc) mark.dataset.abOrigSrc = mark.getAttribute("src") ?? "";
-    const original = mark.dataset.abOrigSrc;
+function refreshMarks(mode: Mode) {
+  document.querySelectorAll<HTMLImageElement>(".brand-mark, .footer-mark-img").forEach((node) => {
+    if (!node.dataset.abSrc) node.dataset.abSrc = node.getAttribute("src") ?? "";
+    const home = node.dataset.abSrc;
     if (mode === "dark") {
-      mark.src = original;
-      continue;
+      node.src = home;
+      return;
     }
-    buildLightMark(original, (png) => {
-      mark.src = png;
+    makeLightMark(home, (png) => {
+      node.src = png;
     });
-  }
+  });
 }
 
-function commitTheme(mode: ThemeMode) {
+function pushTheme(mode: Mode) {
   document.documentElement.dataset.theme = mode;
-  paintHeaderMarks(mode);
+  refreshMarks(mode);
 }
 
 export default function DarkModeLab() {
   const [dark, setDark] = useState(true);
 
   useEffect(() => {
-    let mode: ThemeMode = "dark";
+    let mode: Mode = "dark";
     try {
-      const saved = localStorage.getItem(themeStorageKey);
-      if (saved === "dark" || saved === "light") mode = saved;
+      const raw = localStorage.getItem(themeKey);
+      if (raw === "dark" || raw === "light") mode = raw;
     } catch {
       /* storage blocked */
     }
     setDark(mode === "dark");
-    commitTheme(mode);
+    pushTheme(mode);
   }, []);
 
-  const handleToggle = useCallback(() => {
+  const onToggle = useCallback(() => {
     setDark((wasDark) => {
-      const mode: ThemeMode = wasDark ? "light" : "dark";
-      commitTheme(mode);
+      const mode: Mode = wasDark ? "light" : "dark";
+      pushTheme(mode);
       try {
-        localStorage.setItem(themeStorageKey, mode);
+        localStorage.setItem(themeKey, mode);
       } catch {
         /* storage blocked */
       }
@@ -105,14 +102,14 @@ export default function DarkModeLab() {
 
   return (
     <section data-lab="dark-mode" aria-labelledby={titleId}>
-      <style>{stylesBlock}</style>
+      <style>{cssText}</style>
       <h2 id={titleId}>Dark mode toggle</h2>
       <div className="lab-wrap">
-        <div className="lab-card" role="group" aria-label="Theme preference">
+        <div className="lab-card">
           <p className="lab-lead">
-            Use this pill to flip the entire AshtonBach shell—header, footer, wordmark, and body—between forest dark and mist light. We store the pick as ab-theme.
+            This control sets html data-theme for the full page, recolors chrome and marks, and writes ab-theme to localStorage so reload keeps your choice.
           </p>
-          <button type="button" className="lab-toggle" aria-pressed={dark} onClick={handleToggle}>
+          <button type="button" className="lab-toggle" aria-pressed={dark} onClick={onToggle}>
             {dark ? "Switch to light theme" : "Switch to dark theme"}
           </button>
         </div>

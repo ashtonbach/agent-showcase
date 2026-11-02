@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const STORAGE_KEY = "ab-theme";
-const HEADING_ID = "lab-dark-mode-title";
-let cachedLightMark: string | null = null;
+const KEY = "ab-theme";
+const H2 = "lab-dark-mode-title";
+let mintMark: string | undefined;
 
-const themeRules = [
+const sheet = [
   'html[data-theme="light"]{--mist:#14201A;--sage:#2F5A46;--header-line:rgba(47,90,70,.22);--line:rgba(47,90,70,.18)}',
   'html[data-theme="light"],html[data-theme="light"] body{background:#E8EEE9;color:#14201A}',
   'html[data-theme="light"] body::before{background:linear-gradient(180deg,#E8EEE9,#dfe8e1)}',
@@ -17,98 +17,95 @@ const themeRules = [
   ".lab-wrap{width:min(720px,100%);margin:8px auto 56px}",
   ".lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}",
   'html[data-theme="light"] .lab-card{background:rgba(255,255,255,.55);border-color:rgba(47,90,70,.28)}',
-  ".lab-lead{margin:0 0 18px;line-height:1.55;font-size:16px;color:var(--mist,#e8eee9)}",
+  ".lab-lead{margin:0 0 18px;line-height:1.55;font-size:16px;color:var(--muted)}",
   'html[data-theme="light"] .lab-lead{color:#14201A}',
   ".lab-toggle{font-family:var(--sans);font-weight:500;font-size:14px;border:0;border-radius:999px;padding:12px 22px;cursor:pointer;background:var(--sage);color:#121a16}",
   'html[data-theme="light"] .lab-toggle{background:#2F5A46;color:#F2EFE6}',
   ".lab-toggle:focus-visible{outline:2px solid var(--sage);outline-offset:3px}",
   "@media (prefers-reduced-motion:reduce){.lab-toggle{transition:none}}",
-];
-const themeCss = themeRules.join("");
+].join("");
 
-type ThemeChoice = "dark" | "light";
+type Pick = "dark" | "light";
 
-function rasterizeMark(source: string, ready: (png: string) => void) {
-  if (cachedLightMark) {
-    ready(cachedLightMark);
-    return;
-  }
-  const probe = new Image();
-  probe.crossOrigin = "anonymous";
-  probe.onload = () => {
-    const w = probe.naturalWidth || 48;
-    const h = probe.naturalHeight || 35;
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.filter =
+function mintLogoSrc(from: string, cb: (data: string) => void) {
+  if (mintMark) return cb(mintMark);
+  const tag = new Image();
+  tag.crossOrigin = "anonymous";
+  tag.onload = () => {
+    const sideW = tag.naturalWidth || 48;
+    const sideH = tag.naturalHeight || 35;
+    const pad = document.createElement("canvas");
+    pad.width = sideW;
+    pad.height = sideH;
+    const ink = pad.getContext("2d");
+    if (!ink) return;
+    ink.filter =
       "brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)";
-    ctx.drawImage(probe, 0, 0, w, h);
-    cachedLightMark = canvas.toDataURL("image/png");
-    ready(cachedLightMark);
+    ink.drawImage(tag, 0, 0, sideW, sideH);
+    mintMark = pad.toDataURL("image/png");
+    cb(mintMark);
   };
-  probe.src = source;
+  tag.src = from;
 }
 
-function syncLogos(mode: ThemeChoice) {
-  document.querySelectorAll<HTMLImageElement>(".brand-mark, .footer-mark-img").forEach((node) => {
-    if (!node.dataset.abHomeSrc) node.dataset.abHomeSrc = node.getAttribute("src") ?? "";
-    const home = node.dataset.abHomeSrc;
-    if (mode === "dark") {
-      node.src = home;
-      return;
-    }
-    rasterizeMark(home, (png) => {
-      node.src = png;
-    });
+function brandMarks(next: Pick) {
+  const imgs = document.querySelectorAll<HTMLImageElement>(".brand-mark, .footer-mark-img");
+  imgs.forEach((img) => {
+    const slot = "abOrig";
+    if (!img.dataset[slot]) img.dataset[slot] = img.getAttribute("src") ?? "";
+    const base = img.dataset[slot]!;
+    img.src = next === "dark" ? base : "";
+    if (next === "light") mintLogoSrc(base, (png) => { img.src = png; });
   });
 }
 
-function applyTheme(mode: ThemeChoice) {
-  document.documentElement.dataset.theme = mode;
-  syncLogos(mode);
+function paintPage(next: Pick) {
+  document.documentElement.dataset.theme = next;
+  brandMarks(next);
+}
+
+function loadPick(): Pick {
+  try {
+    const v = localStorage.getItem(KEY);
+    if (v === "light" || v === "dark") return v;
+  } catch {
+    return "dark";
+  }
+  return "dark";
 }
 
 export default function DarkModeLab() {
   const [dark, setDark] = useState(true);
 
   useEffect(() => {
-    let mode: ThemeChoice = "dark";
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw === "dark" || raw === "light") mode = raw;
-    } catch {
-      /* storage blocked */
-    }
-    setDark(mode === "dark");
-    applyTheme(mode);
+    const start = loadPick();
+    setDark(start === "dark");
+    paintPage(start);
   }, []);
 
-  const onFlip = useCallback(() => {
-    setDark((wasDark) => {
-      const mode: ThemeChoice = wasDark ? "light" : "dark";
-      applyTheme(mode);
+  const toggle = useCallback(() => {
+    setDark((on) => {
+      const next: Pick = on ? "light" : "dark";
+      paintPage(next);
       try {
-        localStorage.setItem(STORAGE_KEY, mode);
+        localStorage.setItem(KEY, next);
       } catch {
-        /* storage blocked */
+        /* ignore */
       }
-      return !wasDark;
+      return !on;
     });
   }, []);
 
   return (
-    <section data-lab="dark-mode" aria-labelledby={HEADING_ID}>
-      <style>{themeCss}</style>
-      <h2 id={HEADING_ID}>Dark mode toggle</h2>
+    <section data-lab="dark-mode" aria-labelledby={H2}>
+      <style>{sheet}</style>
+      <h2 id={H2}>Dark mode toggle</h2>
       <div className="lab-wrap">
         <div className="lab-card">
           <p className="lab-lead">
-            Switch the whole page between the default forest look and a light mist palette. Your choice is saved for the next visit.
+            One control flips the entire site between forest dark (default) and mist light, including header, footer, and logos. Reload keeps your pick.
           </p>
-          <button type="button" className="lab-toggle" aria-pressed={dark} onClick={onFlip}>
+          <button type="button" className="lab-toggle" aria-pressed={dark} onClick={toggle}>
             {dark ? "Switch to light theme" : "Switch to dark theme"}
           </button>
         </div>

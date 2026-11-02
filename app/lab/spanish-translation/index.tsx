@@ -1,85 +1,75 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import enUS from "../../../messages/en-US.json";
-import esES from "../../../messages/es-ES.json";
+import { useCallback, useState } from "react";
+import en from "../../../messages/en-US.json";
+import es from "../../../messages/es-ES.json";
 
-type Messages = Record<string, string>;
-type Locale = "en-US" | "es-ES";
-
-const MESSAGES: Record<Locale, Messages> = { "en-US": enUS, "es-ES": esES };
-const HEADING_ID = "spanish-translation-heading";
-const KEYS = {
-  heading: "lab.spanish-translation.heading",
-  p1: "lab.spanish-translation.p1",
-  p2: "lab.spanish-translation.p2",
+type Loc = "en-US" | "es-ES";
+const MAP: Record<Loc, Record<string, string>> = {
+  "en-US": en as Record<string, string>,
+  "es-ES": es as Record<string, string>,
 };
 
-// Walks every [data-i18n] node on the page (not just this section) so the shared chrome -
-// skip link, nav, footer, the H1 - switches languages along with this feature.
-function paintLocale(locale: Locale) {
-  const dict = MESSAGES[locale];
-  document.documentElement.lang = locale;
-  document.querySelectorAll<HTMLElement>("[data-i18n]").forEach((node) => {
-    const key = node.getAttribute("data-i18n");
-    const value = key ? dict[key] : undefined;
-    if (value) node.textContent = value;
+function applyPageLocale(loc: Loc) {
+  document.documentElement.lang = loc;
+  const msg = MAP[loc];
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    const k = node.getAttribute("data-i18n");
+    if (k && msg[k]) node.textContent = msg[k];
   });
 }
 
 const css = `
-.lab-translate-shell{width:min(720px,100%);margin:8px auto 0}
-.lab-translate-p{margin:0 0 16px;line-height:1.6;font-size:17px;color:var(--mist,#e8eee9)}
-.lab-translate-switch{display:inline-flex;gap:10px;margin-top:8px}
-.lab-translate-seg{font-family:var(--sans);font-weight:500;font-size:13px;letter-spacing:.04em;border-radius:999px;padding:10px 20px;cursor:pointer;border:1px solid var(--sage);background:transparent;color:var(--mist,#e8eee9)}
-.lab-translate-seg.is-active{background:var(--sage);color:#14201A}
-.lab-translate-seg:focus-visible{outline:2px solid var(--sage);outline-offset:3px}
+.lab-st{width:min(720px,100%);margin:8px auto 56px}
+.lab-st h2{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--mist);margin:0 0 16px}
+.lab-st p{color:#E8EEE9;line-height:1.65;margin:0 0 14px}
+.lab-st p.lab-st-p2{margin-bottom:22px}
+.lab-seg{display:inline-flex;border-radius:8px;overflow:hidden}
+.lab-seg button{font-family:var(--sans);font-size:14px;line-height:1;padding:10px 22px;cursor:pointer;
+  border:1px solid var(--sage);background:transparent;color:#E8EEE9;margin:0}
+.lab-seg button+button{margin-left:-1px}
+.lab-seg button.lab-on{background:var(--sage);color:#14201A;border-color:var(--sage);z-index:1;position:relative}
+.lab-seg button:focus-visible{outline:2px solid var(--mist);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.lab-seg button{transition:none}}
 `;
 
 export default function SpanishTranslation() {
-  const [locale, setLocale] = useState<Locale>("en-US");
-
-  // Runs after mount only, so the first paint always matches the static English markup below -
-  // no Date/Math.random here, just a DOM sync to keep the fixed/live content in step.
-  useEffect(() => {
-    paintLocale(locale);
-  }, [locale]);
-
-  const base = MESSAGES["en-US"];
-
+  const [loc, setLoc] = useState<Loc>("en-US");
+  const msg = MAP[loc];
+  const pick = useCallback((next: Loc) => {
+    setLoc(next);
+    applyPageLocale(next);
+  }, []);
+  const hid = "lab-spanish-translation-heading";
   return (
-    <section data-lab="spanish-translation" aria-labelledby={HEADING_ID}>
+    <section data-lab="spanish-translation" aria-labelledby={hid} className="lab-st">
       <style>{css}</style>
-      <h2 id={HEADING_ID} data-i18n={KEYS.heading}>
-        {base[KEYS.heading]}
+      <h2 id={hid} data-i18n="lab.spanish-translation.heading">
+        {msg["lab.spanish-translation.heading"]}
       </h2>
-      <div className="lab-translate-shell">
-        <p className="lab-translate-p" data-i18n={KEYS.p1}>
-          {base[KEYS.p1]}
-        </p>
-        <p className="lab-translate-p" data-i18n={KEYS.p2}>
-          {base[KEYS.p2]}
-        </p>
-        <div className="lab-translate-switch" role="group" aria-label="Language">
-          <button
-            type="button"
-            data-locale="en-US"
-            aria-pressed={locale === "en-US"}
-            className={locale === "en-US" ? "lab-translate-seg is-active" : "lab-translate-seg"}
-            onClick={() => setLocale("en-US")}
-          >
-            English
-          </button>
-          <button
-            type="button"
-            data-locale="es-ES"
-            aria-pressed={locale === "es-ES"}
-            className={locale === "es-ES" ? "lab-translate-seg is-active" : "lab-translate-seg"}
-            onClick={() => setLocale("es-ES")}
-          >
-            Español
-          </button>
-        </div>
+      <p data-i18n="lab.spanish-translation.p1">{msg["lab.spanish-translation.p1"]}</p>
+      <p className="lab-st-p2" data-i18n="lab.spanish-translation.p2">
+        {msg["lab.spanish-translation.p2"]}
+      </p>
+      <div className="lab-seg" role="group" aria-label="Language">
+        <button
+          type="button"
+          data-locale="en-US"
+          aria-pressed={loc === "en-US"}
+          className={loc === "en-US" ? "lab-on" : undefined}
+          onClick={() => pick("en-US")}
+        >
+          English
+        </button>
+        <button
+          type="button"
+          data-locale="es-ES"
+          aria-pressed={loc === "es-ES"}
+          className={loc === "es-ES" ? "lab-on" : undefined}
+          onClick={() => pick("es-ES")}
+        >
+          Español
+        </button>
       </div>
     </section>
   );

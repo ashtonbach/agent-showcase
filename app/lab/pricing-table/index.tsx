@@ -36,6 +36,11 @@ export default function PricingTable() {
         .lab-pricing .lab-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .lab-pricing .lab-tier { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; background: rgba(18,26,22,0.35); position: relative; }
         .lab-pricing .lab-tier[data-best="true"] { border-color: var(--sage); background: rgba(176,203,188,0.12); box-shadow: 0 0 0 1px rgba(176,203,188,0.35); }
+        .lab-pricing .lab-tier[data-best="true"] .lab-name,
+        .lab-pricing .lab-tier[data-best="true"] .lab-price,
+        .lab-pricing .lab-tier[data-best="true"] .lab-price strong,
+        .lab-pricing .lab-tier[data-best="true"] .lab-feats,
+        .lab-pricing .lab-tier[data-best="true"] .lab-feats li { color: #14201A; }
         .lab-pricing .lab-badge { position: absolute; top: 12px; right: 12px; font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; background: var(--sage); color: #14201A; padding: 4px 10px; border-radius: 999px; }
         .lab-pricing .lab-name { font-family: var(--serif); font-size: 22px; margin: 0 0 8px; font-weight: 400; }
         .lab-pricing .lab-price { margin: 0 0 16px; font-size: 15px; color: #E8EEE9; }

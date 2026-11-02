@@ -1,121 +1,90 @@
 "use client";
-
 import { useEffect, useRef, useState } from "react";
 
-type Stat = { id: string; label: string; target: number; suffix: string };
+const FINALS = ["240", "18", "99%"];
+const LABELS = ["Projects delivered", "Core contributors", "Renewal rate"];
 
-// Example data: illustrative figures for this demo feature, not a live source.
-const STATS: Stat[] = [
-  { id: "runs", label: "Showcase runs this quarter", target: 1204, suffix: "" },
-  { id: "checks", label: "Gate checks passed", target: 97, suffix: "%" },
-  { id: "agents", label: "Agents per run", target: 4, suffix: "" },
-];
-
-const DURATION_MS = 1200;
-
-function withCommas(value: number): string {
-  const sign = value < 0 ? "-" : "";
-  const digits = Math.abs(value).toString();
-  return sign + digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+function parseFinal(text: string) {
+  const m = text.match(/^(\d+(?:\.\d+)?)(.*)$/);
+  return m ? { num: parseFloat(m[1]), suffix: m[2] } : { num: 0, suffix: text };
 }
 
-function finalText(stat: Stat): string {
-  return withCommas(stat.target) + stat.suffix;
+function formatPartial(num: number, suffix: string, done: boolean, final: string) {
+  if (done) return final;
+  const n = Number.isInteger(num) ? String(Math.round(num)) : num.toFixed(1);
+  return n + suffix;
 }
-
-function easeOutCubic(t: number): number {
-  return 1 - Math.pow(1 - t, 3);
-}
-
-const css = `
-.lab-counter-section { width: min(960px, 100%); margin: 8px auto 56px; }
-.lab-counter-title { font-family: var(--serif); font-weight: 400; font-size: 30px; margin: 0 0 24px; color: var(--mist); }
-.lab-counter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.lab-counter-card { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; text-align: center; }
-.lab-counter-value { display: block; font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 1.1; color: var(--sage); }
-.lab-counter-label { display: block; margin-top: 8px; font-family: var(--sans); font-weight: 500; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
-.lab-counter-note { margin: 20px 0 0; color: var(--muted); font-family: var(--sans); font-size: 14px; }
-@media (max-width: 640px) { .lab-counter-grid { grid-template-columns: 1fr; gap: 12px; } .lab-counter-value { font-size: 34px; } }
-`;
 
 export default function AnimatedCounter() {
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const frameRef = useRef<number | null>(null);
-  const [displayed, setDisplayed] = useState<string[]>(() => STATS.map(() => "0"));
+  const sectionRef = useRef<HTMLElement>(null);
+  const [display, setDisplay] = useState(["0", "0", "0"]);
+  const ran = useRef(false);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const showFinal = () => setDisplayed(STATS.map(finalText));
-
-    const prefersReduced =
-      typeof window !== "undefined" &&
-      "matchMedia" in window &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReduced) {
+    const showFinal = () => setDisplay([...FINALS]);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
       showFinal();
       return;
     }
-
-    const runCountUp = () => {
-      const start = performance.now();
+    const root = sectionRef.current;
+    if (!root) return;
+    const targets = FINALS.map(parseFinal);
+    const start = () => {
+      if (ran.current) return;
+      ran.current = true;
+      const t0 = performance.now();
+      const dur = 1200;
       const tick = (now: number) => {
-        const elapsed = now - start;
-        const t = Math.min(1, elapsed / DURATION_MS);
-        if (t >= 1) {
-          showFinal();
-          return;
-        }
-        const eased = easeOutCubic(t);
-        setDisplayed(
-          STATS.map((stat) => withCommas(Math.round(stat.target * eased)) + stat.suffix)
+        const p = Math.min(1, (now - t0) / dur);
+        const eased = 1 - (1 - p) ** 3;
+        setDisplay(
+          targets.map((t, i) =>
+            formatPartial(t.num * eased, t.suffix, p >= 1, FINALS[i])
+          )
         );
-        frameRef.current = requestAnimationFrame(tick);
+        if (p < 1) requestAnimationFrame(tick);
       };
-      frameRef.current = requestAnimationFrame(tick);
+      requestAnimationFrame(tick);
     };
-
-    const observer = new IntersectionObserver(
+    const io = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          runCountUp();
-          observer.disconnect();
+        if (entries.some((e) => e.isIntersecting)) {
+          start();
+          io.disconnect();
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.25 }
     );
-    observer.observe(section);
-
-    return () => {
-      observer.disconnect();
-      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
-    };
+    io.observe(root);
+    return () => io.disconnect();
   }, []);
 
   return (
     <section
       ref={sectionRef}
       data-lab="animated-counter"
-      aria-labelledby="lab-counter-heading"
-      className="lab-counter-section"
+      aria-labelledby="ac-heading"
     >
-      <h2 id="lab-counter-heading" className="lab-counter-title">
-        Showcase by the numbers
-      </h2>
-      <div className="lab-counter-grid">
-        {STATS.map((stat, index) => (
-          <div key={stat.id} className="lab-counter-card">
-            <strong data-final={finalText(stat)} className="lab-counter-value">
-              {displayed[index]}
-            </strong>
-            <span className="lab-counter-label">{stat.label}</span>
+      <style>{`
+.lab-ac { width: min(960px, 100%); margin: 8px auto 56px; padding: 24px; border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; box-sizing: border-box; }
+.lab-ac h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.15; color: var(--mist); margin: 0 0 24px; }
+.lab-ac-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; text-align: center; }
+.lab-ac strong { display: block; font-family: var(--serif); font-size: clamp(2rem, 6vw, 2.75rem); font-weight: 400; color: var(--mist); line-height: 1.1; }
+.lab-ac-label { display: block; margin-top: 8px; font-family: var(--sans); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sage); }
+.lab-ac-note { margin: 24px 0 0; font-size: 0.9rem; color: var(--mist); opacity: 0.85; }
+@media (max-width: 520px) { .lab-ac-grid { grid-template-columns: 1fr; gap: 16px; } }
+`}</style>
+      <h2 id="ac-heading">Impact in numbers</h2>
+      <div className="lab-ac-grid">
+        {FINALS.map((final, i) => (
+          <div key={final} className="lab-ac-stat">
+            <strong data-final={final}>{display[i]}</strong>
+            <span className="lab-ac-label">{LABELS[i]}</span>
           </div>
         ))}
       </div>
-      <p className="lab-counter-note">Example data: illustrative figures for this demo.</p>
-      <style>{css}</style>
+      <p className="lab-ac-note">Example data: illustrative studio metrics.</p>
     </section>
   );
 }

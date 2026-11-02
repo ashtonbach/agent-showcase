@@ -2,12 +2,24 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+const LIGHT_MARK =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0.5 -6 594 420"><path fill="#14201A" d="M423 390 224 18 24.5 390H224l34-64H102L224 99l121 227h34z"/><path fill="#2F5A46" d="M514 190l.9-.8 1.9-1.8 35-67-67-127 67-127h60c75 3 135 63 135 138s-60 135-135 138h-54l-22-42-22 42z"/></svg>',
+  );
+
+function swapChromeMarks(isDark: boolean) {
+  document.querySelectorAll<HTMLImageElement>(".brand-mark,.footer-mark-img").forEach((img) => {
+    if (!img.dataset.abOrig) img.dataset.abOrig = img.getAttribute("src") ?? "";
+    img.src = isDark ? img.dataset.abOrig : LIGHT_MARK;
+  });
+}
+
 const css = `
 html[data-theme="light"]{background:#E8EEE9}
 html[data-theme="light"] body{color:#14201A}
 html[data-theme="light"] body::before{background:linear-gradient(180deg,#E8EEE9 0%,#dde5df 100%)}
 html[data-theme="light"] .demo-title{color:#14201A}
-html[data-theme="light"] .brand-mark,html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)}
 html[data-theme="light"] .nav-list a{color:#2F5A46}
 html[data-theme="light"] .nav-list a::after{background:#2F5A46}
 html[data-theme="light"] .nav-list a:hover,html[data-theme="light"] .nav-list a:focus-visible,html[data-theme="light"] .nav-list a[aria-current="page"]{color:#14201A}
@@ -38,6 +50,7 @@ export default function DarkModeLab() {
     } catch {
       /* storage blocked */
     }
+    swapChromeMarks(isDark);
   }, []);
 
   useEffect(() => {

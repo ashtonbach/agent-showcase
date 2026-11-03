@@ -2,6 +2,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "ab-theme";
+const LIGHT_MARK_SRC =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 594 426"><path fill="#2F5A46" fill-rule="evenodd" d="M423.02 390 224 18 24.5 390h200l34.32-64H102.27L223.95 99.12 345.33 326H379.57 390H423.02z"/></svg>'
+  );
 
 const css = `
 html[data-theme="light"]{background:#E8EEE9}
@@ -16,9 +21,7 @@ html[data-theme="light"] .site-footer{color:#2F5A46;opacity:1}
 html[data-theme="light"] .site-disclaimer{color:#2F5A46;opacity:.88}
 html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}
 html[data-theme="light"] main.page [data-lab]{border-top-color:rgba(47,90,70,.22)}
-html[data-theme="light"] .brand-mark,
-html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)}
-.lab-dm{width:min(720px,100%);margin:8px auto 56px;padding:0 16px;color:var(--mist,#F2EFE6)}
+.lab-dm{width:min(720px,100%);margin:8px auto 56px;color:var(--mist,#F2EFE6)}
 .lab-dm-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:flex-start;gap:16px}
 html[data-theme="light"] .lab-dm{color:#14201A}
 html[data-theme="light"] .lab-dm-card{border-color:rgba(47,90,70,.28)}
@@ -30,10 +33,18 @@ html[data-theme="light"] .lab-dm-btn:focus-visible{outline-color:#2F5A46}
 @media (prefers-reduced-motion:reduce){.lab-dm-btn{transition:none}}
 `;
 
+function syncMarks(isDark: boolean) {
+  document.querySelectorAll<HTMLImageElement>("img.brand-mark, img.footer-mark-img").forEach((img) => {
+    if (!img.dataset.abOrig) img.dataset.abOrig = img.getAttribute("src") || "";
+    img.src = isDark ? img.dataset.abOrig : LIGHT_MARK_SRC;
+  });
+}
+
 function applyTheme(isDark: boolean) {
   const root = document.documentElement;
   if (isDark) root.dataset.theme = "dark";
   else root.dataset.theme = "light";
+  syncMarks(isDark);
   try {
     localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
   } catch {

@@ -2,11 +2,24 @@
 import { useCallback, useEffect, useState } from "react";
 
 const KEY = "ab-theme";
+const MARK_LIGHT =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 35"><path fill="#2F5A46" d="M6 29V6h8.2l7.3 11.5L29 6H37v23h-6.5V14.8L22.5 29h-5.4L11.5 14.8V29H6z"/></svg>',
+  );
+
+function recolorMarks(light: boolean) {
+  document.querySelectorAll<HTMLImageElement>(".brand-mark,.footer-mark-img").forEach((img) => {
+    if (!img.dataset.abOrig) img.dataset.abOrig = img.currentSrc || img.src;
+    img.src = light ? MARK_LIGHT : img.dataset.abOrig;
+  });
+}
 
 function syncTheme(dark: boolean) {
   const root = document.documentElement;
   if (dark) root.dataset.theme = "dark";
   else root.dataset.theme = "light";
+  recolorMarks(!dark);
   try {
     localStorage.setItem(KEY, dark ? "dark" : "light");
   } catch {
@@ -27,7 +40,6 @@ html[data-theme="light"] .site-footer{color:#2F5A46;opacity:1}
 html[data-theme="light"] .site-disclaimer{color:#2F5A46}
 html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}
 html[data-theme="light"] main.page [data-lab]{border-top-color:rgba(47,90,70,.22)}
-html[data-theme="light"] .brand-mark,html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)}
 .lab-dm{width:min(720px,100%);margin:8px auto 56px;color:var(--mist,#F2EFE6)}
 html[data-theme="light"] .lab-dm{color:#14201A}
 .lab-dm-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px}

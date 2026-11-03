@@ -99,8 +99,8 @@ const tests = {
     const featureDir = path.join(testDir, "app", "lab", "test-feature");
     fs.mkdirSync(featureDir, { recursive: true });
     
-    // Generate large file exceeding 150 line limit
-    const largeFile = Array(200).fill('export const x = 1;').join('\n');
+    // Generate large file exceeding 250 line limit
+    const largeFile = Array(300).fill('export const x = 1;').join('\n');
     fs.writeFileSync(path.join(featureDir, "index.tsx"), largeFile);
     
     fs.writeFileSync(

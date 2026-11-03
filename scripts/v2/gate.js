@@ -6,7 +6,7 @@ const { execFileSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 const [slug, base = "origin/main", head = "HEAD"] = process.argv.slice(2);
-const MAX = 150;
+const MAX = 250;
 const root = execFileSync("git", ["rev-parse", "--show-toplevel"]).toString().trim();
 const menu = JSON.parse(fs.readFileSync(path.join(root, "app/lab/menu.json"), "utf8")).features.map((f) => f.slug);
 const git = (...a) => execFileSync("git", ["-C", root, ...a], { maxBuffer: 1 << 26 }).toString();

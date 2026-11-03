@@ -1,18 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" width="720" height="160">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="160" viewBox="0 0 720 160">
   <rect width="720" height="160" fill="#121A16"/>
   <rect x="0" y="132" width="720" height="28" fill="#0E1512"/>
-  <line x1="0" y1="132" x2="720" y2="132" stroke="#B0CBBC" stroke-width="1" opacity="0.35"/>
-  <rect x="48" y="108" width="120" height="24" rx="4" fill="#1A2620" stroke="#B0CBBC" stroke-width="1.5" opacity="0.9"/>
-  <rect x="52" y="104" width="112" height="8" rx="2" fill="#F2EFE6" opacity="0.85"/>
-  <rect x="188" y="88" width="120" height="44" rx="4" fill="#1A2620" stroke="#B0CBBC" stroke-width="1.5" opacity="0.92"/>
-  <rect x="192" y="84" width="112" height="8" rx="2" fill="#F2EFE6" opacity="0.88"/>
-  <rect x="328" y="64" width="120" height="68" rx="4" fill="#1E2A24" stroke="#B0CBBC" stroke-width="1.5"/>
-  <rect x="332" y="60" width="112" height="8" rx="2" fill="#F2EFE6" opacity="0.9"/>
-  <rect x="468" y="36" width="120" height="96" rx="4" fill="#222E28" stroke="#B0CBBC" stroke-width="1.5"/>
-  <rect x="472" y="32" width="112" height="8" rx="2" fill="#F2EFE6"/>
-  <rect x="608" y="12" width="64" height="120" rx="4" fill="#283530" stroke="#D9B45A" stroke-width="2"/>
-  <rect x="612" y="8" width="56" height="8" rx="2" fill="#D9B45A" opacity="0.95"/>
-  <circle cx="640" cy="6" r="5" fill="#D9B45A" opacity="0.7"/>
-  <path d="M 80 120 L 200 100 L 340 76 L 480 48 L 640 28" fill="none" stroke="#B0CBBC" stroke-width="1" stroke-dasharray="4 6" opacity="0.4"/>
-  <ellipse cx="640" cy="20" rx="36" ry="12" fill="#D9B45A" opacity="0.12"/>
+  <rect x="48" y="108" width="140" height="24" rx="4" fill="#B0CBBC" opacity="0.35"/>
+  <rect x="48" y="88" width="140" height="52" rx="6" fill="#F2EFE6"/>
+  <rect x="52" y="92" width="132" height="8" rx="2" fill="#B0CBBC" opacity="0.5"/>
+  <rect x="52" y="104" width="96" height="6" rx="2" fill="#121A16" opacity="0.12"/>
+  <rect x="52" y="116" width="112" height="6" rx="2" fill="#121A16" opacity="0.08"/>
+  <rect x="208" y="92" width="140" height="24" rx="4" fill="#B0CBBC" opacity="0.35"/>
+  <rect x="208" y="68" width="140" height="72" rx="6" fill="#F2EFE6"/>
+  <rect x="212" y="72" width="132" height="8" rx="2" fill="#B0CBBC" opacity="0.5"/>
+  <rect x="212" y="84" width="104" height="6" rx="2" fill="#121A16" opacity="0.12"/>
+  <rect x="212" y="96" width="120" height="6" rx="2" fill="#121A16" opacity="0.08"/>
+  <rect x="212" y="108" width="88" height="6" rx="2" fill="#121A16" opacity="0.08"/>
+  <rect x="368" y="72" width="140" height="24" rx="4" fill="#B0CBBC" opacity="0.35"/>
+  <rect x="368" y="44" width="140" height="96" rx="6" fill="#F2EFE6"/>
+  <rect x="372" y="48" width="132" height="8" rx="2" fill="#D9B45A" opacity="0.85"/>
+  <rect x="372" y="60" width="112" height="6" rx="2" fill="#121A16" opacity="0.12"/>
+  <rect x="372" y="72" width="128" height="6" rx="2" fill="#121A16" opacity="0.08"/>
+  <rect x="372" y="84" width="96" height="6" rx="2" fill="#121A16" opacity="0.08"/>
+  <rect x="372" y="96" width="108" height="6" rx="2" fill="#121A16" opacity="0.06"/>
+  <rect x="528" y="52" width="140" height="24" rx="4" fill="#B0CBBC" opacity="0.35"/>
+  <rect x="528" y="20" width="140" height="128" rx="6" fill="#F2EFE6"/>
+  <rect x="532" y="24" width="132" height="8" rx="2" fill="#B0CBBC" opacity="0.5"/>
+  <rect x="532" y="36" width="120" height="6" rx="2" fill="#121A16" opacity="0.12"/>
+  <rect x="532" y="48" width="132" height="6" rx="2" fill="#121A16" opacity="0.08"/>
+  <rect x="532" y="60" width="100" height="6" rx="2" fill="#121A16" opacity="0.08"/>
+  <rect x="532" y="72" width="116" height="6" rx="2" fill="#121A16" opacity="0.06"/>
+  <rect x="532" y="84" width="124" height="6" rx="2" fill="#121A16" opacity="0.06"/>
+  <path d="M 44 136 L 676 136" stroke="#B0CBBC" stroke-width="1" opacity="0.25"/>
+  <circle cx="438" cy="40" r="6" fill="#D9B45A"/>
+  <path d="M 56 136 L 188 136 L 188 92 L 56 92 Z" fill="none" stroke="#B0CBBC" stroke-width="1" opacity="0.2"/>
+  <path d="M 216 136 L 348 136 L 348 68 L 216 68 Z" fill="none" stroke="#B0CBBC" stroke-width="1" opacity="0.2"/>
+  <path d="M 376 136 L 508 136 L 508 44 L 376 44 Z" fill="none" stroke="#D9B45A" stroke-width="1.5" opacity="0.45"/>
+  <path d="M 536 136 L 668 136 L 668 20 L 536 20 Z" fill="none" stroke="#B0CBBC" stroke-width="1" opacity="0.2"/>
 </svg>

@@ -1,49 +1,23 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
-const GUARDS = [
-  {
-    title: "Fresh branch",
-    body: "Each run ships from a dedicated sc/ branch cut from base so work stays isolated until review.",
-    src: "/lab/feature-grid/icon-0.svg",
-  },
-  {
-    title: "Allowlist",
-    body: "The gate permits changes only in the lab slot, the page import line, and current.json—nothing else.",
-    src: "/lab/feature-grid/icon-1.svg",
-  },
-  {
-    title: "Size cap",
-    body: "Total diff size is capped so agents keep features small and reviewable in one pass.",
-    src: "/lab/feature-grid/icon-2.svg",
-  },
-  {
-    title: "No network",
-    body: "Lab components must not call fetch, WebSockets, or other client network APIs during the run.",
-    src: "/lab/feature-grid/icon-3.svg",
-  },
-  {
-    title: "Visual gate",
-    body: "SHIP verifies layout at desktop and mobile widths before the branch can merge.",
-    src: "/lab/feature-grid/icon-4.svg",
-  },
-  {
-    title: "Nightly reset",
-    body: "Preview environments reset on a schedule so each demo starts from a clean baseline.",
-    src: "/lab/feature-grid/icon-5.svg",
-  },
-];
+const CARDS = [
+  { icon: "icon-0.svg", title: "Fresh branch", body: "Every run codes on a fresh branch from origin/base." },
+  { icon: "icon-1.svg", title: "Allowlist", body: "The gate allowlists React imports and blocks risky APIs." },
+  { icon: "icon-2.svg", title: "Size cap", body: "The coder keeps the lab diff within a 150-line cap." },
+  { icon: "icon-3.svg", title: "No network", body: "Lab components never open fetch, sockets, or beacons." },
+  { icon: "icon-4.svg", title: "Visual gate", body: "SHIP screenshots layout at 1280px and 390px before push." },
+  { icon: "icon-5.svg", title: "Nightly reset", body: "The showcase base branch resets on a nightly schedule." },
+] as const;
 
-function GuardIcon({ src }: { src: string }) {
-  const [broken, setBroken] = useState(false);
-  const onError = useCallback(() => setBroken(true), []);
-  if (broken) {
+function LabIcon({ file }: { file: string }) {
+  const [err, setErr] = useState(false);
+  if (err) {
     return (
-      <span data-art="fallback" aria-hidden="true" className="lab-fb">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="rgba(176,203,188,0.15)" />
-          <path d="M10 16h12" stroke="#B0CBBC" strokeWidth="1.5" />
+      <span data-art="fallback" aria-hidden="true" className="lab-fg-fb">
+        <svg width="32" height="32" viewBox="0 0 32 32">
+          <rect x="6" y="6" width="20" height="20" rx="4" fill="rgba(176,203,188,0.4)" />
         </svg>
       </span>
     );
@@ -51,41 +25,37 @@ function GuardIcon({ src }: { src: string }) {
   return (
     <img
       data-art="image"
-      src={src}
+      src={`/lab/feature-grid/${file}`}
       width={32}
       height={32}
       alt=""
-      onError={onError}
+      onError={() => setErr(true)}
     />
   );
 }
 
 export default function FeatureGrid() {
-  const titleId = "feature-grid-title";
   return (
-    <section data-lab="feature-grid" aria-labelledby={titleId}>
-      <h2 id={titleId}>Six guardrails of the showcase</h2>
-      <ul className="lab-grid">
-        {GUARDS.map((g) => (
-          <li key={g.title} className="lab-card">
-            <GuardIcon src={g.src} />
-            <h3 className="lab-card-title">{g.title}</h3>
-            <p className="lab-card-body">{g.body}</p>
+    <section data-lab="feature-grid" aria-labelledby="fg-h">
+      <h2 id="fg-h">Six guardrails of the showcase</h2>
+      <ul className="lab-fg-list">
+        {CARDS.map((c) => (
+          <li key={c.title} className="lab-fg-card">
+            <LabIcon file={c.icon} />
+            <h3 className="lab-fg-h3">{c.title}</h3>
+            <p className="lab-fg-p">{c.body}</p>
           </li>
         ))}
       </ul>
       <style>{`
-        [data-lab="feature-grid"] { width: min(960px, 100%); margin: 8px auto 56px; color: var(--mist, #E8EEE9); }
-        [data-lab="feature-grid"] > h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.15; margin: 0 0 24px; color: var(--mist, #F2EFE6); }
-        [data-lab="feature-grid"] .lab-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: 1fr; }
-        @media (min-width: 601px) { [data-lab="feature-grid"] .lab-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 901px) { [data-lab="feature-grid"] .lab-grid { grid-template-columns: repeat(3, 1fr); } }
-        [data-lab="feature-grid"] .lab-card { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; background: rgba(18, 26, 22, 0.35); }
-        [data-lab="feature-grid"] .lab-card-title { margin: 12px 0 8px; font-family: var(--serif); font-weight: 400; font-size: 1.125rem; color: var(--mist, #F2EFE6); }
-        [data-lab="feature-grid"] .lab-card-body { margin: 0; font-size: 0.95rem; line-height: 1.55; }
-        [data-lab="feature-grid"] img[data-art="image"] { display: block; width: 32px; height: 32px; }
-        [data-lab="feature-grid"] .lab-fb { display: block; width: 32px; height: 32px; }
-        @media (prefers-reduced-motion: reduce) { [data-lab="feature-grid"] * { transition: none !important; animation: none !important; } }
+        [data-lab="feature-grid"] { max-width: min(960px, 100%); margin: 8px auto 56px; padding: 0 12px; }
+        .lab-fg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: 1fr; }
+        @media (min-width: 601px) { .lab-fg-list { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 901px) { .lab-fg-list { grid-template-columns: repeat(3, 1fr); } }
+        .lab-fg-card { border: 1px solid rgba(176,203,188,0.28); border-radius: 16px; padding: 24px; }
+        .lab-fg-h3 { font-family: var(--serif); font-weight: 400; font-size: 1.125rem; color: var(--mist); margin: 12px 0 8px; }
+        .lab-fg-p { font-family: var(--sans); color: var(--mist); font-size: 0.9375rem; line-height: 1.5; margin: 0; }
+        .lab-fg-card img, .lab-fg-fb { display: block; width: 32px; height: 32px; }
       `}</style>
     </section>
   );

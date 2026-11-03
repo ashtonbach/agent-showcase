@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const PLANS = [
   { name: "Sprout", price: "$12", feats: ["One showcase lab slot", "Gate checks on every push", "Preview layout screenshots"] },
-  { name: "Canopy", price: "$29", best: true, feats: ["Everything in Sprout", "Design-led artwork slots", "Reviewer handoff in team chat"] },
+  { name: "Canopy", price: "$29", feats: ["Everything in Sprout", "Design-led artwork slots", "Reviewer handoff in team chat"] },
   { name: "Grove", price: "$59", feats: ["Everything in Canopy", "QA sign-off on production", "Nightly base branch reset"] },
 ] as const;
 
@@ -32,9 +32,9 @@ export default function PricingTable() {
       <HeaderArt />
       <h2 id="pt-title">Plans for the showcase</h2>
       <ul className="lab-pt-tiers">
-        {PLANS.map((p) => (
-          <li key={p.name} className={p.best ? "lab-pt-tier lab-pt-tier-best" : "lab-pt-tier"} {...(p.best ? { "data-best": "true" } : {})}>
-            {p.best ? <span className="lab-pt-badge">Popular</span> : null}
+        {PLANS.map((p, i) => (
+          <li key={p.name} className={i === 1 ? "lab-pt-tier lab-pt-tier-best" : "lab-pt-tier"} {...(i === 1 ? { "data-best": "true" } : {})}>
+            {i === 1 ? <span className="lab-pt-badge">Popular</span> : null}
             <h3 className="lab-pt-name">{p.name}</h3>
             <p className="lab-pt-price">
               {p.price} <span className="lab-pt-per">per month</span>

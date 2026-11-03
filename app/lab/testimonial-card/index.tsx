@@ -1,44 +1,118 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-const Q=[
-  {t:"The forest palette made our launch page feel calm without losing clarity.",n:"Mira Chen",r:"Product lead"},
-  {t:"We shipped the rebrand in a week; the type and spacing just worked.",n:"Jonah Ellis",r:"Design ops"},
-  {t:"Readers stayed longer once we matched the UI to the story we tell.",n:"Sam Okonkwo",r:"Editor"},
+
+const TITLE_ID = "testimonial-card-title";
+const QUOTES = [
+  {
+    text: "The forest mist palette made our launch page feel calm without losing clarity.",
+    name: "Mira Chen",
+    role: "Product lead",
+    avatar: "avatar-0.svg",
+  },
+  {
+    text: "We shipped the whole lab section in one afternoon and the gate caught every edge case.",
+    name: "Jonah Ellis",
+    role: "Staff engineer",
+    avatar: "avatar-1.svg",
+  },
+  {
+    text: "Readers actually finish the quotes now—the pause on hover is a small touch that matters.",
+    name: "Sage Porter",
+    role: "Editor",
+    avatar: "avatar-2.svg",
+  },
 ];
-const css=`.lab-tc{width:min(720px,100%);margin:8px auto 56px;color:var(--mist,#F2EFE6)}.lab-tc-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px}.lab-tc-q{margin:0;font-family:var(--serif);font-weight:400;font-size:22px;line-height:1.45}.lab-tc-cap{display:flex;align-items:center;gap:14px;margin-top:20px}.lab-tc-av{width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0}.lab-tc-av-fb{display:block;width:48px;height:48px;border-radius:50%;background:rgba(176,203,188,.22);flex-shrink:0}.lab-tc-name{display:block;font-family:var(--sans);font-weight:500}.lab-tc .label{font-family:var(--sans);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage,#B0CBBC);margin-top:2px;display:block}.lab-dots{display:flex;justify-content:center;gap:10px;margin-top:22px}.lab-dots button{width:10px;height:10px;padding:0;border:0;border-radius:50%;cursor:pointer;background:rgba(176,203,188,.35)}.lab-dots button[aria-current=true]{background:var(--sage,#B0CBBC)}.lab-dots button:focus-visible{outline:2px solid var(--sage,#B0CBBC);outline-offset:3px}.lab-tc-note{margin:28px 0 0;font-family:var(--sans);font-size:14px;line-height:1.5;color:#E8EEE9;opacity:.85}@media (prefers-reduced-motion:reduce){.lab-tc-card{transition:none}}`;
-function Av({i}:{i:number}){
-  const[bad,setBad]=useState(false);
-  if(bad)return<span data-art="fallback" aria-hidden="true" className="lab-tc-av-fb"/>;
-  return<img data-art="image" className="lab-tc-av" src={`/lab/testimonial-card/avatar-${i}.svg`} width={48} height={48} alt="" onError={()=>setBad(true)}/>;
-}
-export default function TestimonialCard(){
-  const[idx,setIdx]=useState(0);
-  const[hover,setHover]=useState(false);
-  const tmr=useRef<ReturnType<typeof setInterval>|null>(null);
-  const arm=useCallback(()=>{
-    if(tmr.current)clearInterval(tmr.current);
-    if(typeof window!=="undefined"&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-    tmr.current=setInterval(()=>setIdx(v=>(v+1)%3),3000);
-  },[]);
-  useEffect(()=>{
-    if(hover){if(tmr.current)clearInterval(tmr.current);return;}
-    arm();
-    return()=>{if(tmr.current)clearInterval(tmr.current);};
-  },[hover,arm]);
-  const pick=(n:number)=>{setIdx(n);arm();};
-  const q=Q[idx];
-  return(
-    <section data-lab="testimonial-card" aria-labelledby="lab-tc-h2" onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}>
-      <h2 id="lab-tc-h2">What people say</h2>
-      <div className="lab-tc"><figure className="lab-tc-card">
-        <blockquote className="lab-tc-q" data-index={String(idx)}>&ldquo;{q.t}&rdquo;</blockquote>
-        <figcaption className="lab-tc-cap"><Av i={idx}/><div><strong className="lab-tc-name">{q.n}</strong><span className="label">{q.r}</span></div></figcaption>
-      </figure>
-      <div className="lab-dots">{Q.map((_,i)=>(
-        <button key={i} type="button" aria-label={`Show quote ${i+1}`} aria-current={i===idx?"true":undefined} onClick={()=>pick(i)}/>
-      ))}</div></div>
-      <p className="lab-tc-note lab-note">Example data: these quotes and people are invented.</p>
+
+export default function TestimonialCard() {
+  const [index, setIndex] = useState(0);
+  const [hovered, setHovered] = useState(false);
+  const [imgOk, setImgOk] = useState(true);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const q = QUOTES[index];
+
+  const pick = useCallback((i: number) => {
+    setIndex(i);
+    setImgOk(true);
+  }, []);
+
+  useEffect(() => {
+    setImgOk(true);
+    const img = imgRef.current;
+    if (!img) return;
+    if (img.complete && img.naturalWidth === 0) setImgOk(false);
+  }, [index]);
+
+  useEffect(() => {
+    if (hovered) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+    const id = window.setInterval(() => setIndex((i) => (i + 1) % QUOTES.length), 3000);
+    return () => window.clearInterval(id);
+  }, [hovered, index]);
+
+  const css = `
+[data-lab="testimonial-card"]{width:min(720px,100%);margin:8px auto 56px;color:var(--mist,#F2EFE6)}
+[data-lab="testimonial-card"] h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:0 0 24px;line-height:1.2}
+[data-lab="testimonial-card"] .lab-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;background:rgba(18,26,22,.35)}
+[data-lab="testimonial-card"] blockquote{margin:0 0 20px;font-size:18px;line-height:1.55}
+[data-lab="testimonial-card"] figcaption{display:flex;align-items:center;gap:12px}
+[data-lab="testimonial-card"] .lab-avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0}
+[data-lab="testimonial-card"] .lab-fallback{width:48px;height:48px;border-radius:50%;background:rgba(176,203,188,.22);display:inline-block;flex-shrink:0}
+[data-lab="testimonial-card"] .label{font-family:var(--sans);font-weight:500;letter-spacing:.16em;text-transform:uppercase;font-size:11px;color:var(--sage,#B0CBBC);display:block;margin-top:2px}
+[data-lab="testimonial-card"] .lab-dots{display:flex;gap:10px;justify-content:center;margin:20px 0 16px}
+[data-lab="testimonial-card"] .lab-dots button{width:10px;height:10px;border-radius:50%;border:1px solid rgba(176,203,188,.55);background:transparent;padding:0;cursor:pointer}
+[data-lab="testimonial-card"] .lab-dots button[aria-current="true"]{background:var(--sage,#B0CBBC)}
+[data-lab="testimonial-card"] .lab-dots button:focus-visible{outline:2px solid var(--sage,#B0CBBC);outline-offset:3px}
+[data-lab="testimonial-card"] .lab-note{margin:0;font-size:14px;color:#E8EEE9;opacity:.85}
+`;
+
+  return (
+    <section
+      data-lab="testimonial-card"
+      aria-labelledby={TITLE_ID}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <style>{css}</style>
+      <h2 id={TITLE_ID}>What people say</h2>
+      <figure className="lab-card">
+        <blockquote data-index={index}>{q.text}</blockquote>
+        <figcaption>
+          {imgOk ? (
+            <img
+              ref={imgRef}
+              className="lab-avatar"
+              data-art="image"
+              src={`/lab/testimonial-card/${q.avatar}`}
+              width={48}
+              height={48}
+              alt=""
+              onError={() => setImgOk(false)}
+            />
+          ) : (
+            <span className="lab-fallback" data-art="fallback" aria-hidden="true" />
+          )}
+          <div>
+            <strong>{q.name}</strong>
+            <span className="label">{q.role}</span>
+          </div>
+        </figcaption>
+      </figure>
+      <div className="lab-dots">
+        {QUOTES.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            aria-label={`Show quote ${i + 1}`}
+            aria-current={i === index ? "true" : undefined}
+            onClick={() => pick(i)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") pick(i);
+            }}
+          />
+        ))}
+      </div>
+      <p className="lab-note">Example data: these quotes and people are invented.</p>
     </section>
   );
 }

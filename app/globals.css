@@ -256,14 +256,14 @@ html, body { overflow-x: clip; }
 main:has([data-lab]) .page-title,
 body:has([data-lab]) .page-title { display: none !important; }
 
-/* Site-wide AI disclaimer: small, light, low emphasis. */
+/* Site-wide AI disclaimer: small, light, low emphasis, but AA contrast (tests/footer-contrast.test.ts). */
 .site-footer { flex-direction: column; gap: 6px; }
 .site-disclaimer {
   margin: 0;
   font-size: 12px;
   letter-spacing: 0.02em;
   text-transform: none;
-  color: rgba(176, 203, 188, 0.55);
+  color: rgba(176, 203, 188, 0.9); /* x .site-footer opacity 0.8 = 5.6:1 on the page background (WCAG AA 4.5:1) */
   text-align: center;
   line-height: 1.4;
   max-width: 100%;

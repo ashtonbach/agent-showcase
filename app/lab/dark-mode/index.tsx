@@ -3,14 +3,20 @@
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "ab-theme";
+const LIGHT_MARK =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595 420"><path fill="#2F5A46" d="M423 390 224 18 24.5 390H224l34.3-64H102L224 99l121.4 227H380z"/></svg>',
+  );
 
 function applyTheme(dark: boolean) {
   const root = document.documentElement;
-  if (dark) {
-    root.dataset.theme = "dark";
-  } else {
-    root.dataset.theme = "light";
-  }
+  root.dataset.theme = dark ? "dark" : "light";
+  document.querySelectorAll<HTMLImageElement>(".brand-mark, .footer-mark-img").forEach((img) => {
+    const base = img.dataset.abSrc ?? img.getAttribute("src") ?? "";
+    if (!img.dataset.abSrc) img.dataset.abSrc = base;
+    img.src = dark ? base : LIGHT_MARK;
+  });
 }
 
 export default function Lab() {
@@ -44,10 +50,9 @@ html[data-theme="light"] .nav-list a{color:#2F5A46}
 html[data-theme="light"] .nav-list a:hover,html[data-theme="light"] .nav-list a:focus-visible{color:#14201A}
 html[data-theme="light"] .site-footer{color:#2F5A46;opacity:1}
 html[data-theme="light"] .site-disclaimer{color:#2F5A46}
-html[data-theme="light"] .brand-mark,html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)}
 html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}
 html[data-theme="light"] main.page [data-lab]{border-top-color:rgba(47,90,70,.22)}
-.lab-dark-wrap{width:min(720px,100%);margin:8px auto 56px}
+.lab-dark-wrap{width:min(720px,100%);margin:8px 0 56px}
 .lab-dark-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
 .lab-dark-card p{margin:0;color:var(--mist);font-size:var(--fs-body);line-height:1.5;max-width:36ch}
 html[data-theme="light"] .lab-dark-card p{color:#14201A}

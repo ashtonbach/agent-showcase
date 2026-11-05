@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 const ROSTER = [
   { id: "hazel", name: "Hazel", role: "Design" },
   { id: "alder", name: "Alder", role: "Coder" },
@@ -27,7 +25,7 @@ const css = `
   border: 1px solid rgba(176, 203, 188, 0.28);
   border-radius: 16px;
   padding: 24px;
-  background: rgba(18, 26, 22, 0.35);
+  background: #121a16;
 }
 [data-lab="custom-1793865725"] .lab-list {
   list-style: none;
@@ -35,7 +33,7 @@ const css = `
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0;
 }
 [data-lab="custom-1793865725"] .lab-row {
   display: flex;
@@ -43,8 +41,8 @@ const css = `
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(176, 203, 188, 0.18);
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(176, 203, 188, 0.28);
 }
 [data-lab="custom-1793865725"] .lab-row:last-child {
   padding-bottom: 0;
@@ -84,8 +82,6 @@ const css = `
 `;
 
 export default function LabTeamRoster() {
-  const [active, setActive] = useState<string | null>(null);
-
   return (
     <section data-lab="custom-1793865725" aria-labelledby="lab-roster-title">
       <style>{css}</style>
@@ -95,18 +91,9 @@ export default function LabTeamRoster() {
       <div className="lab-card">
         <ul className="lab-list">
           {ROSTER.map((member) => (
-            <li key={member.id}>
-              <button
-                type="button"
-                className="lab-row"
-                aria-pressed={active === member.id}
-                onClick={() =>
-                  setActive((prev) => (prev === member.id ? null : member.id))
-                }
-              >
-                <span className="lab-name">{member.name}</span>
-                <span className="lab-role">{member.role}</span>
-              </button>
+            <li key={member.id} className="lab-row">
+              <p className="lab-name">{member.name}</p>
+              <span className="lab-role">{member.role}</span>
             </li>
           ))}
         </ul>

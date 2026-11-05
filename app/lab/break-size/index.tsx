@@ -185,7 +185,6 @@ export default function BreakSizeLab() {
       <style>{css}</style>
       <h2 id="break-size-plans-title">Every plan we offer</h2>
       <div className="lab-card">
-        <div className="lab-scroll">
           <table className="lab-table">
             <thead>
               <tr>
@@ -197,7 +196,6 @@ export default function BreakSizeLab() {
             </thead>
             <tbody>{body}</tbody>
           </table>
-        </div>
       </div>
       <p className="lab-note">Example data: plan rows are illustrative for the showcase only.</p>
     </section>
@@ -222,16 +220,13 @@ const css = `
   border-radius: 16px;
   padding: 24px;
   background: rgba(18, 26, 22, 0.35);
-}
-[data-lab="break-size"] .lab-scroll {
-  max-height: min(420px, 55vh);
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
 }
 [data-lab="break-size"] .lab-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  table-layout: fixed;
 }
 [data-lab="break-size"] .lab-table th {
   font-family: var(--sans);
@@ -248,7 +243,15 @@ const css = `
   padding: 10px 12px;
   border-bottom: 1px solid rgba(176, 203, 188, 0.12);
   vertical-align: top;
+  overflow-wrap: anywhere;
 }
+[data-lab="break-size"] .lab-table th {
+  overflow-wrap: anywhere;
+}
+[data-lab="break-size"] .lab-col-tier { width: 18%; }
+[data-lab="break-size"] .lab-col-price { width: 22%; }
+[data-lab="break-size"] .lab-col-feat { width: 35%; }
+[data-lab="break-size"] .lab-col-support { width: 25%; }
 [data-lab="break-size"] .lab-col-price {
   white-space: nowrap;
   color: #e8eee9;

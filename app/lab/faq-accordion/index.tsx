@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+
+import { useCallback, useState } from "react";
 
 const ITEMS = [
   {
@@ -18,64 +19,107 @@ const ITEMS = [
     q: "Where does the feature render on the page?",
     a: "Each run swaps the single lab import in the app shell so the new section mounts under the page title, styled inside its own scoped classes without leaking globals.",
   },
-];
+] as const;
+
+const css = `
+.lab-faq { width: min(720px, 100%); margin: 8px auto 56px; }
+.lab-faq-card {
+  border: 1px solid rgba(176, 203, 188, 0.28);
+  border-radius: 16px;
+  padding: 24px;
+  background: rgba(18, 26, 22, 0.45);
+}
+.lab-faq h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 30px;
+  color: var(--mist, #f2efe6);
+  margin: 0 0 20px;
+}
+.lab-faq-item { border-top: 1px solid rgba(176, 203, 188, 0.2); }
+.lab-faq-item:first-of-type { border-top: none; }
+.lab-faq-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mist, #f2efe6);
+}
+.lab-faq-trigger:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
+.lab-faq-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sage);
+  font-size: 20px;
+  line-height: 1;
+}
+.lab-faq-panel {
+  padding: 0 0 16px;
+  color: #e8eee9;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-faq-panel { transition: none; }
+}
+`;
 
 export default function FaqAccordion() {
   const [open, setOpen] = useState<number | null>(null);
-  const titleId = "lab-faq-title";
-
-  const onToggle = (index: number) => {
-    setOpen((prev) => (prev === index ? null : index));
-  };
+  const toggle = useCallback((i: number) => {
+    setOpen((prev) => (prev === i ? null : i));
+  }, []);
 
   return (
-    <section data-lab="faq-accordion" aria-labelledby={titleId} className="lab-wrap">
-      <h2 id={titleId} className="lab-title">
-        How the showcase works
-      </h2>
-      <div className="lab-card">
-        {ITEMS.map((item, index) => {
-          const panelId = `lab-faq-panel-${index}`;
-          const expanded = open === index;
-          return (
-            <div key={panelId} className="lab-item">
-              <button
-                type="button"
-                className="lab-trigger"
-                aria-expanded={expanded}
-                aria-controls={panelId}
-                onClick={() => onToggle(index)}
-              >
-                <span className="lab-q">{item.q}</span>
-                <span className="lab-icon" aria-hidden="true">
-                  {expanded ? "−" : "+"}
-                </span>
-              </button>
-              <div
-                id={panelId}
-                role="region"
-                className="lab-panel"
-                hidden={!expanded}
-              >
-                <p className="lab-a">{item.a}</p>
+    <section data-lab="faq-accordion" aria-labelledby="lab-faq-heading">
+      <style>{css}</style>
+      <div className="lab-faq">
+        <div className="lab-faq-card">
+          <h2 id="lab-faq-heading">How the showcase works</h2>
+          {ITEMS.map((item, i) => {
+            const panelId = `faq-panel-${i}`;
+            const expanded = open === i;
+            return (
+              <div className="lab-faq-item" key={panelId}>
+                <button
+                  type="button"
+                  className="lab-faq-trigger"
+                  aria-expanded={expanded}
+                  aria-controls={panelId}
+                  onClick={() => toggle(i)}
+                >
+                  <span>{item.q}</span>
+                  <span className="lab-faq-icon" aria-hidden="true">
+                    {expanded ? "−" : "+"}
+                  </span>
+                </button>
+                <div
+                  id={panelId}
+                  role="region"
+                  className="lab-faq-panel"
+                  hidden={!expanded}
+                >
+                  {item.a}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-      <style>{`
-        .lab-wrap { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #f2efe6); }
-        .lab-title { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.2; margin: 0 0 20px; }
-        .lab-card { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; }
-        .lab-item + .lab-item { border-top: 1px solid rgba(176, 203, 188, 0.2); margin-top: 4px; padding-top: 4px; }
-        .lab-trigger { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 12px 0; background: none; border: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-        .lab-trigger:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
-        .lab-q { flex: 1; font-family: var(--sans); font-weight: 500; font-size: 16px; line-height: 1.45; }
-        .lab-icon { flex-shrink: 0; font-size: 22px; line-height: 1; color: var(--sage); width: 1.25em; text-align: center; }
-        .lab-panel { padding: 0 0 12px; }
-        .lab-a { margin: 0; font-size: 15px; line-height: 1.55; color: #e8eee9; }
-        @media (prefers-reduced-motion: reduce) { .lab-trigger, .lab-panel { transition: none; } }
-      `}</style>
     </section>
   );
 }

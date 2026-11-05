@@ -1,25 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-
 const css = `
-.lab-1793872904 {
+.lab-shell {
   width: min(720px, 100%);
-  margin: 8px auto 56px;
-  padding: 24px;
-  border: 1px solid rgba(176, 203, 188, 0.28);
-  border-radius: 16px;
-  color: var(--mist, #f2efe6);
+  margin: 8px auto 80px;
 }
-.lab-1793872904 h2 {
-  margin: 0 0 12px;
+.lab-shell h2 {
+  margin: 0 0 16px;
   font-family: var(--serif);
   font-weight: 400;
   font-size: 30px;
   line-height: 1.2;
   color: var(--mist, #f2efe6);
 }
-.lab-1793872904 p {
+.lab-card {
+  padding: 24px;
+  border: 1px solid rgba(176, 203, 188, 0.28);
+  border-radius: 16px;
+  color: var(--mist, #f2efe6);
+}
+.lab-card p {
   margin: 0;
   font-family: var(--sans);
   font-size: 16px;
@@ -31,9 +31,7 @@ const css = `
   z-index: 40;
   left: 50%;
   bottom: 20px;
-  transform: translateX(-50%) translateY(12px);
-  opacity: 0;
-  pointer-events: none;
+  transform: translateX(-50%);
   padding: 10px 18px;
   border: 1px solid rgba(176, 203, 188, 0.45);
   border-radius: 999px;
@@ -45,7 +43,7 @@ const css = `
   letter-spacing: 0.06em;
   cursor: pointer;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-  transition: opacity 0.2s ease, transform 0.2s ease, background 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 .lab-btt:focus-visible {
   outline: 2px solid var(--sage);
@@ -55,11 +53,6 @@ const css = `
   background: #121a16;
   border-color: var(--sage);
 }
-.lab-btt--show {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
-}
 @media (prefers-reduced-motion: reduce) {
   .lab-btt {
     transition: none;
@@ -68,38 +61,28 @@ const css = `
 `;
 
 export default function LabSection() {
-  const [showBtn, setShowBtn] = useState(false);
-
-  useEffect(() => {
-    const threshold = 120;
-    const sync = () => setShowBtn(window.scrollY > threshold);
-    sync();
-    window.addEventListener("scroll", sync, { passive: true });
-    return () => window.removeEventListener("scroll", sync);
-  }, []);
-
-  const backToTop = useCallback(() => {
-    const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const backToTop = () => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-  }, []);
+  };
 
   return (
     <section
       data-lab="custom-1793872904"
       aria-labelledby="lab-1793872904-title"
     >
-      <h2 id="lab-1793872904-title">Back to top</h2>
-      <div className="lab-1793872904">
-        <p>
-          Scroll down the showcase page, then use the small control anchored at
-          the bottom to jump back to the header.
-        </p>
+      <div className="lab-shell">
+        <h2 id="lab-1793872904-title">Back to top</h2>
+        <div className="lab-card">
+          <p>
+            A small control stays anchored at the bottom of the viewport; tap it
+            to return to the top of the page.
+          </p>
+        </div>
       </div>
       <button
         type="button"
-        className={showBtn ? "lab-btt lab-btt--show" : "lab-btt"}
+        className="lab-btt"
         onClick={backToTop}
         aria-label="Back to top"
       >

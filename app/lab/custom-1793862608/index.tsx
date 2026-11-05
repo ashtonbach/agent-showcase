@@ -154,7 +154,6 @@ export default function LabNewsletterSignup() {
           transition: filter 0.15s ease;
         }
         [data-lab="custom-1793862608"] .lab-btn:disabled {
-          opacity: 0.45;
           cursor: not-allowed;
         }
         [data-lab="custom-1793862608"] .lab-btn:hover:not(:disabled) { filter: brightness(1.06); }

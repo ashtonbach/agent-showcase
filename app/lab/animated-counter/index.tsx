@@ -1,109 +1,128 @@
 "use client";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-/* Example figures for layout demo — not sourced from live metrics. */
+// Example showcase stats (not live figures).
 const STATS = [
-  { final: "24", label: "Workshops" },
-  { final: "180", label: "Participants" },
-  { final: "96%", label: "Satisfaction" },
+  { final: "1,200", label: "Trail miles", parse: () => 1200, render: (n: number) =>
+    Math.round(n).toLocaleString("en-US") },
+  { final: "48", label: "Native species", parse: () => 48, render: (n: number) => String(Math.round(n)) },
+  { final: "94%", label: "Canopy cover", parse: () => 94, render: (n: number) => `${Math.round(n)}%` },
 ];
 
-type Parsed = { pre: string; num: number; suf: string; dec: number; grouped: boolean };
-
-function parseFinal(final: string): Parsed {
-  const m = final.match(/^([^0-9\-]*)([\d,.\s]+)(.*)$/);
-  if (!m) return { pre: "", num: 0, suf: final, dec: 0, grouped: false };
-  const raw = m[2].replace(/,/g, "").replace(/\s/g, "");
-  const dec = (raw.split(".")[1] || "").length;
-  return { pre: m[1], num: parseFloat(raw) || 0, suf: m[3], dec, grouped: m[2].includes(",") };
-}
-
-function formatNum(n: number, p: Parsed): string {
-  let s = p.dec ? n.toFixed(p.dec) : String(Math.round(n));
-  if (p.grouped) {
-    const [a, b] = s.split(".");
-    s = Number(a).toLocaleString("en-US") + (b ? `.${b}` : "");
-  }
-  return `${p.pre}${s}${p.suf}`;
-}
-
-function Stat({ final, label, run }: { final: string; label: string; run: boolean }) {
-  const parsed = parseFinal(final);
-  const [text, setText] = useState("0");
-  const reducedRef = useRef(false);
-
-  useLayoutEffect(() => {
-    reducedRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedRef.current) setText(final);
-  }, [final]);
-
-  useEffect(() => {
-    if (reducedRef.current) return;
-    if (!run) {
-      setText(formatNum(0, parsed));
-      return;
-    }
-    const t0 = performance.now();
-    const dur = 1200;
-    let id = 0;
-    const step = (now: number) => {
-      const t = Math.min(1, (now - t0) / dur);
-      const eased = 1 - (1 - t) ** 3;
-      if (t >= 1) setText(final);
-      else setText(formatNum(parsed.num * eased, parsed));
-      if (t < 1) id = requestAnimationFrame(step);
-    };
-    id = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(id);
-  }, [run, final]);
-
-  return (
-    <div className="lab-ac-stat">
-      <strong data-final={final}>{text}</strong>
-      <span className="lab-ac-label">{label}</span>
-    </div>
-  );
-}
+const DURATION = 1200;
 
 export default function AnimatedCounter() {
-  const root = useRef<HTMLElement>(null);
-  const [run, setRun] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [shown, setShown] = useState(["0", "0", "0%"]);
 
   useEffect(() => {
-    const el = root.current;
+    const el = sectionRef.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) setRun(true);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const runFinal = () => setShown(STATS.map((s) => s.final));
+
+    const runAnimate = () => {
+      const start = performance.now();
+      let frame = 0;
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / DURATION);
+        const ease = 1 - (1 - t) ** 3;
+        if (t >= 1) {
+          runFinal();
+          return;
+        }
+        setShown(STATS.map((s) => s.render(s.parse() * ease)));
+        frame = requestAnimationFrame(tick);
+      };
+      frame = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(frame);
+    };
+
+    let cancelAnim: (() => void) | undefined;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        obs.disconnect();
+        if (reduced) runFinal();
+        else cancelAnim = runAnimate();
       },
       { threshold: 0.25 }
     );
-    io.observe(el);
-    return () => io.disconnect();
+    obs.observe(el);
+    return () => {
+      obs.disconnect();
+      cancelAnim?.();
+    };
   }, []);
 
+  const css = `
+    [data-lab="animated-counter"] {
+      width: min(720px, 100%);
+      margin: 8px auto 56px;
+      color: var(--mist, #E8EEE9);
+    }
+    [data-lab="animated-counter"] .lab-card {
+      border: 1px solid rgba(176, 203, 188, 0.28);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    [data-lab="animated-counter"] .lab-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      text-align: center;
+    }
+    [data-lab="animated-counter"] .lab-stat strong {
+      display: block;
+      font-family: var(--serif);
+      font-size: clamp(1.75rem, 5vw, 2.25rem);
+      font-weight: 400;
+      color: var(--sage, #B0CBBC);
+      line-height: 1.1;
+    }
+    [data-lab="animated-counter"] .lab-stat-label {
+      display: block;
+      margin-top: 8px;
+      font-family: var(--sans);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #F2EFE6;
+    }
+    [data-lab="animated-counter"] .lab-note {
+      margin: 20px 0 0;
+      font-size: 0.9rem;
+      color: rgba(232, 238, 233, 0.75);
+    }
+    @media (max-width: 520px) {
+      [data-lab="animated-counter"] .lab-stats {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+    }
+  `;
+
   return (
-    <section ref={root} data-lab="animated-counter" aria-labelledby="ac-h2">
-      <h2 id="ac-h2">Impact at a glance</h2>
-      <div className="lab-ac-card">
-        <div className="lab-ac-grid">
-          {STATS.map((s) => (
-            <Stat key={s.label} final={s.final} label={s.label} run={run} />
+    <section
+      ref={sectionRef}
+      data-lab="animated-counter"
+      aria-labelledby="animated-counter-heading"
+    >
+      <style>{css}</style>
+      <h2 id="animated-counter-heading">Forest by the numbers</h2>
+      <div className="lab-card">
+        <div className="lab-stats">
+          {STATS.map((s, i) => (
+            <div className="lab-stat" key={s.label}>
+              <strong data-final={s.final}>{shown[i]}</strong>
+              <span className="lab-stat-label">{s.label}</span>
+            </div>
           ))}
         </div>
       </div>
-      <p className="lab-ac-note">Example data</p>
-      <style>{`
-[data-lab="animated-counter"]{width:min(720px,100%);margin:8px auto 56px;color:var(--mist,#E8EEE9)}
-[data-lab="animated-counter"]>h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.15;margin:0 0 20px;color:#F2EFE6}
-.lab-ac-card{border:1px solid rgba(176,203,188,0.28);border-radius:16px;padding:24px;background:rgba(18,26,22,0.35)}
-.lab-ac-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;text-align:center}
-@media(max-width:520px){.lab-ac-grid{grid-template-columns:1fr;gap:16px}}
-.lab-ac-stat strong{display:block;font-family:var(--serif);font-weight:400;font-size:clamp(1.75rem,5vw,2.5rem);color:#F2EFE6;line-height:1.1;margin-bottom:8px}
-.lab-ac-label{font-family:var(--sans);font-weight:500;font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--sage,#B0CBBC)}
-.lab-ac-note{margin:16px 0 0;font-size:0.9rem;color:var(--mist,#E8EEE9)}
-@media(prefers-reduced-motion:reduce){.lab-ac-stat strong{transition:none}}
-`}</style>
+      <p className="lab-note">Example data: illustrative figures for the showcase demo.</p>
     </section>
   );
 }

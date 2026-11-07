@@ -1,116 +1,127 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const CARDS = [
-  {
-    title: "Fresh branch",
-    body: "Each run checks out a dedicated showcase branch so the coder never commits on main.",
-    file: "icon-0.svg",
-  },
-  {
-    title: "Allowlist",
-    body: "The gate allows changes only in the lab slot, the page import line, and current.json.",
-    file: "icon-1.svg",
-  },
-  {
-    title: "Size cap",
-    body: "Total diff size is capped at two hundred fifty changed lines across allowed files.",
-    file: "icon-2.svg",
-  },
-  {
-    title: "No network",
-    body: "Lab components must not call fetch, WebSockets, or other client network APIs.",
-    file: "icon-3.svg",
-  },
-  {
-    title: "Visual gate",
-    body: "SHIP runs layout checks at mobile and desktop widths before the build gate passes.",
-    file: "icon-4.svg",
-  },
-  {
-    title: "Nightly reset",
-    body: "Preview environments reset on a schedule so demos always start from a known baseline.",
-    file: "icon-5.svg",
-  },
+const ITEMS = [
+  { icon: "icon-0.svg", title: "Fresh branch", text: "Each run works on a dedicated branch so changes stay isolated until review." },
+  { icon: "icon-1.svg", title: "Allowlist", text: "Only approved imports and APIs are allowed so agents cannot reach the network." },
+  { icon: "icon-2.svg", title: "Size cap", text: "The gate limits diff size so features stay small and reviewable." },
+  { icon: "icon-3.svg", title: "No network", text: "Runtime fetches and sockets are blocked to keep the demo predictable." },
+  { icon: "icon-4.svg", title: "Visual gate", text: "Layout checks at mobile and desktop widths must pass before ship." },
+  { icon: "icon-5.svg", title: "Nightly reset", text: "The showcase environment resets on a schedule so every run starts clean." },
 ] as const;
 
-const css = `
-.lab-fg { width: min(960px, 100%); margin: 8px auto 56px; }
-.lab-fg h2 {
-  font-family: var(--serif); font-weight: 400; font-size: 30px;
-  color: var(--mist, #f2efe6); margin: 0 0 24px;
+function FallbackGlyph() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <rect x="4" y="4" width="24" height="24" rx="6" stroke="#B0CBBC" strokeOpacity="0.5" />
+      <path d="M11 16h10M16 11v10" stroke="#B0CBBC" strokeOpacity="0.6" strokeWidth="1.5" />
+    </svg>
+  );
 }
-.lab-fg-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
-  list-style: none; padding: 0; margin: 0;
-}
-.lab-fg-card {
-  border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px;
-  background: rgba(18, 26, 22, 0.45);
-}
-.lab-fg-icon { display: block; margin-bottom: 12px; color: var(--sage); }
-.lab-fg-card h3 {
-  font-family: var(--sans); font-size: 17px; font-weight: 500;
-  color: var(--mist, #f2efe6); margin: 0 0 8px;
-}
-.lab-fg-card p {
-  margin: 0; font-family: var(--sans); font-size: 15px; line-height: 1.55; color: #e8eee9;
-}
-.lab-fg-fb {
-  display: inline-flex; width: 32px; height: 32px; align-items: center; justify-content: center;
-  background: rgba(176, 203, 188, 0.12); border-radius: 8px;
-}
-@media (max-width: 900px) { .lab-fg-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px) { .lab-fg-grid { grid-template-columns: 1fr; } }
-`;
 
-function IconSlot({ file, label }: { file: string; label: string }) {
-  const ref = useRef<HTMLImageElement>(null);
+function SlotIcon({ file, title }: { file: string; title: string }) {
+  const imgRef = useRef<HTMLImageElement>(null);
   const [ok, setOk] = useState(true);
-  const fail = useCallback(() => setOk(false), []);
+
   useEffect(() => {
-    const img = ref.current;
+    const img = imgRef.current;
     if (img?.complete && img.naturalWidth === 0) setOk(false);
   }, []);
-  const src = `/lab/feature-grid/${file}`;
+
   if (!ok) {
     return (
-      <span data-art="fallback" aria-hidden="true" className="lab-fg-icon lab-fg-fb">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M4 10h12M10 4v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
+      <span className="lab-icon-fallback" data-art="fallback" aria-hidden="true">
+        <FallbackGlyph />
       </span>
     );
   }
+
   return (
     <img
-      ref={ref}
-      className="lab-fg-icon"
+      ref={imgRef}
+      className="lab-icon"
       data-art="image"
-      src={src}
+      src={`/lab/feature-grid/${file}`}
       width={32}
       height={32}
-      alt={label}
-      onError={fail}
+      alt=""
+      onError={() => setOk(false)}
     />
   );
 }
 
 export default function FeatureGrid() {
+  const headingId = "lab-feature-grid-title";
+
   return (
-    <section data-lab="feature-grid" aria-labelledby="lab-fg-heading">
-      <style>{css}</style>
-      <h2 id="lab-fg-heading">Six guardrails of the showcase</h2>
-      <ul className="lab-fg-grid">
-        {CARDS.map((c) => (
-          <li key={c.title} className="lab-fg-card">
-            <IconSlot file={c.file} label={c.title} />
-            <h3>{c.title}</h3>
-            <p>{c.body}</p>
+    <section className="lab-feature-grid" data-lab="feature-grid" aria-labelledby={headingId}>
+      <h2 id={headingId} className="lab-title">
+        Six guardrails of the showcase
+      </h2>
+      <ul className="lab-grid">
+        {ITEMS.map((item) => (
+          <li key={item.title} className="lab-card">
+            <SlotIcon file={item.icon} title={item.title} />
+            <h3 className="lab-card-title">{item.title}</h3>
+            <p className="lab-card-text">{item.text}</p>
           </li>
         ))}
       </ul>
+      <style>{`
+        .lab-feature-grid { color: var(--mist, #f2efe6); }
+        .lab-title {
+          font-family: var(--serif);
+          font-weight: 400;
+          font-size: 30px;
+          line-height: 1.2;
+          margin: 0 0 24px;
+          text-align: center;
+        }
+        .lab-grid {
+          list-style: none;
+          margin: 8px auto 56px;
+          padding: 0;
+          width: min(960px, 100%);
+          display: grid;
+          gap: 16px;
+          grid-template-columns: 1fr;
+        }
+        @media (min-width: 601px) {
+          .lab-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 901px) {
+          .lab-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        .lab-card {
+          border: 1px solid rgba(176, 203, 188, 0.28);
+          border-radius: 16px;
+          padding: 24px;
+        }
+        .lab-icon, .lab-icon-fallback {
+          display: block;
+          width: 32px;
+          height: 32px;
+          margin-bottom: 12px;
+        }
+        .lab-card-title {
+          font-family: var(--serif);
+          font-weight: 400;
+          font-size: 1.125rem;
+          margin: 0 0 8px;
+          color: var(--mist, #e8eee9);
+        }
+        .lab-card-text {
+          font-family: var(--sans);
+          font-size: 0.9375rem;
+          line-height: 1.5;
+          margin: 0;
+          color: var(--mist, #e8eee9);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .lab-feature-grid * { animation: none !important; transition: none !important; }
+        }
+      `}</style>
     </section>
   );
 }

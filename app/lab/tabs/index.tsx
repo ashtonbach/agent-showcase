@@ -12,7 +12,7 @@ import {
 const STEPS = [
   {
     title: "Design",
-    body: "Hazel picks Forest Mist styling and any artwork for the feature slot while the coder branch is prepared on the operator's repo.",
+    body: "Hazel picks Forest Mist styling and any artwork for the feature slot while the coding branch is prepared for this live showcase.",
   },
   {
     title: "Build",

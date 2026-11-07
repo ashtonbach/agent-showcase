@@ -1,152 +1,169 @@
 "use client";
 
-import { useCallback, useId, useRef, useState, type KeyboardEvent } from "react";
+import {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 const STEPS = [
   {
     title: "Design",
-    body: "Hazel shapes the layout, typography, and Forest Mist styling so each lab slot matches the brand before code lands.",
+    body: "Hazel picks Forest Mist styling and any artwork for the feature slot while the coding branch is prepared for this live showcase.",
   },
   {
     title: "Build",
-    body: "Alder implements the feature in the lab slot from the spec, keeps the diff small, and ships through the kit gate.",
+    body: "Alder implements the lab component from the written spec, keeps the diff inside the gate limits, and ships through the kit's self-check and merge gate.",
   },
   {
-    title: "Review & QA",
-    body: "Rowan reviews accessibility and behavior; Cedar signs off on the preview so the coordinator can merge when checks pass.",
+    title: "Review",
+    body: "Rowan reviews the pull request on GitHub; Cedar signs off on behavior and layout; the operator's box merges only after those checks pass.",
   },
 ] as const;
 
 export default function TabsLab() {
-  const base = useId();
-  const [selected, setSelected] = useState(0);
+  const base = useId().replace(/:/g, "");
+  const titleId = `${base}-title`;
+  const [index, setIndex] = useState(0);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  const tabId = (i: number) => `${base}-tab-${i}`;
-  const panelId = (i: number) => `${base}-panel-${i}`;
-
-  const select = useCallback((i: number) => {
-    setSelected(i);
-    tabRefs.current[i]?.focus();
+  const select = useCallback((next: number) => {
+    setIndex(((next % STEPS.length) + STEPS.length) % STEPS.length);
   }, []);
 
+  useEffect(() => {
+    tabRefs.current[index]?.focus();
+  }, [index]);
+
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-    e.preventDefault();
-    const next =
-      e.key === "ArrowRight"
-        ? (selected + 1) % STEPS.length
-        : (selected - 1 + STEPS.length) % STEPS.length;
-    select(next);
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      select(index + 1);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      select(index - 1);
+    }
   };
 
   return (
-    <section data-lab="tabs" aria-labelledby={`${base}-heading`} className="lab-tabs-wrap">
+    <section data-lab="tabs" aria-labelledby={titleId} className="lab-tabs">
+      <h2 id={titleId}>How this showcase run works</h2>
+      <div
+        role="tablist"
+        aria-label="Showcase team steps"
+        className="lab-tablist"
+        onKeyDown={onKeyDown}
+      >
+        {STEPS.map((step, i) => {
+          const tabId = `${base}-tab-${i}`;
+          const panelId = `${base}-panel-${i}`;
+          const selected = i === index;
+          return (
+            <button
+              key={step.title}
+              ref={(el) => {
+                tabRefs.current[i] = el;
+              }}
+              type="button"
+              role="tab"
+              id={tabId}
+              aria-selected={selected}
+              aria-controls={panelId}
+              tabIndex={selected ? 0 : -1}
+              className="lab-tab"
+              onClick={() => select(i)}
+            >
+              <span className="lab-tab-step">Step {i + 1}</span>
+              {step.title}
+            </button>
+          );
+        })}
+      </div>
+      {STEPS.map((step, i) => {
+        const tabId = `${base}-tab-${i}`;
+        const panelId = `${base}-panel-${i}`;
+        const selected = i === index;
+        return (
+          <div
+            key={step.title}
+            role="tabpanel"
+            id={panelId}
+            aria-labelledby={tabId}
+            hidden={!selected}
+            className="lab-panel"
+          >
+            <p>{step.body}</p>
+          </div>
+        );
+      })}
       <style>{`
-        .lab-tabs-wrap { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #E8EEE9); }
-        .lab-tabs-card {
-          border: 1px solid rgba(176, 203, 188, 0.28);
-          border-radius: 16px;
-          padding: 24px;
-          background: rgba(18, 26, 22, 0.35);
+        .lab-tabs {
+          width: min(720px, 100%);
+          margin: 8px auto 56px;
+          color: var(--mist, #f2efe6);
         }
-        .lab-tabs-wrap h2 {
+        .lab-tabs h2 {
           font-family: var(--serif);
           font-weight: 400;
           font-size: 30px;
-          line-height: 1.15;
+          line-height: 1.25;
           margin: 0 0 20px;
-          color: var(--mist, #F2EFE6);
         }
         .lab-tablist {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
-          margin: 0 0 20px;
-          padding: 0;
-          list-style: none;
+          margin-bottom: 16px;
         }
         .lab-tab {
-          font-family: var(--sans);
-          font-weight: 500;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          font-size: 11px;
-          padding: 10px 14px;
-          border-radius: 999px;
-          border: 1px solid rgba(176, 203, 188, 0.35);
+          flex: 1 1 100px;
+          min-width: 0;
+          padding: 12px 14px;
+          border: 1px solid rgba(176, 203, 188, 0.28);
+          border-radius: 12px;
           background: transparent;
-          color: var(--mist, #E8EEE9);
+          color: var(--mist, #e8eee9);
+          font-family: var(--sans);
+          font-size: 15px;
           cursor: pointer;
-          transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+          text-align: left;
         }
         .lab-tab[aria-selected="true"] {
-          background: rgba(176, 203, 188, 0.18);
-          border-color: var(--sage, #B0CBBC);
-          color: var(--mist, #F2EFE6);
+          border-color: var(--sage);
+          box-shadow: inset 0 0 0 1px var(--sage);
         }
         .lab-tab:focus-visible {
-          outline: 2px solid var(--sage, #B0CBBC);
+          outline: 2px solid var(--sage);
           outline-offset: 2px;
         }
-        .lab-tabpanel { margin: 0; }
-        .lab-tabpanel[hidden] { display: none; }
-        .lab-step-label {
+        .lab-tab-step {
           display: block;
-          font-family: var(--sans);
+          font-size: 11px;
           font-weight: 500;
           letter-spacing: 0.16em;
           text-transform: uppercase;
-          font-size: 10px;
-          color: var(--sage, #B0CBBC);
-          margin-bottom: 8px;
+          color: rgba(242, 239, 230, 0.72);
+          margin-bottom: 4px;
         }
-        .lab-step-body { margin: 0; line-height: 1.55; font-size: 15px; }
+        .lab-panel {
+          border: 1px solid rgba(176, 203, 188, 0.28);
+          border-radius: 16px;
+          padding: 24px;
+        }
+        .lab-panel p {
+          margin: 0;
+          line-height: 1.55;
+          font-size: 16px;
+        }
         @media (prefers-reduced-motion: reduce) {
-          .lab-tab { transition: none; }
+          .lab-tab {
+            transition: none;
+          }
         }
       `}</style>
-      <div className="lab-tabs-card">
-        <h2 id={`${base}-heading`}>How this run works</h2>
-        <div
-          role="tablist"
-          aria-label="Showcase team steps"
-          className="lab-tablist"
-          onKeyDown={onKeyDown}
-        >
-          {STEPS.map((step, i) => (
-            <button
-              key={step.title}
-              type="button"
-              ref={(el) => {
-                tabRefs.current[i] = el;
-              }}
-              role="tab"
-              id={tabId(i)}
-              aria-selected={selected === i}
-              aria-controls={panelId(i)}
-              tabIndex={selected === i ? 0 : -1}
-              className="lab-tab"
-              onClick={() => setSelected(i)}
-            >
-              Step {i + 1}
-            </button>
-          ))}
-        </div>
-        {STEPS.map((step, i) => (
-          <div
-            key={step.title}
-            role="tabpanel"
-            id={panelId(i)}
-            aria-labelledby={tabId(i)}
-            hidden={selected !== i}
-            className="lab-tabpanel"
-          >
-            <span className="lab-step-label">{step.title}</span>
-            <p className="lab-step-body">{step.body}</p>
-          </div>
-        ))}
-      </div>
     </section>
   );
 }

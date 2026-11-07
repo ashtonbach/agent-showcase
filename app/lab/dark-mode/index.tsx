@@ -26,24 +26,64 @@ html[data-theme="light"] [data-lab="dark-mode"]{color:#14201A}
 html[data-theme="light"] .lab-dm-panel{border-color:rgba(47,90,70,.28)}
 html[data-theme="light"] .lab-dm-btn{background:#2F5A46;color:#E8EEE9}
 html[data-theme="light"] .lab-dm-btn:focus-visible{outline-color:#2F5A46}
-html[data-theme="light"] .brand-mark,html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(15%) sepia(35%) saturate(1800%) hue-rotate(108deg) brightness(0.55)}
 html[data-theme="light"] .footer-mark{opacity:1}
 html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}
 @media (prefers-reduced-motion:reduce){.lab-dm-btn{transition:none}}
 `;
 
+const MARK_FILTER =
+  "brightness(0) saturate(100%) invert(15%) sepia(35%) saturate(1800%) hue-rotate(108deg) brightness(0.55)";
+
+function paintLightMark(img: HTMLImageElement) {
+  if (!img.dataset.abOrig) {
+    img.dataset.abOrig = img.getAttribute("src") || img.src;
+  }
+  const w = img.naturalWidth || img.width;
+  const h = img.naturalHeight || img.height;
+  if (!w || !h) return;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const finish = (source: CanvasImageSource) => {
+    ctx.filter = MARK_FILTER;
+    ctx.drawImage(source, 0, 0, w, h);
+    img.src = canvas.toDataURL("image/png");
+  };
+  const orig = img.dataset.abOrig;
+  if ((img.src === orig || img.getAttribute("src") === orig) && img.complete && img.naturalWidth) {
+    finish(img);
+    return;
+  }
+  const probe = new Image();
+  probe.onload = () => finish(probe);
+  probe.src = orig;
+}
+
+function syncBrandMarks(isDark: boolean) {
+  document.querySelectorAll<HTMLImageElement>(".brand-mark, .footer-mark-img").forEach((img) => {
+    const run = () => {
+      if (isDark) {
+        if (img.dataset.abOrig) img.src = img.dataset.abOrig;
+        return;
+      }
+      paintLightMark(img);
+    };
+    if (img.complete && img.naturalWidth > 0) run();
+    else img.addEventListener("load", run, { once: true });
+  });
+}
+
 function persistTheme(isDark: boolean) {
   const root = document.documentElement;
-  if (isDark) {
-    root.dataset.theme = "dark";
-  } else {
-    root.dataset.theme = "light";
-  }
+  root.dataset.theme = isDark ? "dark" : "light";
   try {
     localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
   } catch {
     /* storage may be blocked */
   }
+  syncBrandMarks(isDark);
 }
 
 export default function DarkModeToggle() {

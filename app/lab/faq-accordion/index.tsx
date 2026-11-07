@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useId, useState } from "react";
 
-const ITEMS = [
+const FAQ = [
   {
     q: "What is the agent showcase?",
     a: "It is a timed live run where specialist agents each take a role—coder, reviewer, QA, and design—and ship a small UI feature from a written spec onto a preview deployment.",
@@ -21,105 +21,93 @@ const ITEMS = [
   },
 ] as const;
 
-const css = `
-.lab-faq { width: min(720px, 100%); margin: 8px auto 56px; }
-.lab-faq-card {
-  border: 1px solid rgba(176, 203, 188, 0.28);
-  border-radius: 16px;
-  padding: 24px;
-  background: rgba(18, 26, 22, 0.45);
-}
-.lab-faq h2 {
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: 30px;
-  color: var(--mist, #f2efe6);
-  margin: 0 0 20px;
-}
-.lab-faq-item { border-top: 1px solid rgba(176, 203, 188, 0.2); }
-.lab-faq-item:first-of-type { border-top: none; }
-.lab-faq-trigger {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  font-family: var(--sans);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--mist, #f2efe6);
-}
-.lab-faq-trigger:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
-.lab-faq-icon {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sage);
-  font-size: 20px;
-  line-height: 1;
-}
-.lab-faq-panel {
-  padding: 0 0 16px;
-  color: #e8eee9;
-  font-family: var(--sans);
-  font-size: 15px;
-  line-height: 1.55;
-}
-@media (prefers-reduced-motion: reduce) {
-  .lab-faq-panel { transition: none; }
-}
-`;
-
-export default function FaqAccordion() {
+export default function LabFaqAccordion() {
+  const base = useId().replace(/:/g, "");
   const [open, setOpen] = useState<number | null>(null);
   const toggle = useCallback((i: number) => {
-    setOpen((prev) => (prev === i ? null : i));
+    setOpen((cur) => (cur === i ? null : i));
   }, []);
 
   return (
-    <section data-lab="faq-accordion" aria-labelledby="lab-faq-heading">
-      <style>{css}</style>
-      <div className="lab-faq">
-        <div className="lab-faq-card">
-          <h2 id="lab-faq-heading">How the showcase works</h2>
-          {ITEMS.map((item, i) => {
-            const panelId = `faq-panel-${i}`;
+    <section data-lab="faq-accordion" aria-labelledby={`${base}-title`}>
+      <h2 id={`${base}-title`} className="lab-heading">
+        How the showcase works
+      </h2>
+      <div className="lab-card">
+        <dl className="lab-faq">
+          {FAQ.map((item, i) => {
+            const pid = `${base}-p${i}`;
             const expanded = open === i;
             return (
-              <div className="lab-faq-item" key={panelId}>
-                <button
-                  type="button"
-                  className="lab-faq-trigger"
-                  aria-expanded={expanded}
-                  aria-controls={panelId}
-                  onClick={() => toggle(i)}
-                >
-                  <span>{item.q}</span>
-                  <span className="lab-faq-icon" aria-hidden="true">
-                    {expanded ? "−" : "+"}
-                  </span>
-                </button>
-                <div
-                  id={panelId}
+              <div key={item.q} className="lab-entry">
+                <dt className="lab-qhead">
+                  <button
+                    type="button"
+                    className="lab-qbtn"
+                    aria-expanded={expanded}
+                    aria-controls={pid}
+                    onClick={() => toggle(i)}
+                  >
+                    <span className="lab-qtext">{item.q}</span>
+                    <span className="lab-sign" aria-hidden="true">
+                      {expanded ? "−" : "+"}
+                    </span>
+                  </button>
+                </dt>
+                <dd
+                  id={pid}
                   role="region"
-                  className="lab-faq-panel"
+                  className="lab-answrap"
                   hidden={!expanded}
                 >
-                  {item.a}
-                </div>
+                  <p className="lab-ans">{item.a}</p>
+                </dd>
               </div>
             );
           })}
-        </div>
+        </dl>
       </div>
+      <style>{`
+[data-lab="faq-accordion"] {
+  width: min(720px, 100%);
+  margin: 8px auto 56px;
+  color: var(--mist, #e8eee9);
+}
+[data-lab="faq-accordion"] .lab-heading {
+  margin: 0 0 20px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.2;
+  color: var(--mist, #f2efe6);
+}
+[data-lab="faq-accordion"] .lab-card {
+  border: 1px solid rgba(176, 203, 188, 0.28);
+  border-radius: 16px;
+  padding: 24px;
+}
+[data-lab="faq-accordion"] .lab-faq { margin: 0; }
+[data-lab="faq-accordion"] .lab-entry { border-top: 1px solid rgba(176, 203, 188, 0.22); }
+[data-lab="faq-accordion"] .lab-entry:first-child { border-top: none; }
+[data-lab="faq-accordion"] .lab-qhead { margin: 0; font-weight: inherit; }
+[data-lab="faq-accordion"] .lab-qbtn {
+  display: flex; width: 100%; align-items: flex-start; gap: 16px;
+  padding: 16px 0; border: none; background: transparent; cursor: pointer;
+  text-align: left; color: inherit; font: inherit;
+}
+[data-lab="faq-accordion"] .lab-qbtn:focus-visible {
+  outline: 2px solid var(--sage, #b0cbbc); outline-offset: 2px;
+}
+[data-lab="faq-accordion"] .lab-qtext { flex: 1; }
+[data-lab="faq-accordion"] .lab-sign {
+  color: var(--sage, #b0cbbc); font-size: 22px; line-height: 1; min-width: 1.2em; text-align: center;
+}
+[data-lab="faq-accordion"] .lab-answrap { margin: 0; padding: 0 0 16px; }
+[data-lab="faq-accordion"] .lab-ans { margin: 0; line-height: 1.55; color: var(--mist, #e8eee9); }
+@media (prefers-reduced-motion: reduce) {
+  [data-lab="faq-accordion"] .lab-qbtn { transition: none; }
+}
+`}</style>
     </section>
   );
 }

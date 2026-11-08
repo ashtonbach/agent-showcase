@@ -39,9 +39,19 @@ const en = require(path.join(__dirname, "../../messages/en-US.json"));
 const esPartial = { ...require(path.join(__dirname, "../../messages/es-ES.json")) };
 esPartial["lab.spanish-translation.cta"] = en["lab.spanish-translation.cta"];
 esPartial["demo.feature-grid"] = en["demo.feature-grid"];
+const es = require(path.join(__dirname, "../../messages/es-ES.json"));
+assert.ok("demo.break-copy" in en, "en-US.json has demo.break-copy");
+assert.ok("demo.break-copy" in es, "es-ES.json has demo.break-copy");
+assert.strictEqual(en["demo.break-copy"], "Copy coverage");
+assert.ok(es["demo.break-copy"].trim(), "es-ES demo.break-copy is non-empty");
+assert.notStrictEqual(es["demo.break-copy"].trim(), en["demo.break-copy"].trim(), "es-ES demo.break-copy differs from en-US");
+assert.ok(/[áéíóúñ¿¡]|\b(de|del|la|el|cobertura|textos)\b/i.test(es["demo.break-copy"]), "es-ES demo.break-copy reads as Spanish");
+assert.deepStrictEqual(Object.keys(en).sort(), Object.keys(es).sort(), "en-US and es-ES share the same message keys");
+
 for (const it of [
   { key: "lab.spanish-translation.cta", en: en["lab.spanish-translation.cta"], es: esPartial["lab.spanish-translation.cta"] },
   { key: "lab.spanish-translation.heading", en: en["lab.spanish-translation.heading"], es: esPartial["lab.spanish-translation.heading"] },
+  { key: "demo.break-copy", en: en["demo.break-copy"], es: es["demo.break-copy"] },
 ]) {
   const sameEn = it.es.trim() === it.en.trim();
   if (unusedKey(it.key)) assert.ok(sameEn, `unused ${it.key} may equal English in es-ES`);

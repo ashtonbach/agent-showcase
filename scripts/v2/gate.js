@@ -9,6 +9,8 @@ const [slug, base = "origin/main", head = "HEAD"] = process.argv.slice(2);
 const MAX = 250;
 const root = execFileSync("git", ["rev-parse", "--show-toplevel"]).toString().trim();
 const menu = JSON.parse(fs.readFileSync(path.join(root, "app/lab/menu.json"), "utf8")).features.map((f) => f.slug);
+const LOCALE_MESSAGE_SLUGS = new Set(["spanish-translation", "break-copy"]);
+const localeMessagesOk = (sl) => LOCALE_MESSAGE_SLUGS.has(sl);
 const git = (...a) => execFileSync("git", ["-C", root, ...a], { maxBuffer: 1 << 26 }).toString();
 const BANNED = [/\bfetch\s*\(/, /\baxios\b/, /XMLHttpRequest/, /\bWebSocket\b/, /\bEventSource\b/, /sendBeacon/, /process\.env/, /dangerouslySetInnerHTML/, /\beval\s*\(/, /new\s+Function\s*\(/, /\bimport\s*\(/, /\brequire\s*\(/];
 // 10/20 (#243 review): checked per lab file on its WHOLE head text (comments stripped, strings kept), not line by line, so an
@@ -38,7 +40,7 @@ if (process.argv[2] === "--banned-only") {
     const seen = new Set();
     for (const re of BANNED) { const g = new RegExp(re.source, "g"); for (const mm of [...t.matchAll(g), ...raw.matchAll(g)]) if (!seen.has(re.source + mm.index) && seen.add(re.source + mm.index)) probs.push(`${f}: banned call ${re.source}: ${t.slice(Math.max(0, mm.index - 20), mm.index + 60).replace(/\s+/g, " ").trim().slice(0, 120)}`); }
     for (const sp of new Set([...kept, ...specs])) {
-      const msgOk = sl === "spanish-translation" && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(sp), keepOk = !!keep && sp === `../${keep}`;
+      const msgOk = localeMessagesOk(sl) && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(sp), keepOk = !!keep && sp === `../${keep}`;
       if (!msgOk && !keepOk && !(sp === "react" || (/^\.\//.test(sp) && !sp.includes("..")))) probs.push(`${f}: import not allowed: ${sp}`); } }
   const ok = probs.length === 0;
   console.log(`Banned-only · lab files ${changed.length} · slugs ${[...slugs].join(", ") || "none"} · Banned calls ${ok ? "PASS" : "FAIL"}`);
@@ -77,8 +79,9 @@ const sha256 = (ref) => { try { return require("crypto").createHash("sha256").up
 const range = `${base}...${head}`;
 const files = git("diff", "--name-only", range).split("\n").filter(Boolean);
 out.files = files;
-// Messages: messages/en-US.json is the base locale (never changed by a run). The spanish-translation run adds exactly
-// messages/es-ES.json: flat JSON, string values only, exactly the same keys as en-US.json.
+// Messages: messages/en-US.json is the base locale (never changed by a run). The spanish-translation and break-copy runs
+// add messages/es-ES.json: flat JSON, string values only, exactly the same keys as en-US.json (break-copy may leave long
+// keys in English so the Copy coverage CI gate fails; spanish-translation must translate every long key here).
 const LOCALE_FILE = "messages/es-ES.json", BASE_LOCALE_FILE = "messages/en-US.json";
 const dir = `app/lab/${slug}/`, artDir = `public/lab/${slug}/`; // artDir: the designer's artwork (SVG only, checked below)
 // Runs branch from origin/base (main with the lab slot empty), so a PR to main also deletes the previous feature.
@@ -95,7 +98,7 @@ for (const f of files) {
   if (keepFile(f)) { fail("allowlist", `the request said to keep the current section: ${f} was ${deleted.has(f) ? "deleted" : "changed"}`); continue; }
   if (f === "app/page.tsx" || f.startsWith(dir) || oldFeature(f)) continue;
   if (f === "app/lab/current.json") continue; // checked below
-  if (f === LOCALE_FILE && slug === "spanish-translation") continue; // the builder's es-ES messages, checked below
+  if (f === LOCALE_FILE && localeMessagesOk(slug)) continue; // the builder's es-ES messages, checked below
   { const sa = seededArt(f); if (sa === true || sa === "failed") continue; }
   if (!custom && f.startsWith(artDir) && /^[a-z0-9-]+\.svg$/.test(f.slice(artDir.length))) continue;
   fail("allowlist", `file outside allowlist: ${f}`);
@@ -104,7 +107,7 @@ for (const f of files) {
 { let cur = null; try { cur = JSON.parse(git("show", `${head}:app/lab/current.json`)); } catch (e) {}
   const want = slug;
   if (!cur || Object.keys(cur).join() !== "slug" || cur.slug !== want) fail("allowlist", `app/lab/current.json must be exactly {"slug":"${slug}"} (it sets the page H1)`.replace(`"${slug}"`, `"${want}"`)); }
-if (slug === "spanish-translation") {
+if (localeMessagesOk(slug)) {
   const load = (f) => { try { return JSON.parse(git("show", `${head}:${f}`)); } catch (e) { return null; } };
   const en = load(BASE_LOCALE_FILE), es = load(LOCALE_FILE);
   const flat = (o) => o && typeof o === "object" && !Array.isArray(o) && Object.values(o).every((v) => typeof v === "string");
@@ -117,10 +120,12 @@ if (slug === "spanish-translation") {
     if (miss.length) fail("allowlist", `${LOCALE_FILE} is missing keys from en-US.json: ${miss.join(", ")}`);
     if (extra.length) fail("allowlist", `${LOCALE_FILE} has keys not in en-US.json: ${extra.join(", ")}`);
     if (empty.length) fail("allowlist", `${LOCALE_FILE} has empty values: ${empty.join(", ")}`);
-    const same = a.filter((k) => k in es && en[k].length >= 12 && es[k].trim() === en[k].trim());
-    if (same.length) fail("allowlist", `${LOCALE_FILE} leaves text in English (identical to en-US.json): ${same.join(", ")}`);
+    if (slug === "spanish-translation") {
+      const same = a.filter((k) => k in es && en[k].length >= 12 && es[k].trim() === en[k].trim());
+      if (same.length) fail("allowlist", `${LOCALE_FILE} leaves text in English (identical to en-US.json): ${same.join(", ")}`);
+    }
   }
-} else if (files.some((f) => f.startsWith("messages/"))) fail("allowlist", "messages/ may only change in the spanish-translation run (messages/es-ES.json)");
+} else if (files.some((f) => f.startsWith("messages/"))) fail("allowlist", "messages/ may only change in the spanish-translation or break-copy run (messages/es-ES.json)");
 if (files.includes(BASE_LOCALE_FILE)) fail("allowlist", `${BASE_LOCALE_FILE} is base text; a run may not change it`);
 if (!files.some((f) => f.startsWith(dir))) fail("allowlist", `no files in ${dir}`);
 if (files.some((f) => /(^|\/)(package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|npm-shrinkwrap\.json)$/.test(f)))
@@ -156,9 +161,9 @@ for (const { raw, t } of labTexts) {
   for (const re of SPEC) for (const m of t.matchAll(re)) specs.push(m[2]);
 }
 for (const sp of new Set([...specs, ...rawSpecs])) {
-  const msgOk = slug === "spanish-translation" && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(sp);
+  const msgOk = localeMessagesOk(slug) && /^\.\.\/\.\.\/\.\.\/messages\/(en-US|es-ES)\.json$/.test(sp);
   const keepOk = !!keep && sp === `../${keep}`; // build on top: the new lab renders the kept lab's component
-  if (!msgOk && !keepOk && !(sp === "react" || (/^\.\//.test(sp) && !sp.includes("..")))) fail("banned", `import not allowed: ${sp} (only "react", ./ files in the folder, or ../../../messages/<locale>.json for spanish-translation)`);
+  if (!msgOk && !keepOk && !(sp === "react" || (/^\.\//.test(sp) && !sp.includes("..")))) fail("banned", `import not allowed: ${sp} (only "react", ./ files in the folder, or ../../../messages/<locale>.json for spanish-translation / break-copy)`);
 }
 if (keep && !specs.includes(`../${keep}`)) fail("allowlist", `build on top: app/lab/${slug}/ must import and render the kept section (import ... from "../${keep}")`);
 for (const f of files.filter((f) => f.startsWith(dir)))

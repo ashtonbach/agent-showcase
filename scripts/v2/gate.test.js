@@ -293,6 +293,71 @@ const tests = {
     setupTestWorkspace();
     assert.strictEqual(runGate("custom-abc", "base", "HEAD").exitCode, 1, "custom-<non-digits> is unknown");
   },
+
+  "PASS: break-copy may add messages/es-ES.json with some long keys still in English"() {
+    setupTestWorkspace();
+    const menu = {
+      features: [{ slug: "break-copy" }, { slug: "test-feature" }],
+    };
+    fs.writeFileSync(path.join(testDir, "app", "lab", "menu.json"), JSON.stringify(menu, null, 2));
+    git("add", "app/lab/menu.json");
+    git("commit", "-q", "-m", "menu break-copy");
+    git("branch", "-f", "base");
+    const en = {
+      skip: "Skip to content",
+      "nav.live": "Production workflow",
+      "lab.break-copy.heading": "Meet the agent team",
+      "lab.break-copy.cta": "Meet the team",
+    };
+    fs.mkdirSync(path.join(testDir, "messages"), { recursive: true });
+    fs.writeFileSync(path.join(testDir, "messages/en-US.json"), JSON.stringify(en, null, 2) + "\n");
+    fs.writeFileSync(
+      path.join(testDir, "app", "page.tsx"),
+      'export default function Page() {\n  return (\n    <div>\n      {/* lab:slot */}\n    </div>\n  );\n}\n'
+    );
+    git("add", "messages/en-US.json", "app/page.tsx");
+    git("commit", "-q", "-m", "en base");
+    git("branch", "-f", "base");
+    const es = { ...en, skip: "Saltar al contenido", "nav.live": "Flujo de producción", "lab.break-copy.heading": "Conoced al equipo" };
+    const d = path.join(testDir, "app", "lab", "break-copy");
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(
+      path.join(d, "index.tsx"),
+      'import esES from "../../../messages/es-ES.json";\nexport default function() { return <section data-lab="break-copy">{esES.skip}</section>; }'
+    );
+    fs.writeFileSync(path.join(testDir, "messages/es-ES.json"), JSON.stringify(es, null, 2) + "\n");
+    fs.writeFileSync(
+      path.join(testDir, "app", "page.tsx"),
+      'import Lab from "./lab/break-copy";\nexport default function Page() {\n  return (\n    <div>\n      <Lab /> {/* lab:slot */}\n    </div>\n  );\n}\n'
+    );
+    fs.writeFileSync(path.join(testDir, "app", "lab", "current.json"), '{"slug":"break-copy"}');
+    git("add", ".");
+    git("commit", "-q", "-m", "break-copy partial locale");
+    const result = runGate("break-copy", "base", "HEAD");
+    assert.strictEqual(result.exitCode, 0, "break-copy with partial es-ES should pass allowlist gate: " + result.output);
+  },
+
+  "FAIL: non-locale slug changing messages/"() {
+    setupTestWorkspace();
+    fs.mkdirSync(path.join(testDir, "messages"), { recursive: true });
+    fs.writeFileSync(path.join(testDir, "messages/en-US.json"), '{"skip":"x"}\n');
+    git("add", "messages");
+    git("commit", "-q", "-m", "en");
+    git("branch", "-f", "base");
+    const featureDir = path.join(testDir, "app", "lab", "test-feature");
+    fs.mkdirSync(featureDir, { recursive: true });
+    fs.writeFileSync(path.join(featureDir, "index.tsx"), 'export default function() { return <div>Test</div>; }');
+    fs.writeFileSync(path.join(testDir, "messages/es-ES.json"), '{"skip":"y"}\n');
+    fs.writeFileSync(
+      path.join(testDir, "app", "page.tsx"),
+      'import Lab from "./lab/test-feature";\nexport default function Page() { return <div><Lab /> {/* lab:slot */}</div>; }'
+    );
+    git("add", ".");
+    git("commit", "-q", "-m", "messages on wrong slug");
+    const result = runGate("test-feature", "base", "HEAD");
+    assert.strictEqual(result.exitCode, 1, "test-feature must not touch messages/");
+    assert.match(result.output, /messages\/ may only change/, result.output);
+  },
 };
 
 // Run tests

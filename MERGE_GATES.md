@@ -17,7 +17,7 @@ All pull requests to `main` must pass these required checks before merge:
    - Checks for console errors and layout issues
 
 3. **Copy coverage (>=90% for spanish-translation)** - CI job `copy-coverage`
-   - Only runs for spanish-translation feature
+   - Runs for spanish-translation and the Try-to-break-it `break-copy` slug (custom slugs skip)
    - Requires at least 90% of message keys to be translated
    - Blocks merge if coverage is below threshold
 
@@ -66,6 +66,7 @@ Run the gate tests locally:
 
 ```bash
 node scripts/v2/gate.test.js
+node scripts/v2/copy-coverage.test.js
 ```
 
 This verifies that gate violations are correctly detected and would block merge in CI.

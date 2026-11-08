@@ -173,8 +173,12 @@ jobs:
           IS_FEATURE: ${{ needs.check-if-feature.outputs.is_feature }}
           SLUG: ${{ needs.check-if-feature.outputs.slug }}
         run: |
-          if [ "$IS_FEATURE" != "true" ] || [ "$SLUG" != "spanish-translation" ]; then
-            echo "SKIP copy coverage applies only to spanish-translation (this PR: ${SLUG:-not a feature})"
+          if [ "$IS_FEATURE" != "true" ]; then
+            echo "SKIP copy coverage does not apply (not a feature PR)"
+            exit 0
+          fi
+          if [ "$SLUG" != "spanish-translation" ] && [ "$SLUG" != "break-copy" ]; then
+            echo "SKIP copy coverage applies only to spanish-translation and break-copy (this PR: ${SLUG})"
             exit 0
           fi
           # Load both locale files

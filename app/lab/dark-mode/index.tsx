@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE = "ab-theme";
+const LIGHT_MARK =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 594 420"><path fill="#14201A" d="M424 390 224 18 24 390h200l34-64H102L224 99l121 227h35L424 390z"/><path fill="#2F5A46" d="M447 52h267L447 189c80-70 140-130 200-137H447z"/></svg>',
+  );
 
 const css = `
 html[data-theme="light"]{background:#E8EEE9}
@@ -15,7 +20,6 @@ html[data-theme="light"] .nav-list a::after{background:#2F5A46}
 html[data-theme="light"] .demo-title{color:#14201A}
 html[data-theme="light"] .site-footer{color:#2F5A46;opacity:1}
 html[data-theme="light"] .site-disclaimer{color:#2F5A46}
-html[data-theme="light"] img.brand-mark,html[data-theme="light"] img.footer-mark-img{content:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20594%20420'%3E%3Cpath%20fill%3D'%232F5A46'%20d%3D'M424%20390%20224%2018%2024%20390h200l34-64H102L224%2099l121%20227h35L424%20390z'/%3E%3Cpath%20fill%3D'%2314201A'%20d%3D'M447%2052h267l-200%20137c30-41%2070-91%20120-137H447z'/%3E%3C/svg%3E")}
 html[data-theme="light"] .skip-link:focus{background:#E8EEE9;color:#14201A}
 html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}
 @media (prefers-reduced-motion:reduce){.lab-dm-btn{transition:none}}
@@ -28,10 +32,20 @@ html[data-theme="light"] [data-lab="dark-mode"]{color:#14201A;border-color:rgba(
 html[data-theme="light"] .lab-dm-btn{background:#2F5A46;color:#E8EEE9}
 `;
 
-function applyTheme(dark: boolean) {
+function syncMarks(light: boolean, lightSrc = LIGHT_MARK) {
+  document.querySelectorAll("img.brand-mark, img.footer-mark-img").forEach((node) => {
+    const img = node as HTMLImageElement;
+  const origKey = "abOrigSrc";
+    if (!img.dataset[origKey]) img.dataset[origKey] = img.currentSrc || img.src;
+    img.src = light ? lightSrc : img.dataset[origKey];
+  });
+}
+
+function applyTheme(dark: boolean, lightMark = LIGHT_MARK) {
   const root = document.documentElement;
   if (dark) delete root.dataset.theme;
   else root.dataset.theme = "light";
+  syncMarks(!dark, lightMark);
   try {
     localStorage.setItem(STORAGE, dark ? "dark" : "light");
   } catch {
@@ -50,8 +64,17 @@ export default function DarkModeLab() {
     } catch {
       /* private mode */
     }
-    setDark(isDark);
-    applyTheme(isDark);
+    const hazels = "/lab/dark-mode/mark-light.svg";
+    const img = new Image();
+    img.onload = () => {
+      setDark(isDark);
+      applyTheme(isDark, hazels);
+    };
+    img.onerror = () => {
+      setDark(isDark);
+      applyTheme(isDark);
+    };
+    img.src = hazels;
   }, []);
 
   const toggle = useCallback(() => {

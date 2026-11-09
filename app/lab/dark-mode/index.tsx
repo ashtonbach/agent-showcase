@@ -15,7 +15,7 @@ html[data-theme="light"] .nav-list a::after{background:#2F5A46}
 html[data-theme="light"] .demo-title{color:#14201A}
 html[data-theme="light"] .site-footer{color:#2F5A46;opacity:1}
 html[data-theme="light"] .site-disclaimer{color:#2F5A46}
-html[data-theme="light"] .brand-mark,html[data-theme="light"] .footer-mark-img{filter:brightness(0) saturate(100%) invert(22%) sepia(18%) saturate(900%) hue-rotate(100deg)}
+html[data-theme="light"] img.brand-mark,html[data-theme="light"] img.footer-mark-img{content:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20594%20420'%3E%3Cpath%20fill%3D'%232F5A46'%20d%3D'M424%20390%20224%2018%2024%20390h200l34-64H102L224%2099l121%20227h35L424%20390z'/%3E%3Cpath%20fill%3D'%2314201A'%20d%3D'M447%2052h267l-200%20137c30-41%2070-91%20120-137H447z'/%3E%3C/svg%3E")}
 html[data-theme="light"] .skip-link:focus{background:#E8EEE9;color:#14201A}
 html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}
 @media (prefers-reduced-motion:reduce){.lab-dm-btn{transition:none}}

@@ -1,16 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
   <path
-    d="M14.8 5.2a7.25 7.25 0 1 1-4.2 12.4 6.25 6.25 0 0 0 4.2-12.4z"
-    stroke="#B0CBBC"
+    d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 6.8 6.8 0 1 0 20.5 14.5Z"
+    stroke="currentColor"
     stroke-width="1.5"
     stroke-linejoin="round"
-    stroke-linecap="round"
   />
   <path
-    d="M14 6.8a5.25 5.25 0 0 0 0 8.8"
-    stroke="#D9B45A"
+    d="M17.2 5.8c-2.1 1.2-3.5 3.5-3.5 6.1"
+    stroke="#B0CBBC"
     stroke-width="1.5"
     stroke-linecap="round"
   />
-  <circle cx="17.5" cy="8.5" r="0.75" fill="#F2EFE6" opacity="0.9"/>
 </svg>

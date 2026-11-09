@@ -2,19 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const STORAGE_KEY = "ab-theme";
-const HEADING_ID = "lab-dark-mode-heading";
+const STORAGE = "ab-theme";
+const LIGHT_MARK =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 594 420"><path fill="#14201A" d="M424 390 224 18 24 390h200l34-64H102L224 99l121 227h35L424 390z"/><path fill="#2F5A46" d="M447 52h267L447 189c80-70 140-130 200-137H447z"/></svg>',
+  );
 
-const themeCss = `
-[data-lab="dark-mode"]{width:min(720px,100%);margin:8px auto 56px;padding:0 16px;color:var(--mist,#E8EEE9)}
-[data-lab="dark-mode"] h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.2;margin:0 0 20px;text-align:center}
-.lab-dm-panel{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px;text-align:center}
-.lab-dm-copy{margin:0 0 20px;line-height:1.55;font-size:17px}
-.lab-dm-btn{font-family:var(--sans);font-weight:500;font-size:15px;line-height:1;padding:12px 22px;border:0;border-radius:999px;cursor:pointer;background:var(--sage,#B0CBBC);color:#14201A}
-.lab-dm-btn:focus-visible{outline:2px solid var(--sage,#B0CBBC);outline-offset:3px}
-html[data-theme="light"]{background:#E8EEE9;--forest:#E8EEE9;--mist:#14201A;--sage:#2F5A46;--muted:rgba(20,32,26,.72);--header-line:rgba(47,90,70,.28);--line:rgba(47,90,70,.22)}
+const css = `
+html[data-theme="light"]{background:#E8EEE9}
 html[data-theme="light"] body{color:#14201A}
-html[data-theme="light"] body::before{background:linear-gradient(180deg,#E8EEE9 0%,#DEE5DF 100%)}
+html[data-theme="light"] body::before{background:linear-gradient(180deg,#E8EEE9 0%,#dfe8e2 100%)}
 html[data-theme="light"] .brand{color:#14201A}
 html[data-theme="light"] .nav-list a{color:#2F5A46}
 html[data-theme="light"] .nav-list a:hover,html[data-theme="light"] .nav-list a:focus-visible,html[data-theme="light"] .nav-list a[aria-current="page"]{color:#14201A}
@@ -22,106 +20,81 @@ html[data-theme="light"] .nav-list a::after{background:#2F5A46}
 html[data-theme="light"] .demo-title{color:#14201A}
 html[data-theme="light"] .site-footer{color:#2F5A46;opacity:1}
 html[data-theme="light"] .site-disclaimer{color:#2F5A46}
-html[data-theme="light"] [data-lab="dark-mode"]{color:#14201A}
-html[data-theme="light"] .lab-dm-panel{border-color:rgba(47,90,70,.28)}
-html[data-theme="light"] .lab-dm-btn{background:#2F5A46;color:#E8EEE9}
-html[data-theme="light"] .lab-dm-btn:focus-visible{outline-color:#2F5A46}
-html[data-theme="light"] .footer-mark{opacity:1}
+html[data-theme="light"] .skip-link:focus{background:#E8EEE9;color:#14201A}
 html[data-theme="light"] .site-header.is-scrolled{background:rgba(232,238,233,.97)}
 @media (prefers-reduced-motion:reduce){.lab-dm-btn{transition:none}}
+[data-lab="dark-mode"]{width:min(720px,100%);margin:8px auto 56px;padding:24px;border:1px solid rgba(176,203,188,.28);border-radius:16px;color:var(--mist,#E8EEE9)}
+html[data-theme="light"] [data-lab="dark-mode"]{color:#14201A;border-color:rgba(47,90,70,.28)}
+[data-lab="dark-mode"] h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.2;margin:0 0 16px;color:inherit}
+[data-lab="dark-mode"] .lab-dm-lead{margin:0 0 24px;line-height:1.55;font-size:1rem;opacity:.92}
+.lab-dm-btn{font-family:var(--sans);font-size:15px;font-weight:500;padding:12px 22px;border:0;border-radius:999px;cursor:pointer;background:var(--sage,#B0CBBC);color:#121A16}
+.lab-dm-btn:focus-visible{outline:2px solid var(--sage);outline-offset:3px}
+html[data-theme="light"] .lab-dm-btn{background:#2F5A46;color:#E8EEE9}
 `;
 
-const MARK_FILTER =
-  "brightness(0) saturate(100%) invert(15%) sepia(35%) saturate(1800%) hue-rotate(108deg) brightness(0.55)";
-
-function paintLightMark(img: HTMLImageElement) {
-  if (!img.dataset.abOrig) {
-    img.dataset.abOrig = img.getAttribute("src") || img.src;
-  }
-  const w = img.naturalWidth || img.width;
-  const h = img.naturalHeight || img.height;
-  if (!w || !h) return;
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  const finish = (source: CanvasImageSource) => {
-    ctx.filter = MARK_FILTER;
-    ctx.drawImage(source, 0, 0, w, h);
-    img.src = canvas.toDataURL("image/png");
-  };
-  const orig = img.dataset.abOrig;
-  if ((img.src === orig || img.getAttribute("src") === orig) && img.complete && img.naturalWidth) {
-    finish(img);
-    return;
-  }
-  const probe = new Image();
-  probe.onload = () => finish(probe);
-  probe.src = orig;
-}
-
-function syncBrandMarks(isDark: boolean) {
-  document.querySelectorAll<HTMLImageElement>(".brand-mark, .footer-mark-img").forEach((img) => {
-    const run = () => {
-      if (isDark) {
-        if (img.dataset.abOrig) img.src = img.dataset.abOrig;
-        return;
-      }
-      paintLightMark(img);
-    };
-    if (img.complete && img.naturalWidth > 0) run();
-    else img.addEventListener("load", run, { once: true });
+function syncMarks(light: boolean, lightSrc = LIGHT_MARK) {
+  document.querySelectorAll("img.brand-mark, img.footer-mark-img").forEach((node) => {
+    const img = node as HTMLImageElement;
+  const origKey = "abOrigSrc";
+    if (!img.dataset[origKey]) img.dataset[origKey] = img.currentSrc || img.src;
+    img.src = light ? lightSrc : img.dataset[origKey];
   });
 }
 
-function persistTheme(isDark: boolean) {
+function applyTheme(dark: boolean, lightMark = LIGHT_MARK) {
   const root = document.documentElement;
-  root.dataset.theme = isDark ? "dark" : "light";
+  if (dark) delete root.dataset.theme;
+  else root.dataset.theme = "light";
+  syncMarks(!dark, lightMark);
   try {
-    localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
+    localStorage.setItem(STORAGE, dark ? "dark" : "light");
   } catch {
-    /* storage may be blocked */
+    /* quota */
   }
-  syncBrandMarks(isDark);
 }
 
-export default function DarkModeToggle() {
+export default function DarkModeLab() {
   const [dark, setDark] = useState(true);
 
   useEffect(() => {
     let isDark = true;
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved === "light") isDark = false;
-      else if (saved === "dark") isDark = true;
+      const stored = localStorage.getItem(STORAGE);
+      if (stored === "light") isDark = false;
     } catch {
-      /* ignore */
+      /* private mode */
     }
-    setDark(isDark);
-    persistTheme(isDark);
+    const hazels = "/lab/dark-mode/mark-light.svg";
+    const img = new Image();
+    img.onload = () => {
+      setDark(isDark);
+      applyTheme(isDark, hazels);
+    };
+    img.onerror = () => {
+      setDark(isDark);
+      applyTheme(isDark);
+    };
+    img.src = hazels;
   }, []);
 
   const toggle = useCallback(() => {
-    setDark((prev) => {
-      const next = !prev;
-      persistTheme(next);
+    setDark((was) => {
+      const next = !was;
+      applyTheme(next);
       return next;
     });
   }, []);
 
   return (
-    <section data-lab="dark-mode" aria-labelledby={HEADING_ID}>
-      <h2 id={HEADING_ID}>Dark mode toggle</h2>
-      <div className="lab-dm-panel">
-        <p className="lab-dm-copy">
-          Switch the whole page between the default forest palette and a light mist theme. Your choice stays in this browser after reload.
-        </p>
-        <button type="button" className="lab-dm-btn" aria-pressed={dark} onClick={toggle}>
-          {dark ? "Switch to light mode" : "Switch to dark mode"}
-        </button>
-      </div>
-      <style>{themeCss}</style>
+    <section data-lab="dark-mode" aria-labelledby="lab-dm-title">
+      <style>{css}</style>
+      <h2 id="lab-dm-title">Dark mode toggle</h2>
+      <p className="lab-dm-lead">
+        Switch the whole site between the forest default and a light mist palette. Your choice stays in this browser after reload.
+      </p>
+      <button type="button" className="lab-dm-btn" aria-pressed={dark} onClick={toggle}>
+        {dark ? "Switch to light" : "Switch to dark"}
+      </button>
     </section>
   );
 }

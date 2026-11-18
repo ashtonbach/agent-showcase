@@ -1,10 +1,13 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import enUS from "../../../messages/en-US.json";
 import esES from "../../../messages/es-ES.json";
 
 type Locale = "en-US" | "es-ES";
-const packs: Record<Locale, Record<string, string>> = { "en-US": enUS, "es-ES": esES };
+const packs: Record<Locale, Record<string, string>> = {
+  "en-US": { ...(enUS as Record<string, string>) },
+  "es-ES": { ...(esES as Record<string, string>) },
+};
 
 function applyLocale(loc: Locale) {
   const dict = packs[loc];
@@ -18,11 +21,10 @@ function applyLocale(loc: Locale) {
 export default function SpanishTranslation() {
   const [locale, setLocale] = useState<Locale>("en-US");
   const copy = packs[locale];
-  const choose = useCallback((loc: Locale) => setLocale(loc), []);
-
-  useEffect(() => {
-    applyLocale(locale);
-  }, [locale]);
+  const choose = useCallback((loc: Locale) => {
+    setLocale(loc);
+    applyLocale(loc);
+  }, []);
 
   return (
     <section data-lab="spanish-translation" aria-labelledby="lab-st-heading">
@@ -38,6 +40,7 @@ export default function SpanishTranslation() {
         .lab-st-switch button:first-child { border-radius: 8px 0 0 8px; }
         .lab-st-switch button:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
         .lab-st-switch button[aria-pressed="true"] { background: var(--sage); color: #14201A; border-color: var(--sage); }
+        .lab-st-switch button:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
         @media (prefers-reduced-motion: reduce) { .lab-st-switch button { transition: none; } }
         @media (prefers-reduced-motion: no-preference) { .lab-st-switch button { transition: background-color .15s, color .15s; } }
       `}</style>

@@ -3,7 +3,9 @@
 // unused catalog keys (other demo.* names, lab.spanish-translation.cta, lab.spanish-translation.eyebrow) may stay
 // English in messages/es-ES.json — the Copy coverage gate still fails if too many long keys are left untranslated.
 const fs = require("fs"), path = require("path");
-const MSG = path.join(__dirname, "..", "..", "..", "messages");
+// The check runs from a trusted main checkout, so the PR's own message files come in as data: the kit copies the PR head's messages/*.json
+// into a folder and passes it as PR_MESSAGES_DIR (absolute path). Without it (CI, local runs) this checkout's messages/ is used.
+const MSG = process.env.PR_MESSAGES_DIR && path.isAbsolute(process.env.PR_MESSAGES_DIR) ? process.env.PR_MESSAGES_DIR : path.join(__dirname, "..", "..", "..", "messages");
 const S = 'section[data-lab="break-copy"]';
 const PAGE_TITLE = "demo.break-copy";
 const SPANISH = /[áéíóúñ¿¡]|\b(el|la|los|las|del|que|y|en|un|una|es|para|con|por|su|al|de)\b/i;
@@ -34,7 +36,7 @@ const unusedKey = (k) =>
   k === "lab.spanish-translation.cta" || k === "lab.spanish-translation.eyebrow" || (typeof k === "string" && k.startsWith("demo.") && k !== PAGE_TITLE);
 const label = (it) => (it.inSec ? (it.cta ? "call to action" : it.tag === "h2" ? "heading" : it.tag === "p" ? "paragraph" : it.tag) : "page") + ` [${it.key}]`;
 module.exports = {
-  _test: { settle, read, readNow, segs, unusedKey, S, PAGE_TITLE },
+  _test: { settle, read, readNow, segs, unusedKey, S, PAGE_TITLE, load, MSG },
   async check({ page, ok }) {
     const en = load("en-US.json"), es = load("es-ES.json");
     ok(!!en, "messages/en-US.json present (base text)");

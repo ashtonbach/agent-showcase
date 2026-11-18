@@ -1,8 +1,10 @@
 // Spanish translation (scalable i18n). Base text lives in messages/en-US.json and every visible string is rendered with
 // data-i18n="<key>". The builder adds messages/es-ES.json (Spain Spanish, their own translation, same keys) and a segmented
-// English | Español switch. QA never compares against fixed Spanish copy: it reads both message files from this checkout.
+// English | Español switch. QA never compares against fixed Spanish copy: it reads both message files from the PR (PR_MESSAGES_DIR below).
 const fs = require("fs"), path = require("path");
-const MSG = path.join(__dirname, "..", "..", "..", "messages");
+// The check runs from a trusted main checkout, so the PR's own message files come in as data: the kit copies the PR head's messages/*.json
+// into a folder and passes it as PR_MESSAGES_DIR (absolute path). Without it (CI, local runs) this checkout's messages/ is used.
+const MSG = process.env.PR_MESSAGES_DIR && path.isAbsolute(process.env.PR_MESSAGES_DIR) ? process.env.PR_MESSAGES_DIR : path.join(__dirname, "..", "..", "..", "messages");
 const S = 'section[data-lab="spanish-translation"]';
 const SPANISH = /[áéíóúñ¿¡]|\b(el|la|los|las|del|que|y|en|un|una|es|para|con|por|su|al|de)\b/i;
 const load = (f) => { try { return JSON.parse(fs.readFileSync(path.join(MSG, f), "utf8")); } catch (e) { return null; } };
@@ -32,7 +34,7 @@ const segs = (ok, st, active, tag) => {
 };
 const label = (it) => (it.inSec ? (it.cta ? "call to action" : it.tag === "h2" ? "heading" : it.tag === "p" ? "paragraph" : it.tag) : "page") + ` [${it.key}]`;
 module.exports = {
-  _test: { settle, read, readNow, segs },
+  _test: { settle, read, readNow, segs, load, MSG },
   async check({ page, ok }) {
     const en = load("en-US.json"), es = load("es-ES.json");
     ok(!!en, "messages/en-US.json present (base text)");

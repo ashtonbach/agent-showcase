@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import enUS from "../../../messages/en-US.json";
 import esES from "../../../messages/es-ES.json";
 
@@ -7,20 +7,22 @@ type Locale = "en-US" | "es-ES";
 const packs: Record<Locale, Record<string, string>> = { "en-US": enUS, "es-ES": esES };
 
 function applyLocale(loc: Locale) {
+  const dict = packs[loc];
   document.documentElement.lang = loc;
-  const msg = packs[loc];
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const k = el.getAttribute("data-i18n");
-    if (k && k in msg) el.textContent = msg[k];
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    const key = node.getAttribute("data-i18n");
+    if (key && dict[key]) node.textContent = dict[key];
   });
 }
 
 export default function SpanishTranslation() {
   const [locale, setLocale] = useState<Locale>("en-US");
-  const choose = useCallback((loc: Locale) => {
-    setLocale(loc);
-    applyLocale(loc);
-  }, []);
+  const copy = packs[locale];
+  const choose = useCallback((loc: Locale) => setLocale(loc), []);
+
+  useEffect(() => {
+    applyLocale(locale);
+  }, [locale]);
 
   return (
     <section data-lab="spanish-translation" aria-labelledby="lab-st-heading">
@@ -41,25 +43,15 @@ export default function SpanishTranslation() {
       `}</style>
       <div className="lab-st-wrap">
         <h2 id="lab-st-heading" data-i18n="lab.spanish-translation.heading">
-          {enUS["lab.spanish-translation.heading"]}
+          {copy["lab.spanish-translation.heading"]}
         </h2>
-        <p data-i18n="lab.spanish-translation.p1">{enUS["lab.spanish-translation.p1"]}</p>
-        <p data-i18n="lab.spanish-translation.p2">{enUS["lab.spanish-translation.p2"]}</p>
+        <p data-i18n="lab.spanish-translation.p1">{copy["lab.spanish-translation.p1"]}</p>
+        <p data-i18n="lab.spanish-translation.p2">{copy["lab.spanish-translation.p2"]}</p>
         <div className="lab-st-switch" role="group" aria-label="Language">
-          <button
-            type="button"
-            data-locale="en-US"
-            aria-pressed={locale === "en-US"}
-            onClick={() => choose("en-US")}
-          >
+          <button type="button" data-locale="en-US" aria-pressed={locale === "en-US"} onClick={() => choose("en-US")}>
             English
           </button>
-          <button
-            type="button"
-            data-locale="es-ES"
-            aria-pressed={locale === "es-ES"}
-            onClick={() => choose("es-ES")}
-          >
+          <button type="button" data-locale="es-ES" aria-pressed={locale === "es-ES"} onClick={() => choose("es-ES")}>
             Español
           </button>
         </div>

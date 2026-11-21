@@ -1,129 +1,135 @@
 "use client";
-
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 
 const QUOTES = [
-  { text: "The forest mist palette made our launch page feel calm without looking sleepy.", name: "Mira Holt", role: "Product lead", avatar: 0 },
-  { text: "Review gates caught layout issues before anyone on the team opened a laptop.", name: "Jonah Reed", role: "Design ops", avatar: 1 },
-  { text: "Shipping from an isolated branch kept the live demo steady while we iterated.", name: "Sela Cho", role: "Engineering", avatar: 2 },
-] as const;
+  {
+    text: "The forest-mist palette made our product feel calm without looking dull.",
+    name: "Mira Chen",
+    role: "Product lead",
+    src: "/lab/testimonial-card/avatar-0.svg",
+  },
+  {
+    text: "We shipped the rebrand in a week; the type and spacing system just worked.",
+    name: "Jonah Ellis",
+    role: "Design director",
+    src: "/lab/testimonial-card/avatar-1.svg",
+  },
+  {
+    text: "Clients keep mentioning how readable the site is on phones and desktops.",
+    name: "Sage Ortiz",
+    role: "Studio partner",
+    src: "/lab/testimonial-card/avatar-2.svg",
+  },
+];
 
-function Avatar({ index }: { index: number }) {
-  const src = `/lab/testimonial-card/avatar-${index}.svg`;
+function Avatar({ src, alt }: { src: string; alt: string }) {
   const [ok, setOk] = useState(true);
-  const ref = useRef<HTMLImageElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   useEffect(() => {
-    const img = ref.current;
-    if (!img || !ok) return;
-    if (img.complete && img.naturalWidth === 0) setOk(false);
-  }, [ok, index]);
+    const img = imgRef.current;
+    if (img?.complete && img.naturalWidth === 0) setOk(false);
+  }, [src]);
   if (!ok) {
-    return <span data-art="fallback" aria-hidden="true" className="lab-tc-av-fb" />;
+    return (
+      <span
+        data-art="fallback"
+        aria-hidden="true"
+        className="lab-avatar-fallback"
+      />
+    );
   }
   return (
     <img
-      ref={ref}
+      ref={imgRef}
       data-art="image"
+      className="lab-avatar"
       src={src}
       width={48}
       height={48}
-      alt=""
+      alt={alt}
       onError={() => setOk(false)}
     />
   );
 }
 
-export default function TestimonialCardLab() {
-  const titleId = `${useId().replace(/:/g, "")}-title`;
-  const [active, setActive] = useState(0);
-  const [hovered, setHovered] = useState(false);
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+export default function TestimonialCard() {
+  const titleId = useId();
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const q = QUOTES[index];
 
-  const clearTimer = useCallback(() => {
-    if (timer.current) {
-      clearInterval(timer.current);
-      timer.current = null;
-    }
-  }, []);
-
-  const startTimer = useCallback(() => {
-    clearTimer();
-    timer.current = setInterval(() => {
-      setActive((i) => (i + 1) % QUOTES.length);
-    }, 3000);
-  }, [clearTimer]);
-
-  const pick = useCallback(
-    (i: number) => {
-      setActive(i);
-      startTimer();
-    },
-    [startTimer],
-  );
+  const pick = useCallback((i: number) => setIndex(i), []);
 
   useEffect(() => {
-    if (hovered) {
-      clearTimer();
-      return;
-    }
-    startTimer();
-    return clearTimer;
-  }, [hovered, startTimer, clearTimer]);
+    if (paused) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    const t = window.setInterval(
+      () => setIndex((i) => (i + 1) % QUOTES.length),
+      3000
+    );
+    return () => window.clearInterval(t);
+  }, [paused, index]);
 
-  const q = QUOTES[active];
+  const onDotKey = (i: number) => (e: KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "Enter") pick(i);
+  };
 
   return (
     <section
       data-lab="testimonial-card"
       aria-labelledby={titleId}
-      className="lab-tc"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="lab-testimonial"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
     >
-      <style>{`
-        .lab-tc { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #F2EFE6); font-family: var(--sans, system-ui, sans-serif); }
-        .lab-tc h2 { font-family: var(--serif, Georgia, serif); font-weight: 400; font-size: 30px; line-height: 1.2; margin: 0 0 24px; color: var(--mist, #F2EFE6); }
-        .lab-tc-card { border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; padding: 24px; margin: 0; background: rgba(18, 26, 22, 0.35); }
-        .lab-tc-card blockquote { margin: 0 0 20px; font-size: 18px; line-height: 1.55; color: #E8EEE9; }
-        .lab-tc-card figcaption { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .lab-tc-card img, .lab-tc-av-fb { width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; }
-        .lab-tc-av-fb { display: block; background: rgba(176, 203, 188, 0.2); }
-        .lab-tc-card strong { font-weight: 600; font-size: 16px; }
-        .lab-tc-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-        .lab-tc-card .label { font-family: var(--sans, system-ui, sans-serif); font-weight: 500; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sage, #B0CBBC); }
-        .lab-dots { display: flex; justify-content: center; gap: 10px; margin: 20px 0 0; padding: 0; list-style: none; }
-        .lab-dots button { width: 12px; height: 12px; padding: 0; border: 1px solid rgba(176, 203, 188, 0.5); border-radius: 50%; background: transparent; cursor: pointer; }
-        .lab-dots button[aria-current="true"] { background: var(--sage, #B0CBBC); border-color: var(--sage, #B0CBBC); }
-        .lab-dots button:focus-visible { outline: 2px solid var(--sage, #B0CBBC); outline-offset: 3px; }
-        .lab-note { margin: 28px 0 0; font-size: 14px; line-height: 1.4; color: rgba(242, 239, 230, 0.75); }
-        @media (prefers-reduced-motion: reduce) { .lab-tc-card blockquote { transition: none; } }
-      `}</style>
       <h2 id={titleId}>What people say</h2>
-      <figure className="lab-tc-card">
-        <blockquote data-index={active}>{q.text}</blockquote>
+      <figure className="lab-card">
+        <blockquote data-index={index}>{q.text}</blockquote>
         <figcaption>
-          <Avatar index={q.avatar} />
-          <div className="lab-tc-meta">
-            <strong>{q.name}</strong>
-            <span className="label">{q.role}</span>
-          </div>
+          <Avatar src={q.src} alt="" />
+          <strong>{q.name}</strong>
+          <span className="label">{q.role}</span>
         </figcaption>
       </figure>
-      <div className="lab-dots" role="group" aria-label="Choose quote">
+      <div className="lab-dots">
         {QUOTES.map((_, i) => (
           <button
             key={i}
             type="button"
             aria-label={`Show quote ${i + 1}`}
-            aria-current={i === active ? "true" : undefined}
+            aria-current={i === index ? "true" : undefined}
             onClick={() => pick(i)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") pick(i);
-            }}
+            onKeyDown={onDotKey(i)}
           />
         ))}
       </div>
-      <p className="lab-note">Example data: these quotes and people are invented.</p>
+      <p className="lab-note">
+        Example data: these quotes and people are invented.
+      </p>
+      <style>{`
+        .lab-testimonial { width: min(720px, 100%); margin: 8px auto 56px; color: var(--mist, #f2efe6); }
+        .lab-testimonial h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; margin: 0 0 20px; }
+        .lab-card { margin: 0; padding: 24px; border: 1px solid rgba(176, 203, 188, 0.28); border-radius: 16px; }
+        .lab-card blockquote { margin: 0 0 20px; font-size: 18px; line-height: 1.5; }
+        .lab-card figcaption { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .lab-avatar, .lab-avatar-fallback { width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; }
+        .lab-avatar-fallback { background: rgba(176, 203, 188, 0.25); display: block; }
+        .lab-card .label { font-family: var(--sans); font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; color: var(--sage, #b0cbbc); }
+        .lab-dots { display: flex; gap: 10px; justify-content: center; margin: 16px 0 0; }
+        .lab-dots button { width: 10px; height: 10px; padding: 0; border-radius: 50%; border: 1px solid rgba(176, 203, 188, 0.5); background: transparent; cursor: pointer; }
+        .lab-dots button[aria-current="true"] { background: var(--sage, #b0cbbc); }
+        .lab-dots button:focus-visible { outline: 2px solid var(--sage, #b0cbbc); outline-offset: 3px; }
+        .lab-note { margin: 20px 0 0; font-size: 14px; color: #e8eee9; }
+        @media (prefers-reduced-motion: reduce) { .lab-card blockquote { transition: none; } }
+      `}</style>
     </section>
   );
 }

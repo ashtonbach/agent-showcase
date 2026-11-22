@@ -2,7 +2,6 @@
 
 import {
   useCallback,
-  useEffect,
   useId,
   useRef,
   useState,
@@ -11,175 +10,95 @@ import {
 
 const STEPS = [
   {
-    title: "Design the slice",
-    body: "Hazel shapes the Forest Mist layout and any artwork for the feature slot while the run is live on the demo viewer.",
+    title: "Hazel shapes the design",
+    body: "Hazel defines layout, typography, and Forest Mist styling so each lab section matches the demo site.",
   },
   {
-    title: "Write the lab",
-    body: "Alder implements the spec in app/lab, wires the page slot, and ships through the kit gate on the run branch.",
+    title: "Alder builds and ships",
+    body: "Alder writes the lab component on a feature branch, runs the self-check and gate, then pushes for review.",
   },
   {
-    title: "Review and verify",
-    body: "Rowan reviews the change for accessibility and rules; Cedar exercises the preview before the operator merges.",
+    title: "Rowan and Cedar close the loop",
+    body: "Rowan reviews the pull request; Cedar validates behavior on the preview. The kit merges when checks pass.",
   },
-] as const;
+];
 
-export default function Tabs() {
-  const baseId = useId().replace(/:/g, "");
-  const titleId = `${baseId}-title`;
-  const [active, setActive] = useState(0);
-  const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
+const css = `
+[data-lab="tabs"]{width:min(720px,100%);margin:8px auto 56px;color:var(--mist,#f2efe6)}
+[data-lab="tabs"] h2{margin:0 0 20px;font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.2}
+.lab-tabs-card{border:1px solid rgba(176,203,188,.28);border-radius:16px;padding:24px}
+.lab-tabs-list{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px;padding:0}
+.lab-tabs-tab{font-family:var(--sans);font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;padding:10px 14px;border:1px solid rgba(176,203,188,.28);border-radius:8px;background:transparent;color:var(--mist,#f2efe6);cursor:pointer}
+.lab-tabs-tab[aria-selected=true]{background:var(--sage,#b0cbb8);color:#121a16;border-color:var(--sage,#b0cbb8)}
+.lab-tabs-tab:focus-visible{outline:2px solid var(--sage,#b0cbb8);outline-offset:2px}
+.lab-tabs-panel h3{margin:0 0 10px;font-family:var(--serif);font-weight:400;font-size:22px;line-height:1.25}
+.lab-tabs-panel p{margin:0;font-family:var(--sans);font-size:16px;line-height:1.55;color:#e8eee9}
+@media (prefers-reduced-motion:reduce){.lab-tabs-tab{transition:none}}
+`;
+
+export default function TabsLab() {
+  const base = useId();
+  const [selected, setSelected] = useState(0);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const tabId = (i: number) => `${base}-tab-${i}`;
+  const panelId = (i: number) => `${base}-panel-${i}`;
 
   const select = useCallback((index: number) => {
-    setActive(index);
+    setSelected(index);
+    tabRefs.current[index]?.focus();
   }, []);
 
-  useEffect(() => {
-    tabsRef.current[active]?.focus();
-  }, [active]);
-
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
-    event.preventDefault();
-    const delta = event.key === "ArrowRight" ? 1 : -1;
-    const next = (active + delta + STEPS.length) % STEPS.length;
-    select(next);
+  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      select((index + 1) % STEPS.length);
+    } else if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      select((index - 1 + STEPS.length) % STEPS.length);
+    }
   };
 
   return (
-    <section data-lab="tabs" aria-labelledby={titleId}>
-      <h2 id={titleId} className="lab-heading">
-        How this showcase run works
-      </h2>
-      <div className="lab-card">
-        <div
-          role="tablist"
-          aria-label="Showcase team steps"
-          className="lab-tablist"
-          onKeyDown={onKeyDown}
-        >
-          {STEPS.map((step, index) => {
-            const tabId = `${baseId}-tab-${index}`;
-            const panelId = `${baseId}-panel-${index}`;
-            const selected = index === active;
-            return (
-              <button
-                key={tabId}
-                ref={(el) => {
-                  tabsRef.current[index] = el;
-                }}
-                type="button"
-                role="tab"
-                id={tabId}
-                className="lab-tab"
-                aria-selected={selected}
-                aria-controls={panelId}
-                tabIndex={selected ? 0 : -1}
-                onClick={() => select(index)}
-              >
-                <span className="lab-tab-label">Step {index + 1}</span>
-                <span className="lab-tab-title">{step.title}</span>
-              </button>
-            );
-          })}
-        </div>
-        {STEPS.map((step, index) => {
-          const tabId = `${baseId}-tab-${index}`;
-          const panelId = `${baseId}-panel-${index}`;
-          const selected = index === active;
-          return (
-            <div
-              key={panelId}
-              role="tabpanel"
-              id={panelId}
-              className="lab-panel"
-              aria-labelledby={tabId}
-              hidden={!selected}
+    <section data-lab="tabs" aria-labelledby={`${base}-heading`}>
+      <style>{css}</style>
+      <h2 id={`${base}-heading`}>How the showcase team works</h2>
+      <div className="lab-tabs-card">
+        <div role="tablist" aria-label="Showcase workflow steps" className="lab-tabs-list">
+          {STEPS.map((step, index) => (
+            <button
+              key={tabId(index)}
+              ref={(el) => {
+                tabRefs.current[index] = el;
+              }}
+              type="button"
+              role="tab"
+              id={tabId(index)}
+              aria-selected={selected === index}
+              aria-controls={panelId(index)}
+              tabIndex={selected === index ? 0 : -1}
+              className="lab-tabs-tab"
+              onClick={() => setSelected(index)}
+              onKeyDown={(event) => onKeyDown(event, index)}
             >
-              <p className="lab-panel-lead">{step.title}</p>
-              <p className="lab-panel-body">{step.body}</p>
-            </div>
-          );
-        })}
+              {step.title.split(" ")[0]}
+            </button>
+          ))}
+        </div>
+        {STEPS.map((step, index) => (
+          <div
+            key={panelId(index)}
+            role="tabpanel"
+            id={panelId(index)}
+            aria-labelledby={tabId(index)}
+            hidden={selected !== index}
+            className="lab-tabs-panel"
+          >
+            <h3>{step.title}</h3>
+            <p>{step.body}</p>
+          </div>
+        ))}
       </div>
-      <style>{`
-        [data-lab="tabs"] {
-          width: min(720px, 100%);
-          margin: 8px auto 56px;
-          color: var(--mist, #e8eee9);
-        }
-        [data-lab="tabs"] .lab-heading {
-          font-family: var(--serif, Georgia, serif);
-          font-weight: 400;
-          font-size: 30px;
-          line-height: 1.2;
-          margin: 0 0 20px;
-          color: var(--mist, #f2efe6);
-        }
-        [data-lab="tabs"] .lab-card {
-          border: 1px solid rgba(176, 203, 188, 0.28);
-          border-radius: 16px;
-          padding: 24px;
-        }
-        [data-lab="tabs"] .lab-tablist {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-bottom: 20px;
-        }
-        [data-lab="tabs"] .lab-tab {
-          flex: 1 1 120px;
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 4px;
-          padding: 12px 14px;
-          border-radius: 12px;
-          border: 1px solid rgba(176, 203, 188, 0.28);
-          background: transparent;
-          color: var(--mist, #e8eee9);
-          cursor: pointer;
-          text-align: left;
-        }
-        [data-lab="tabs"] .lab-tab[aria-selected="true"] {
-          border-color: var(--sage, #b0cbb7);
-          background: rgba(176, 203, 188, 0.12);
-        }
-        [data-lab="tabs"] .lab-tab:focus-visible {
-          outline: 2px solid var(--sage, #b0cbb7);
-          outline-offset: 2px;
-        }
-        [data-lab="tabs"] .lab-tab-label {
-          font-family: var(--sans, system-ui, sans-serif);
-          font-weight: 500;
-          font-size: 11px;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          color: var(--sage, #b0cbb7);
-        }
-        [data-lab="tabs"] .lab-tab-title {
-          font-family: var(--sans, system-ui, sans-serif);
-          font-size: 14px;
-          line-height: 1.35;
-        }
-        [data-lab="tabs"] .lab-panel-lead {
-          font-family: var(--serif, Georgia, serif);
-          font-size: 20px;
-          margin: 0 0 8px;
-          color: var(--mist, #f2efe6);
-        }
-        [data-lab="tabs"] .lab-panel-body {
-          margin: 0;
-          line-height: 1.55;
-          font-size: 15px;
-        }
-        @media (prefers-reduced-motion: no-preference) {
-          [data-lab="tabs"] .lab-tab {
-            transition: background 0.2s ease, border-color 0.2s ease;
-          }
-        }
-      `}</style>
     </section>
   );
 }
